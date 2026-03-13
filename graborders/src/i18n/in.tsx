@@ -503,7 +503,7 @@ const In = {
         invalidQuantity: "कृपया एक वैध मात्रा दर्ज करें।",
         invalidPrice: "कृपया एक वैध मूल्य दर्ज करें।",
         invalidAmount: "कृपया एक वैध राशि दर्ज करें।",
-        insufficientUSDT: "अपर्याप्त यूएसडीटी शेष। उपलब्ध: {0} यूएसडीटी",
+        insufficientUSD: "अपर्याप्त यूएसडीटी शेष। उपलब्ध: {0} यूएसडीटी",
         insufficientCoin: "अपर्याप्त {1} शेष। उपलब्ध: {0} {1}",
         failedOrder: "आदेश रखने में विफल। कृपया पुनः प्रयास करें।",
         createError: "ट्रेड निर्माण त्रुटि",
@@ -723,9 +723,9 @@ const In = {
         customerChatFunction: "सिस्टम अपडेट - वास्तविक समय ग्राहक चैट फ़ंक्शन",
         ethNetworkUpgrade: "ईटीएच नेटवर्क अपग्रेड घोषणा",
         delistingCurrencies: "मुद्राओं के डीलिस्टिंग की घोषणा",
-        dotUsdtLaunch: "डीओटी/यूएसडीटी ट्रेडिंग लॉन्च घोषणा",
-        decUsdtLaunch: "डीईसी/यूएसडीटी ट्रेडिंग लॉन्च घोषणा",
-        usdtIntroduction: "यूएसडीटी परिचय",
+        dotUSDLaunch: "डीओटी/यूएसडीटी ट्रेडिंग लॉन्च घोषणा",
+        decUSDLaunch: "डीईसी/यूएसडीटी ट्रेडिंग लॉन्च घोषणा",
+        USDIntroduction: "यूएसडीटी परिचय",
         ethereumNetworkMaintenance: "एथेरियम नेटवर्क रखरखाव सूचना",
         projectReviewStandards: "बाइनेक्स परियोजना समीक्षा मानक",
         liquidityMiningUpgrade: "लिक्विडिटी माइनिंग अपग्रेड",
@@ -747,7 +747,7 @@ const In = {
       currencies: {
         btc: "बीटीसी (बिटकॉइन)",
         eth: "ईटीएच (एथेरियम)",
-        usdt: "यूएसडीटी (टेदर)",
+        USD: "यूएसडीटी (टेदर)",
         sol: "एसओएल (सोलाना)",
         xrp: "एक्सआरपी (रिपल)"
       },
@@ -773,7 +773,7 @@ const In = {
       currencies: {
         btc: "बीटीसी (बिटकॉइन)",
         eth: "ईटीएच (एथेरियम)",
-        usdt: "यूएसडीटी (टेदर)",
+        USD: "यूएसडीटी (टेदर)",
         sol: "एसओएल (सोलाना)",
         xrp: "एक्सआरपी (रिपल)"
       }
@@ -2149,7 +2149,7 @@ common: {
 
     enumerators: {
       status: {
-        USDT: "USDT",
+        USD: "USD",
         ETH: "ETH",
         BTC: "BTC",
       },

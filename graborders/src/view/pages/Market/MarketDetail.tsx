@@ -1,415 +1,338 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useHistory, useParams } from "react-router-dom";
-import axios from "axios";
 import FuturesChart from "../Futures/FuturesChart";
-
 import { i18n } from "../../../i18n";
 import CoinSelectorSidebar from "src/view/shared/modals/CoinSelectorSidebar";
 
-// Interface for Binance trade data
-interface BinanceTrade {
-  e: string;
-  E: number;
-  s: string;
-  t: number;
-  p: string;
-  q: string;
-  T: number;
-  m: boolean;
+// ----------------------------------------------------------------------
+// Types
+// ----------------------------------------------------------------------
+interface ForexTrade {
+  id: string;
+  price: number;
+  quantity: number;
+  time: number;
+  side: 'buy' | 'sell';
 }
 
-// Interface for Binance ticker data
-interface BinanceTicker {
-  e: string;
-  E: number;
-  s: string;
-  c: string;
-  o: string;
-  h: string;
-  l: string;
-  v: string;
-  q: string;
-  P: string;
-}
-
-// Interface for Binance order book data
-interface BinanceOrderBook {
+interface ForexOrderBook {
+  bids: [number, number][];
+  asks: [number, number][];
   lastUpdateId: number;
-  bids: [string, string][];
-  asks: [string, string][];
 }
 
-// Coin list interface
 interface Coin {
   symbol: string;
   name: string;
+  baseCurrency: string;
+  quoteCurrency: string;
 }
 
+// Grouped market stats for atomic updates (reduces renders)
+interface MarketStats {
+  price: number | null;
+  changePercent: number | null;
+  high: number | null;
+  low: number | null;
+  volume: number | null;
+  quoteVolume: number | null;
+}
+
+// ----------------------------------------------------------------------
+// Helper: map currency to country code for flag (ISO 3166-1 alpha-2)
+// ----------------------------------------------------------------------
+const currencyToCountry: Record<string, string> = {
+  EUR: 'eu', USD: 'us', GBP: 'gb', JPY: 'jp', AUD: 'au', CAD: 'ca',
+  CHF: 'ch', NZD: 'nz', MXN: 'mx', TRY: 'tr', ZAR: 'za', SGD: 'sg',
+  HKD: 'hk', KRW: 'kr', INR: 'in',
+};
+
+// ----------------------------------------------------------------------
+// Main Component
+// ----------------------------------------------------------------------
 function MarketDetail() {
   const history = useHistory();
   const { id } = useParams<{ id: string }>();
 
-  const [marketPrice, setMarketPrice] = useState<string | null>(null);
-  const [priceChangePercent, setPriceChangePercent] = useState<string | null>(null);
-  const [highPrice, setHighPrice] = useState<string | null>(null);
-  const [lowPrice, setLowPrice] = useState<string | null>(null);
-  const [volume, setVolume] = useState<string | null>(null);
-  const [quoteVolume, setQuoteVolume] = useState<string | null>(null);
-  const [recentTrades, setRecentTrades] = useState<BinanceTrade[]>([]);
-  const [orderBook, setOrderBook] = useState<BinanceOrderBook | null>(null);
-  const [selectedCoin, setSelectedCoin] = useState(id || "BTCUSDT");
+  // Grouped stats – single object to batch updates
+  const [marketStats, setMarketStats] = useState<MarketStats>({
+    price: null,
+    changePercent: null,
+    high: null,
+    low: null,
+    volume: null,
+    quoteVolume: null,
+  });
+
+  const [recentTrades, setRecentTrades] = useState<ForexTrade[]>([]);
+  const [orderBook, setOrderBook] = useState<ForexOrderBook | null>(null);
+  const [selectedCoin, setSelectedCoin] = useState(id || "EURUSD");
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'orderBook' | 'transactions'>('orderBook');
   const [showCoinSelector, setShowCoinSelector] = useState(false);
 
-  const tradeWs = useRef<WebSocket | null>(null);
-  const tickerWs = useRef<WebSocket | null>(null);
-  const depthWs = useRef<WebSocket | null>(null);
+  // Refs for intervals and current coin
+  const updateInterval = useRef<NodeJS.Timeout | null>(null);
   const currentCoinRef = useRef<string>(selectedCoin);
-  const reconnectTimeouts = useRef<{ [key: string]: NodeJS.Timeout }>({});
-  const dataFetchController = useRef<AbortController | null>(null);
+  const isComponentMounted = useRef(true);
 
-  // Available coins
-  const availableCoins = [
-    { symbol: "BTCUSDT", name: "BTC / USDT" },
-    { symbol: "ETHUSDT", name: "ETH / USDT" },
-    { symbol: "DOTUSDT", name: "DOT / USDT" },
-    { symbol: "XRPUSDT", name: "XRP / USDT" },
-    { symbol: "LINKUSDT", name: "LINK / USDT" },
-    { symbol: "BCHUSDT", name: "BCH / USDT" },
-    { symbol: "LTCUSDT", name: "LTC / USDT" },
-    { symbol: "ADAUSDT", name: "ADA / USDT" },
-    { symbol: "EOSUSDT", name: "EOS / USDT" },
-    { symbol: "TRXUSDT", name: "TRX / USDT" },
-    { symbol: "DASHUSDT", name: "DASH / USDT" },
-    { symbol: "FILUSDT", name: "FIL / USDT" },
-    { symbol: "YFIUSDT", name: "YFI / USDT" },
-    { symbol: "ZECUSDT", name: "ZEC / USDT" },
-    { symbol: "DOGEUSDT", name: "DOGE / USDT" }
+  // ----------------------------------------------------------------------
+  // Available forex pairs (same as before)
+  // ----------------------------------------------------------------------
+  const availableCoins: Coin[] = [
+    { symbol: "EURUSD", name: "EUR / USD", baseCurrency: "EUR", quoteCurrency: "USD" },
+    { symbol: "GBPUSD", name: "GBP / USD", baseCurrency: "GBP", quoteCurrency: "USD" },
+    { symbol: "USDJPY", name: "USD / JPY", baseCurrency: "USD", quoteCurrency: "JPY" },
+    { symbol: "AUDUSD", name: "AUD / USD", baseCurrency: "AUD", quoteCurrency: "USD" },
+    { symbol: "USDCAD", name: "USD / CAD", baseCurrency: "USD", quoteCurrency: "CAD" },
+    { symbol: "USDCHF", name: "USD / CHF", baseCurrency: "USD", quoteCurrency: "CHF" },
+    { symbol: "NZDUSD", name: "NZD / USD", baseCurrency: "NZD", quoteCurrency: "USD" },
+    { symbol: "EURGBP", name: "EUR / GBP", baseCurrency: "EUR", quoteCurrency: "GBP" },
+    { symbol: "EURJPY", name: "EUR / JPY", baseCurrency: "EUR", quoteCurrency: "JPY" },
+    { symbol: "GBPJPY", name: "GBP / JPY", baseCurrency: "GBP", quoteCurrency: "JPY" },
+    { symbol: "AUDJPY", name: "AUD / JPY", baseCurrency: "AUD", quoteCurrency: "JPY" },
+    { symbol: "EURAUD", name: "EUR / AUD", baseCurrency: "EUR", quoteCurrency: "AUD" },
+    { symbol: "GBPAUD", name: "GBP / AUD", baseCurrency: "GBP", quoteCurrency: "AUD" },
+    { symbol: "USDMXN", name: "USD / MXN", baseCurrency: "USD", quoteCurrency: "MXN" },
+    { symbol: "USDRY", name: "USD / TRY", baseCurrency: "USD", quoteCurrency: "TRY" },
+    { symbol: "USDZAR", name: "USD / ZAR", baseCurrency: "USD", quoteCurrency: "ZAR" },
+    { symbol: "USDSGD", name: "USD / SGD", baseCurrency: "USD", quoteCurrency: "SGD" },
+    { symbol: "USDHKD", name: "USD / HKD", baseCurrency: "USD", quoteCurrency: "HKD" },
+    { symbol: "USDKRW", name: "USD / KRW", baseCurrency: "USD", quoteCurrency: "KRW" },
+    { symbol: "USDINR", name: "USD / INR", baseCurrency: "USD", quoteCurrency: "INR" },
   ];
 
-  // Format number with commas and fixed decimals
-  const formatNumber = useCallback((num: string, decimals: number = 4) => {
-    const number = Number(num);
-    if (isNaN(number)) return "0.0000";
-    return number.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    });
+  // ----------------------------------------------------------------------
+  // Base prices (same as FuturesChart)
+  // ----------------------------------------------------------------------
+  const getBasePrice = useCallback((symbol: string): number => {
+    const basePrices: Record<string, number> = {
+      EURUSD: 1.0850, GBPUSD: 1.2650, USDJPY: 148.50, AUDUSD: 0.6550,
+      USDCAD: 1.3550, USDCHF: 0.8750, NZDUSD: 0.6050, EURGBP: 0.8570,
+      EURJPY: 161.20, GBPJPY: 188.30, AUDJPY: 97.20, EURAUD: 1.6550,
+      GBPAUD: 1.9300, USDMXN: 17.20, USDRY: 30.50, USDZAR: 18.90,
+      USDSGD: 1.3450, USDHKD: 7.8200, USDKRW: 1330.00, USDINR: 83.20,
+    };
+    return basePrices[symbol] || 1.0;
   }, []);
 
-  // Format volume in billions/millions
-  const formatVolume = useCallback((vol: string) => {
-    const volumeNum = Number(vol);
-    if (isNaN(volumeNum)) return "0.00";
-    if (volumeNum >= 1000000000) {
-      return (volumeNum / 1000000000).toFixed(2) + i18n("pages.marketDetail.volume.billion");
-    } else if (volumeNum >= 1000000) {
-      return (volumeNum / 1000000).toFixed(2) + i18n("pages.marketDetail.volume.million");
-    } else if (volumeNum >= 1000) {
-      return (volumeNum / 1000).toFixed(2) + "K";
-    } else {
-      return volumeNum.toFixed(2);
+  // ----------------------------------------------------------------------
+  // Decimal places (forex convention)
+  // ----------------------------------------------------------------------
+  const getDecimalPlaces = useCallback((symbol: string): number => {
+    if (symbol.includes("JPY") && !symbol.startsWith("JPY")) return 3;
+    return 5;
+  }, []);
+
+  const formatNumber = useCallback((num: number, symbol?: string): string => {
+    if (num === null || isNaN(num)) return "0.00000";
+    const decimals = symbol ? getDecimalPlaces(symbol) : 5;
+    return num.toFixed(decimals);
+  }, [getDecimalPlaces]);
+
+  const formatVolume = useCallback((vol: number): string => {
+    if (vol === null || isNaN(vol)) return "0.00";
+    if (vol >= 1000000) return (vol / 1000000).toFixed(2) + "M";
+    if (vol >= 1000) return (vol / 1000).toFixed(2) + "K";
+    return vol.toFixed(2);
+  }, []);
+
+  // ----------------------------------------------------------------------
+  // Random walk – use same volatility as chart's 1m (0.01% per tick)
+  // ----------------------------------------------------------------------
+  const randomWalk = useCallback((current: number): number => {
+    const volatility = 0.0001; // 0.01% – matches FuturesChart 1m
+    const change = (Math.random() * 2 - 1) * volatility;
+    return current * (1 + change);
+  }, []);
+
+  // ----------------------------------------------------------------------
+  // Generate order book mock data
+  // ----------------------------------------------------------------------
+  const generateOrderBook = useCallback((price: number, symbol: string): ForexOrderBook => {
+    const decimals = getDecimalPlaces(symbol);
+    const spread = price * 0.0002; // 0.02% spread
+    const bids: [number, number][] = [];
+    const asks: [number, number][] = [];
+
+    for (let i = 0; i < 10; i++) {
+      const bidPrice = price - spread * (i + 1) * (0.5 + Math.random() * 0.5);
+      const askPrice = price + spread * (i + 1) * (0.5 + Math.random() * 0.5);
+      const quantity = Math.random() * 1000000 + 500000;
+      bids.push([Number(bidPrice.toFixed(decimals)), Number(quantity.toFixed(2))]);
+      asks.push([Number(askPrice.toFixed(decimals)), Number(quantity.toFixed(2))]);
     }
-  }, []);
+    bids.sort((a, b) => b[0] - a[0]);
+    asks.sort((a, b) => a[0] - b[0]);
 
-  // Close all WebSocket connections immediately
-  const closeAllWebSockets = useCallback(() => {
-    // Clear all reconnection timeouts
-    Object.values(reconnectTimeouts.current).forEach(timeout => {
-      if (timeout) clearTimeout(timeout);
-    });
-    reconnectTimeouts.current = {};
+    return { lastUpdateId: Date.now(), bids, asks };
+  }, [getDecimalPlaces]);
 
-    // Close WebSockets
-    [tradeWs, tickerWs, depthWs].forEach(wsRef => {
-      if (wsRef.current) {
-        try {
-          wsRef.current.onclose = null; // Remove onclose handler to prevent reconnection
-          wsRef.current.close();
-        } catch (error) {
-          console.warn(i18n("pages.marketDetail.websocketCloseError"), error);
-        }
-        wsRef.current = null;
-      }
-    });
-  }, []);
-
-  // Cancel ongoing API requests
-  const cancelPendingRequests = useCallback(() => {
-    if (dataFetchController.current) {
-      dataFetchController.current.abort();
-      dataFetchController.current = null;
+  // ----------------------------------------------------------------------
+  // Generate recent trades
+  // ----------------------------------------------------------------------
+  const generateTrades = useCallback((price: number, symbol: string, count: number = 10): ForexTrade[] => {
+    const trades: ForexTrade[] = [];
+    const decimals = getDecimalPlaces(symbol);
+    const now = Date.now();
+    for (let i = 0; i < count; i++) {
+      const side = Math.random() > 0.5 ? 'buy' : 'sell';
+      const variation = (Math.random() * 2 - 1) * 0.0001 * price;
+      const tradePrice = price + variation;
+      const quantity = Math.random() * 100000 + 50000;
+      trades.push({
+        id: `${now - i * 1000}-${i}`,
+        price: Number(tradePrice.toFixed(decimals)),
+        quantity: Number(quantity.toFixed(2)),
+        time: now - i * 1000,
+        side,
+      });
     }
-  }, []);
+    return trades.sort((a, b) => b.time - a.time);
+  }, [getDecimalPlaces]);
 
-  // Reset all data when coin changes
-  const resetData = useCallback(() => {
-    setMarketPrice(null);
-    setPriceChangePercent(null);
-    setHighPrice(null);
-    setLowPrice(null);
-    setVolume(null);
-    setQuoteVolume(null);
-    setRecentTrades([]);
-    setOrderBook(null);
-  }, []);
+  // ----------------------------------------------------------------------
+  // Update all market data in a single batch
+  // ----------------------------------------------------------------------
+  const updateMarketData = useCallback((symbol: string) => {
+    setMarketStats(prev => {
+      const basePrice = prev.price ?? getBasePrice(symbol);
+      const newPrice = randomWalk(basePrice);
+      const changePercent = ((newPrice - basePrice) / basePrice) * 100;
 
-  // Update selected coin when URL param changes
+      // Approximate 24h high/low using a simple multiplier
+      const high = Math.max(newPrice * 1.002, basePrice * 1.002);
+      const low = Math.min(newPrice * 0.998, basePrice * 0.998);
+      const volume = 1000000 + Math.random() * 500000;
+      const quoteVolume = newPrice * volume;
+
+      // Update order book and trades (separate state, but that's fine)
+      setOrderBook(generateOrderBook(newPrice, symbol));
+      setRecentTrades(generateTrades(newPrice, symbol, 10));
+
+      return {
+        price: newPrice,
+        changePercent,
+        high,
+        low,
+        volume,
+        quoteVolume,
+      };
+    });
+  }, [randomWalk, generateOrderBook, generateTrades, getBasePrice]);
+
+  // ----------------------------------------------------------------------
+  // Initialize data for a symbol
+  // ----------------------------------------------------------------------
+  const initializeData = useCallback((symbol: string) => {
+    const basePrice = getBasePrice(symbol);
+    setMarketStats({
+      price: basePrice,
+      changePercent: 0,
+      high: basePrice * 1.002,
+      low: basePrice * 0.998,
+      volume: 1000000,
+      quoteVolume: basePrice * 1000000,
+    });
+    setOrderBook(generateOrderBook(basePrice, symbol));
+    setRecentTrades(generateTrades(basePrice, symbol, 10));
+    setIsLoading(false);
+  }, [getBasePrice, generateOrderBook, generateTrades]);
+
+  // ----------------------------------------------------------------------
+  // Handle coin change from URL
+  // ----------------------------------------------------------------------
   useEffect(() => {
     if (id && id !== selectedCoin) {
-      console.log("Coin changing from", selectedCoin, "to", id);
-      
-      // Cancel pending requests and close WebSockets first
-      cancelPendingRequests();
-      closeAllWebSockets();
-      resetData();
-      
-      // Update coin reference immediately
-      currentCoinRef.current = id;
       setSelectedCoin(id);
-    }
-  }, [id, selectedCoin, closeAllWebSockets, resetData, cancelPendingRequests]);
-
-  // Optimized data fetching with timeout
-  const fetchInitialData = useCallback(async (coin: string) => {
-    if (!coin) return;
-    
-    // Cancel any existing requests
-    cancelPendingRequests();
-    
-    // Create new abort controller for this request
-    dataFetchController.current = new AbortController();
-    const signal = dataFetchController.current.signal;
-
-    try {
+      currentCoinRef.current = id;
       setIsLoading(true);
-      
-      // Set timeout for API calls (5 seconds)
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error(i18n("common.timeout"))), 5000);
-      });
-
-      const fetchPromise = Promise.all([
-        axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbol=${coin}`, { signal }),
-        axios.get(`https://api.binance.com/api/v3/trades?symbol=${coin}&limit=10`, { signal }),
-        axios.get(`https://api.binance.com/api/v3/depth?symbol=${coin}&limit=10`, { signal })
-      ]);
-
-      const [tickerResponse, tradesResponse, orderBookResponse] = await Promise.race([fetchPromise, timeoutPromise]);
-      
-      // Only set data if we're still on the same coin
-      if (currentCoinRef.current === coin) {
-        const tickerData = tickerResponse.data;
-        setMarketPrice(tickerData.lastPrice || tickerData.c);
-        setPriceChangePercent(tickerData.priceChangePercent || tickerData.P);
-        setHighPrice(tickerData.highPrice || tickerData.h);
-        setLowPrice(tickerData.lowPrice || tickerData.l);
-        setVolume(tickerData.volume || tickerData.v);
-        setQuoteVolume(tickerData.quoteVolume || tickerData.q);
-        
-        // Set initial trades
-        setRecentTrades(tradesResponse.data.slice(0, 5));
-        
-        // Set initial order book
-        setOrderBook(orderBookResponse.data);
-        
-        setIsLoading(false);
-        console.log(i18n("pages.marketDetail.initialDataLoaded"), coin);
-      }
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        console.log(i18n("common.requestAborted"), coin);
-        return;
-      }
-      console.error(i18n("pages.marketDetail.fetchError"), coin, ":", error);
-      if (currentCoinRef.current === coin) {
-        setIsLoading(false);
-        // Set fallback data to prevent empty state
-        setMarketPrice("0.0000");
-        setPriceChangePercent("0.00");
-        setHighPrice("0.0000");
-        setLowPrice("0.0000");
-        setVolume("0.00");
-        setQuoteVolume("0.00");
-      }
+      initializeData(id);
     }
-  }, [cancelPendingRequests]);
+  }, [id, selectedCoin, initializeData]);
 
-  // Single optimized WebSocket management effect
+  // ----------------------------------------------------------------------
+  // Main effect: set up data and interval updates (now every 1 second)
+  // ----------------------------------------------------------------------
   useEffect(() => {
     const coin = selectedCoin;
     if (!coin) return;
 
-    console.log(i18n("pages.marketDetail.setupWebsockets"), coin);
+    isComponentMounted.current = true;
     currentCoinRef.current = coin;
 
-    // Fetch initial data immediately
-    fetchInitialData(coin);
+    initializeData(coin);
 
-    let isComponentMounted = true;
-
-    const setupWebSocket = (url: string, onMessage: (data: any) => void, type: string) => {
-      if (!isComponentMounted || currentCoinRef.current !== coin) return null;
-
-      try {
-        const ws = new WebSocket(url);
-        
-        ws.onopen = () => {
-          console.log(i18n("pages.marketDetail.websocketConnected"), type, coin);
-        };
-
-        ws.onmessage = (event: MessageEvent) => {
-          if (!isComponentMounted || currentCoinRef.current !== coin) return;
-          
-          try {
-            const data = JSON.parse(event.data);
-            onMessage(data);
-          } catch (error) {
-            console.error(i18n("pages.marketDetail.websocketParseError"), type, error);
-          }
-        };
-
-        ws.onclose = (event) => {
-          console.log(i18n("pages.marketDetail.websocketClosed"), type, coin, i18n("pages.marketDetail.code"), event.code);
-          
-          if (isComponentMounted && currentCoinRef.current === coin) {
-            // Only reconnect if it wasn't a normal closure
-            if (event.code !== 1000) {
-              reconnectTimeouts.current[type] = setTimeout(() => {
-                if (isComponentMounted && currentCoinRef.current === coin) {
-                  console.log(i18n("pages.marketDetail.reconnecting"), type, coin);
-                  const newWs = setupWebSocket(url, onMessage, type);
-                  if (type === 'ticker' && newWs) tickerWs.current = newWs;
-                  else if (type === 'trade' && newWs) tradeWs.current = newWs;
-                  else if (type === 'depth' && newWs) depthWs.current = newWs;
-                }
-              }, 1000);
-            }
-          }
-        };
-
-        ws.onerror = (error) => {
-          console.error(i18n("pages.marketDetail.websocketError"), coin, type, error);
-        };
-
-        return ws;
-      } catch (error) {
-        console.error(i18n("pages.marketDetail.websocketCreateError"), type, error);
-        return null;
+    if (updateInterval.current) clearInterval(updateInterval.current);
+    updateInterval.current = setInterval(() => {
+      if (isComponentMounted.current && currentCoinRef.current === coin) {
+        updateMarketData(coin);
       }
-    };
-
-    // Setup ticker WebSocket
-    const tickerUrl = `wss://stream.binance.com:9443/ws/${coin.toLowerCase()}@ticker`;
-    tickerWs.current = setupWebSocket(tickerUrl, (tickerData: BinanceTicker) => {
-      setMarketPrice(tickerData.c);
-      setPriceChangePercent(tickerData.P);
-      setHighPrice(tickerData.h);
-      setLowPrice(tickerData.l);
-      setVolume(tickerData.v);
-      setQuoteVolume(tickerData.q);
-    }, 'ticker');
-
-    // Setup trade WebSocket
-    const tradeUrl = `wss://stream.binance.com:9443/ws/${coin.toLowerCase()}@trade`;
-    tradeWs.current = setupWebSocket(tradeUrl, (tradeData: BinanceTrade) => {
-      setRecentTrades((prevTrades) => {
-        const newTrades = [tradeData, ...prevTrades.slice(0, 9)];
-        return newTrades;
-      });
-    }, 'trade');
-
-    // Setup depth WebSocket
-    const depthUrl = `wss://stream.binance.com:9443/ws/${coin.toLowerCase()}@depth`;
-    depthWs.current = setupWebSocket(depthUrl, (depthData: any) => {
-      setOrderBook(prev => {
-        if (!prev) return prev;
-        return {
-          lastUpdateId: depthData.u,
-          bids: depthData.b && depthData.b.length > 0 ? depthData.b : prev.bids,
-          asks: depthData.a && depthData.a.length > 0 ? depthData.a : prev.asks
-        };
-      });
-    }, 'depth');
+    }, 1000); // ⬅️ now 1 second to match chart ticks
 
     return () => {
-      console.log(i18n("pages.marketDetail.cleaningUp"), coin);
-      isComponentMounted = false;
-      
-      // Clear all reconnection timeouts
-      Object.values(reconnectTimeouts.current).forEach(timeout => {
-        if (timeout) clearTimeout(timeout);
-      });
-      reconnectTimeouts.current = {};
-      
-      // Close WebSockets
-      closeAllWebSockets();
+      isComponentMounted.current = false;
+      if (updateInterval.current) {
+        clearInterval(updateInterval.current);
+        updateInterval.current = null;
+      }
     };
-  }, [selectedCoin, fetchInitialData, closeAllWebSockets]);
+  }, [selectedCoin, initializeData, updateMarketData]);
 
-  const goBack = useCallback(() => {
-    history.goBack();
-  }, [history]);
+  // ----------------------------------------------------------------------
+  // Handlers
+  // ----------------------------------------------------------------------
+  const goBack = useCallback(() => history.goBack(), [history]);
 
   const handleCoinSelect = (coinSymbol: string) => {
     if (coinSymbol === selectedCoin) {
       setShowCoinSelector(false);
       return;
     }
-    
-    console.log(i18n("pages.marketDetail.selectingCoin"), coinSymbol);
-    // Navigate to the new coin's detail page
     history.push(`/market/detail/${coinSymbol}`);
   };
 
-  const toggleCoinSelector = () => {
-    setShowCoinSelector(!showCoinSelector);
-  };
+  const toggleCoinSelector = () => setShowCoinSelector(prev => !prev);
 
-  // Get current coin name for display
-  const currentCoinName = useMemo(() => {
-    const coin = availableCoins.find(c => c.symbol === selectedCoin);
-    return coin ? coin.name : `${selectedCoin.replace("USDT", "")} / USDT`;
+  // Derive current coin object
+  const currentCoin = useMemo(() => {
+    return availableCoins.find(c => c.symbol === selectedCoin) || {
+      symbol: selectedCoin,
+      name: selectedCoin.replace(/(.{3})(.{3})/, "$1 / $2"),
+      baseCurrency: selectedCoin.slice(0, 3),
+      quoteCurrency: selectedCoin.slice(3),
+    };
   }, [selectedCoin]);
 
+  // ----------------------------------------------------------------------
   // Loading placeholder component
-  const LoadingPlaceholder = useCallback(({ width = "100%", height = "1em" }: { width?: string, height?: string }) => (
-    <div 
-      className="loading-placeholder" 
-      style={{ width, height }}
-    />
+  // ----------------------------------------------------------------------
+  const LoadingPlaceholder = useCallback(({ width = "100%", height = "1em" }: { width?: string; height?: string }) => (
+    <div className="loading-placeholder" style={{ width, height }} />
   ), []);
 
+  // ----------------------------------------------------------------------
   // Memoized order book data with heat map intensities
+  // ----------------------------------------------------------------------
   const orderBookData = useMemo(() => {
-    if (!orderBook || !orderBook.bids || !orderBook.asks) {
+    if (!orderBook || !orderBook.bids.length || !orderBook.asks.length) {
       return { buySide: [], sellSide: [] };
     }
 
-    const calculateIntensity = (orders: [string, string][]) => {
-      if (!orders || orders.length === 0) return [];
-      
-      const quantities = orders.map(order => Number(order[1])).filter(q => !isNaN(q));
-      if (quantities.length === 0) return [];
-      
-      const maxQuantity = Math.max(...quantities);
-      const minQuantity = Math.min(...quantities);
-      
-      return orders.slice(0, 10).map((order) => {
-        const quantity = Number(order[1]);
-        let intensity = 0;
-        
-        if (maxQuantity > minQuantity) {
-          intensity = ((quantity - minQuantity) / (maxQuantity - minQuantity)) * 100;
-        }
-        
-        intensity = Math.max(intensity, 10); // Minimum intensity for visibility
-        
+    const calculateIntensity = (orders: [number, number][]) => {
+      if (!orders.length) return [];
+      const quantities = orders.map(o => o[1]);
+      const maxQty = Math.max(...quantities);
+      const minQty = Math.min(...quantities);
+
+      return orders.slice(0, 10).map(order => {
+        const qty = order[1];
+        let intensity = maxQty > minQty ? ((qty - minQty) / (maxQty - minQty)) * 100 : 0;
+        intensity = Math.max(intensity, 10);
         return {
-          amount: formatVolume(order[1]),
-          price: formatNumber(order[0]),
-          intensity: Math.min(intensity, 95)
+          amount: formatVolume(qty),
+          price: formatNumber(order[0], selectedCoin),
+          intensity: Math.min(intensity, 95),
         };
       });
     };
@@ -417,27 +340,18 @@ function MarketDetail() {
     const buySide = calculateIntensity(orderBook.bids);
     const sellSide = calculateIntensity(orderBook.asks);
 
-    // Ensure we have at least some data to display
-    if (buySide.length === 0) {
-      // Create mock data as fallback
-      const basePrice = marketPrice ? Number(marketPrice) : 1.0;
-      for (let i = 0; i < 10; i++) {
-        buySide.push({
-          amount: "0.00",
-          price: (basePrice * (1 - (i + 1) * 0.001)).toFixed(4),
-          intensity: 20 + i * 5
-        });
-        sellSide.push({
-          amount: "0.00", 
-          price: (basePrice * (1 + (i + 1) * 0.001)).toFixed(4),
-          intensity: 20 + i * 5
-        });
-      }
-    }
+    while (buySide.length < 10) buySide.push({ amount: "0.00", price: "0.00000", intensity: 10 });
+    while (sellSide.length < 10) sellSide.push({ amount: "0.00", price: "0.00000", intensity: 10 });
 
     return { buySide, sellSide };
-  }, [orderBook, marketPrice, formatNumber, formatVolume]);
+  }, [orderBook, selectedCoin, formatNumber, formatVolume]);
 
+  // Destructure marketStats for easier use in JSX
+  const { price, changePercent, high, low, volume, quoteVolume } = marketStats;
+
+  // ----------------------------------------------------------------------
+  // Render (identical JSX, only reading from grouped stats)
+  // ----------------------------------------------------------------------
   return (
     <div className="market-detail-container">
       {/* Header Section */}
@@ -447,7 +361,19 @@ function MarketDetail() {
             <i className="fas fa-arrow-left"></i>
           </div>
           <div className="trading-pair" onClick={toggleCoinSelector}>
-            {currentCoinName}
+            <div className="pair-flag">
+              <img
+                src={`https://flagcdn.com/w40/${currencyToCountry[currentCoin.baseCurrency] || currentCoin.baseCurrency.toLowerCase()}.png`}
+                alt={currentCoin.baseCurrency}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) parent.innerText = currentCoin.baseCurrency;
+                }}
+              />
+            </div>
+            {currentCoin.name}
             <i className={`fas fa-chevron-down dropdown-arrow ${showCoinSelector ? 'rotate' : ''}`}></i>
           </div>
           <div className="header-icon" onClick={toggleCoinSelector}>
@@ -456,13 +382,13 @@ function MarketDetail() {
         </div>
       </div>
 
-      {/* Use the reusable CoinSelectorSidebar component */}
+      {/* Coin Selector Sidebar */}
       <CoinSelectorSidebar
         isOpen={showCoinSelector}
         onClose={() => setShowCoinSelector(false)}
         selectedCoin={selectedCoin}
         onCoinSelect={handleCoinSelect}
-        availableCoins={availableCoins}
+        availableCoins={availableCoins.map(c => ({ symbol: c.symbol, name: c.name }))}
         title={i18n("pages.marketDetail.coinSelector.title")}
       />
 
@@ -471,11 +397,9 @@ function MarketDetail() {
         <div className="price-main-row">
           <div className="price-left-section">
             <div className="current-price">
-              {marketPrice !== null ? (
-                <span style={{ 
-                  color: priceChangePercent && parseFloat(priceChangePercent) < 0 ? '#f56c6c' : '#37b66a' 
-                }}>
-                  {formatNumber(marketPrice)}
+              {price !== null ? (
+                <span style={{ color: changePercent !== null && changePercent < 0 ? '#f56c6c' : '#37b66a' }}>
+                  {formatNumber(price, selectedCoin)}
                 </span>
               ) : (
                 <LoadingPlaceholder width="120px" height="28px" />
@@ -483,31 +407,31 @@ function MarketDetail() {
             </div>
             <div className="price-info-row">
               <div className="usd-price">
-                {marketPrice !== null ? `$${Number(marketPrice).toFixed(2)}` : '$0.00'}
+                {price !== null ? `$${price.toFixed(2)}` : '$0.00'}
               </div>
               <div className="price-change" style={{
-                color: priceChangePercent && parseFloat(priceChangePercent) < 0 ? '#f56c6c' : '#37b66a'
+                color: changePercent !== null && changePercent < 0 ? '#f56c6c' : '#37b66a'
               }}>
-                {priceChangePercent !== null ? (
-                  `${parseFloat(priceChangePercent) < 0 ? '−' : '+'}${Math.abs(parseFloat(priceChangePercent)).toFixed(2)}%`
+                {changePercent !== null ? (
+                  `${changePercent < 0 ? '−' : '+'}${Math.abs(changePercent).toFixed(2)}%`
                 ) : (
                   <LoadingPlaceholder width="60px" height="16px" />
                 )}
               </div>
             </div>
           </div>
-          
+
           <div className="stats-grid">
             <div className="stat-row">
               <div className="stat-item">
                 <div className="stat-label">{i18n("pages.marketDetail.stats.high")}</div>
                 <div className="stat-value">
-                  {highPrice !== null ? formatNumber(highPrice) : <LoadingPlaceholder width="60px" height="12px" />}
+                  {high !== null ? formatNumber(high, selectedCoin) : <LoadingPlaceholder width="60px" height="12px" />}
                 </div>
               </div>
               <div className="stat-item">
                 <div className="stat-label">
-                  {i18n("pages.marketDetail.stats.volume")}({selectedCoin.replace("USDT", "")})
+                  {i18n("pages.marketDetail.stats.volume")}({currentCoin.baseCurrency})
                 </div>
                 <div className="stat-value">
                   {volume !== null ? formatVolume(volume) : <LoadingPlaceholder width="60px" height="12px" />}
@@ -518,12 +442,12 @@ function MarketDetail() {
               <div className="stat-item">
                 <div className="stat-label">{i18n("pages.marketDetail.stats.low")}</div>
                 <div className="stat-value">
-                  {lowPrice !== null ? formatNumber(lowPrice) : <LoadingPlaceholder width="60px" height="12px" />}
+                  {low !== null ? formatNumber(low, selectedCoin) : <LoadingPlaceholder width="60px" height="12px" />}
                 </div>
               </div>
               <div className="stat-item">
                 <div className="stat-label">
-                  {i18n("pages.marketDetail.stats.volume")}(USDT)
+                  {i18n("pages.marketDetail.stats.volume")}({currentCoin.quoteCurrency})
                 </div>
                 <div className="stat-value">
                   {quoteVolume !== null ? formatVolume(quoteVolume) : <LoadingPlaceholder width="60px" height="12px" />}
@@ -539,16 +463,16 @@ function MarketDetail() {
         <FuturesChart key={selectedCoin} symbol={selectedCoin} />
       </div>
 
-      {/* Tabs Section */}
+      {/* Tabs Section (unchanged) */}
       <div className="tabs-section">
         <div className="tabs-header">
-          <div 
+          <div
             className={`tab ${activeTab === 'orderBook' ? 'active' : ''}`}
             onClick={() => setActiveTab('orderBook')}
           >
             {i18n("pages.marketDetail.tabs.orderBook")}
           </div>
-          <div 
+          <div
             className={`tab ${activeTab === 'transactions' ? 'active' : ''}`}
             onClick={() => setActiveTab('transactions')}
           >
@@ -570,7 +494,7 @@ function MarketDetail() {
                   <div className="sell-section">
                     <div className="column-header">{i18n("pages.marketDetail.orderBook.price")}</div>
                     <div className="column-header">{i18n("pages.marketDetail.orderBook.quantity")}</div>
-                    <div className="column-header" style={{textAlign:'right'}}>
+                    <div className="column-header" style={{ textAlign: 'right' }}>
                       {i18n("pages.marketDetail.orderBook.sell")}
                     </div>
                   </div>
@@ -578,26 +502,20 @@ function MarketDetail() {
 
                 <div className="table-body">
                   {orderBookData.buySide.map((buyOrder, index) => {
-                    const sellOrder = orderBookData.sellSide[index] || { amount: '0.00', price: '0.0000', intensity: 20 };
+                    const sellOrder = orderBookData.sellSide[index] || { amount: '0.00', price: '0.00000', intensity: 10 };
                     return (
                       <div key={index} className="table-row">
                         <div className="buy-section">
                           <div className="cell buy-cell">{index + 1}</div>
                           <div className="cell quantity">{buyOrder.amount}</div>
                           <div className="cell price-cell">
-                            <div 
-                              className="heatmap-bar buy-heatmap"
-                              style={{ width: `${buyOrder.intensity}%` }}
-                            ></div>
+                            <div className="heatmap-bar buy-heatmap" style={{ width: `${buyOrder.intensity}%` }}></div>
                             <span className="price-value buy-price">{buyOrder.price}</span>
                           </div>
                         </div>
                         <div className="sell-section">
                           <div className="cell price-cell">
-                            <div 
-                              className="heatmap-bar sell-heatmap"
-                              style={{ width: `${sellOrder.intensity}%` }}
-                            ></div>
+                            <div className="heatmap-bar sell-heatmap" style={{ width: `${sellOrder.intensity}%` }}></div>
                             <span className="price-value sell-price">{sellOrder.price}</span>
                           </div>
                           <div className="cell quantity">{sellOrder.amount}</div>
@@ -621,29 +539,23 @@ function MarketDetail() {
               </div>
               <div className="transactions-list">
                 {recentTrades.length > 0 ? (
-                  recentTrades.slice(0, 10).map((trade, index) => (
-                    <div key={`${trade.t}-${trade.T}-${index}`} className="transaction-item">
+                  recentTrades.slice(0, 10).map((trade) => (
+                    <div key={trade.id} className="transaction-item">
                       <div className="transaction-time">
-                        {new Date(trade.T).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        {new Date(trade.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </div>
-                      <div className={`transaction-price ${trade.m ? 'sell' : 'buy'}`}>
-                        {formatNumber(trade.p)}
+                      <div className={`transaction-price ${trade.side === 'buy' ? 'buy' : 'sell'}`}>
+                        {formatNumber(trade.price, selectedCoin)}
                       </div>
-                      <div className="transaction-amount">{Number(trade.q).toFixed(4)}</div>
+                      <div className="transaction-amount">{formatVolume(trade.quantity)}</div>
                     </div>
                   ))
                 ) : (
                   Array.from({ length: 5 }).map((_, index) => (
                     <div key={index} className="transaction-item">
-                      <div className="transaction-time">
-                        <LoadingPlaceholder width="50px" height="14px" />
-                      </div>
-                      <div className="transaction-price">
-                        <LoadingPlaceholder width="60px" height="14px" />
-                      </div>
-                      <div className="transaction-amount">
-                        <LoadingPlaceholder width="50px" height="14px" />
-                      </div>
+                      <div className="transaction-time"><LoadingPlaceholder width="50px" height="14px" /></div>
+                      <div className="transaction-price"><LoadingPlaceholder width="60px" height="14px" /></div>
+                      <div className="transaction-amount"><LoadingPlaceholder width="50px" height="14px" /></div>
                     </div>
                   ))
                 )}
@@ -652,6 +564,7 @@ function MarketDetail() {
           )}
         </div>
       </div>
+
 
       <style>{`
         /* Market Detail Container – matches login/profile containers */
@@ -696,6 +609,21 @@ function MarketDetail() {
         }
         .trading-pair:hover {
           color: #39FF14;
+        }
+        .pair-flag {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          overflow: hidden;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background-color: #2a2a2a;
+        }
+        .pair-flag img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
         .dropdown-arrow {
           font-size: 14px;

@@ -11,7 +11,7 @@ const FILTER_OPTIONS = [
   { key: "news", coin: 0, label: "All" },
   { key: "bitcoin", coin: 1, label: "Bitcoin" },
   { key: "ethereum", coin: 1027, label: "Ethereum" },
-  { key: "Usdt", coin: 825, label: "Usdt" },
+  { key: "USD", coin: 825, label: "USD" },
   { key: "BNB", coin: 1839, label: "BNB" },
   { key: "Solona", coin: 5426, label: "Solona" },
   { key: "USDC", coin: 3408, label: "USDC" },

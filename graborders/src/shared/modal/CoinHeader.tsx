@@ -27,7 +27,7 @@ function CoinHeader() {
   const [highPrice, setHighPrice] = useState<string | null>(null);
   const [lowPrice, setLowPrice] = useState<string | null>(null);
   const [volume, setVolume] = useState<string | null>(null);
-  const [selectedCoin, setSelectedCoin] = useState(id || "BTCUSDT");
+  const [selectedCoin, setSelectedCoin] = useState(id || "BTCUSD");
   const [isLoading, setIsLoading] = useState(true);
 
   const tickerWs = useRef<WebSocket | null>(null);
@@ -164,7 +164,7 @@ function CoinHeader() {
             <div className="market-icon">
               <img
                 src={`https://images.weserv.nl/?url=https://bin.bnbstatic.com/static/assets/logos/${
-                  selectedCoin.split("USDT")[0]
+                  selectedCoin.split("USD")[0]
                 }.png`}
                 style={{ width: 30, height: 30 }}
                 alt={selectedCoin}
@@ -211,7 +211,7 @@ function CoinHeader() {
           <span>
             24h Vol:{" "}
             {volume !== null ? (
-              `${formatVolume(volume)} ${selectedCoin.replace("USDT", "")}`
+              `${formatVolume(volume)} ${selectedCoin.replace("USD", "")}`
             ) : (
               <LoadingPlaceholder width="80px" height="12px" />
             )}

@@ -188,7 +188,7 @@ function History() {
 
   return (
     <div className="history-container">
-      {/* Header Section - Matching About Page */}
+      {/* Header Section - Matching Profile Page */}
       <div className="header">
         <div className="nav-bar">
           <Link to="/wallets" className="back-arrow">
@@ -198,7 +198,7 @@ function History() {
         </div>
       </div>
 
-      {/* Content Card - Matching About Page */}
+      {/* Content Card - Matching Profile Page */}
       <div className="content-card">
         <div className="history-content">
           {/* Loading State */}
@@ -243,18 +243,7 @@ function History() {
                 >
                   {i18n("pages.history.filters.losses")}
                 </button>
-                <button
-                  className={`filter-option ${typeFilter === "conversions" ? "active" : ""}`}
-                  onClick={() => setTypeFilter("conversions")}
-                >
-                  {i18n("pages.history.filters.conversions")}
-                </button>
-                <button
-                  className={`filter-option ${typeFilter === "stacking" ? "active" : ""}`}
-                  onClick={() => setTypeFilter("stacking")}
-                >
-                  {i18n("pages.history.filters.stacking")}
-                </button>
+             
               </div>
 
               {/* Transaction List */}
@@ -291,7 +280,7 @@ function History() {
                             style={{ color: amountColor }}
                           >
                             {transaction.direction === 'in' ? '+' : '-'}
-                            {transaction.amount.toFixed(5)} {transaction.asset}
+                            {transaction.amount.toFixed(0)} {transaction.asset}
                           </div>
                           <div
                             className={`transaction-status status-${transaction.status}`}
@@ -315,75 +304,168 @@ function History() {
       </div>
 
       <style>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
-
-        body {
-          background-color: #f5f7fa;
-          color: #333;
-          line-height: 1.6;
-          overflow-x: hidden;
-        }
-
+        /* History Container – matches Profile container */
         .history-container {
-          max-width: 400px;
+          max-width: 430px;
           margin: 0 auto;
-          position: relative;
           min-height: 100vh;
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
+          background-color: #000000;
+          border-top: 2px solid #39FF14;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          color: #ffffff;
         }
 
-        /* Header Section - Matching Profile Page */
+        /* Header / Navigation */
         .header {
-          min-height: 60px;
-          position: relative;
-          padding: 15px 20px;
+          padding: 16px 20px;
+          border-bottom: 1px solid #2a2a2a;
+        }
+        .nav-bar {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .back-arrow {
+          color: #ffffff;
+          font-size: 20px;
+          text-decoration: none;
+        }
+        .back-arrow:hover {
+          color: #39FF14;
+        }
+        .page-title {
+          font-size: 18px;
+          font-weight: 500;
+          color: #ffffff;
         }
 
-        .nav-bar {
+        /* Content Card */
+        .content-card {
+          flex: 1;
+          background-color: #1c1c1c;
+          border-top-left-radius: 24px;
+          border-top-right-radius: 24px;
+          padding: 20px 16px;
+          border-top: 2px solid #39FF14;
+        }
+
+        /* Filter Options */
+        .filter-options {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+        .filter-option {
+          background-color: #2a2a2a;
+          border: 1px solid #3a3a3a;
+          border-radius: 20px;
+          padding: 6px 14px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #bbbbbb;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .filter-option.active {
+          background-color: #39FF14;
+          border-color: #39FF14;
+          color: #000000;
+        }
+        .filter-option:hover {
+          border-color: #39FF14;
+        }
+
+        /* Transaction List */
+        .transaction-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .transaction-item {
+          background-color: #2a2a2a;
+          border-radius: 12px;
+          padding: 12px;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          border: 1px solid #3a3a3a;
+          transition: border-color 0.2s;
         }
-
-        .back-arrow {
-          color: white;
-          font-size: 20px;
-          font-weight: 300;
-          text-decoration: none;
-          transition: opacity 0.3s ease;
+        .transaction-item:hover {
+          border-color: #39FF14;
         }
-
-        .back-arrow:hover {
-          opacity: 0.8;
+        .transaction-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
         }
-
-        .page-title {
-          color: white;
-          font-size: 17px;
+        .transaction-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #ffffff;
+          font-size: 18px;
+          flex-shrink: 0;
+        }
+        .transaction-details {
+          display: flex;
+          flex-direction: column;
+        }
+        .transaction-type {
           font-weight: 600;
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
+          font-size: 15px;
+          color: #ffffff;
+        }
+        .transaction-date {
+          font-size: 12px;
+          color: #777777;
+          margin-top: 2px;
+        }
+        .transaction-amount {
+          text-align: right;
+        }
+        .amount {
+          font-weight: 600;
+          font-size: 15px;
+          white-space: nowrap;
+        }
+        .transaction-status {
+          font-size: 11px;
+          margin-top: 2px;
+          font-weight: 500;
+        }
+        .status-pending {
+          color: #ffaa00;
+        }
+        .status-success {
+          color: #39FF14;
+        }
+        .status-failed {
+          color: #ff6b6b;
         }
 
-        /* Content Card - Matching Profile Page */
-        .content-card {
-          background: white;
-          border-radius: 40px 40px 0 0;
-          padding: 30px 20px 100px;
-          box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
-          min-height: calc(100vh - 60px);
+        /* No data message */
+        .no-data-message {
+          text-align: center;
+          padding: 40px 20px;
+          color: #777777;
+        }
+        .no-data-message i {
+          font-size: 48px;
+          margin-bottom: 16px;
+          color: #39FF14;
+        }
+        .no-data-message p {
+          font-size: 16px;
         }
 
-        .history-content {
-          width: 100%;
-        }
-
+        /* Loading container */
         .loading-container {
           display: flex;
           justify-content: center;
@@ -391,210 +473,29 @@ function History() {
           min-height: 200px;
         }
 
-        /* Filter Options */
-        .filter-options {
-          display: flex;
-          gap: 8px;
-          overflow-x: auto;
-          padding: 0 0 20px 0;
-          margin-bottom: 20px;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-        }
-
-        .filter-options::-webkit-scrollbar {
-          display: none;
-        }
-
-        .filter-option {
-          padding: 8px 16px;
-          border-radius: 20px;
-          border: 1px solid #e7eaee;
-          background-color: #f8f9fa;
-          color: #555;
-          font-size: 13px;
-          font-weight: 500;
-          white-space: nowrap;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .filter-option.active {
-          background-color: #106cf5;
-          color: #fff;
-          border-color: #106cf5;
-        }
-
-        /* Transaction List */
-        .transaction-list {
+        /* Minimal spacing */
+        .history-content {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 16px;
         }
-
-        .transaction-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 15px;
-          background-color: #f8f9fa;
-          border-radius: 12px;
-          border: 1px solid #e7eaee;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .transaction-item:hover {
-          background-color: #f0f2f5;
-          transform: translateY(-2px);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .transaction-info {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .transaction-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          font-size: 16px;
-          color: #FFF;
-        }
-
-        .transaction-details {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .transaction-type {
-          font-weight: 600;
-          margin-bottom: 4px;
-          font-size: 14px;
-          color: #222;
-        }
-
-        .transaction-date {
-          color: #888f99;
-          font-size: 12px;
-        }
-
-        .transaction-amount {
-          text-align: right;
-        }
-
-        .amount {
-          font-weight: 600;
-          margin-bottom: 4px;
-          font-size: 14px;
-        }
-
-        .transaction-status {
-          font-size: 11px;
-          padding: 2px 8px;
-          border-radius: 10px;
-          display: inline-block;
-        }
-
-        .transaction-status.status-completed {
-          background-color: rgba(40, 167, 69, 0.1);
-          color: #28a745;
-        }
-
-        .transaction-status.status-pending {
-          background-color: rgba(255, 193, 7, 0.1);
-          color: #ffc107;
-        }
-
-        .transaction-status.status-canceled {
-          background-color: rgba(220, 53, 69, 0.1);
-          color: #dc3545;
-        }
-
-        .no-data-message {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          min-height: 200px;
-          text-align: center;
-          color: #888f99;
-          padding: 40px 20px;
-        }
-
-        .no-data-message i {
-          font-size: 48px;
-          color: #e7eaee;
-          margin-bottom: 16px;
-        }
-
-        .no-data-message p {
-          font-size: 14px;
-          max-width: 250px;
-          line-height: 1.4;
-        }
-
-        /* Enhanced transaction icons */
-        .transaction-icon.deposit { background-color: #F3BA2F !important; }
-        .transaction-icon.withdraw { background-color: #FF6838 !important; }
-        .transaction-icon.convert-in { background-color: #9C27B0 !important; }
-        .transaction-icon.convert-out { background-color: #9C27B0 !important; }
-        .transaction-icon.stacking { background-color: #FF9800 !important; }
-        .transaction-icon.staking_reward { background-color: #4CAF50 !important; }
-        .transaction-icon.futures-profit { background-color: #00C076 !important; }
-        .transaction-icon.futures-loss { background-color: #FF6838 !important; }
-        .transaction-icon.spot-profit { background-color: #4CAF50 !important; }
-        .transaction-icon.spot-loss { background-color: #FF5722 !important; }
-        .transaction-icon.default { background-color: #627EEA !important; }
-        .transaction-icon.swap { background-color: #627EEA !important; }
-        .transaction-icon.bonus { background-color: #E91E63 !important; }
 
         /* Responsive adjustments */
         @media (max-width: 380px) {
-          .history-container {
-            padding: 0;
-          }
-
-          .header {
-            padding: 16px;
-            min-height: 50px;
-          }
-
-          .content-card {
-            padding: 25px 16px 100px;
-          }
-
           .filter-option {
+            padding: 4px 10px;
             font-size: 12px;
-            padding: 6px 12px;
           }
-
-          .transaction-type {
-            font-size: 13px;
+          .transaction-item {
+            padding: 10px;
           }
-
-          .transaction-date {
-            font-size: 11px;
+          .transaction-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
           }
-
           .amount {
-            font-size: 13px;
-          }
-        }
-
-        @media (min-width: 768px) {
-          .content-card {
-            border-radius: 30px 30px 0 0;
-          }
-
-          .transaction-list {
-            max-width: 600px;
-            margin: 0 auto;
+            font-size: 14px;
           }
         }
       `}</style>

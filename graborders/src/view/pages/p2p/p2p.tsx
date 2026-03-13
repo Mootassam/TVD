@@ -27,7 +27,7 @@ function p2p() {
           <div className="filter-group">
             <label className="filter-label">I want to buy</label>
             <select className="filter-select">
-              <option>USDT</option>
+              <option>USD</option>
               <option>BTC</option>
               <option>ETH</option>
               <option>BNB</option>
@@ -84,7 +84,7 @@ function p2p() {
           <div className="trade-details">
             <div className="detail-item">
               <div className="detail-value">$1.02</div>
-              <div className="detail-label">Price/USDT</div>
+              <div className="detail-label">Price/USD</div>
             </div>
             <div className="detail-item">
               <div className="detail-value">5,240</div>
@@ -105,7 +105,7 @@ function p2p() {
           </div>
           <div className="trade-action">
             <div className="trade-limits">Limit: $50 - $2,400</div>
-            <button className="trade-button">Buy USDT</button>
+            <button className="trade-button">Buy USD</button>
           </div>
         </div>
         {/* P2P Listing 2 */}
@@ -132,7 +132,7 @@ function p2p() {
           <div className="trade-details">
             <div className="detail-item">
               <div className="detail-value">$1.01</div>
-              <div className="detail-label">Price/USDT</div>
+              <div className="detail-label">Price/USD</div>
             </div>
             <div className="detail-item">
               <div className="detail-value">8,750</div>
@@ -153,7 +153,7 @@ function p2p() {
           </div>
           <div className="trade-action">
             <div className="trade-limits">Limit: $100 - $5,000</div>
-            <button className="trade-button">Buy USDT</button>
+            <button className="trade-button">Buy USD</button>
           </div>
         </div>
         {/* P2P Listing 3 */}
@@ -180,7 +180,7 @@ function p2p() {
           <div className="trade-details">
             <div className="detail-item">
               <div className="detail-value">$1.03</div>
-              <div className="detail-label">Price/USDT</div>
+              <div className="detail-label">Price/USD</div>
             </div>
             <div className="detail-item">
               <div className="detail-value">3,200</div>
@@ -201,7 +201,7 @@ function p2p() {
           </div>
           <div className="trade-action">
             <div className="trade-limits">Limit: $30 - $1,500</div>
-            <button className="trade-button">Buy USDT</button>
+            <button className="trade-button">Buy USD</button>
           </div>
         </div>
       </div>

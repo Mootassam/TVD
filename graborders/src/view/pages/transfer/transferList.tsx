@@ -13,7 +13,6 @@ function TransferList() {
 
   useEffect(() => {
     dispatch(assetsListActions.TransferList());
-    // Simulate loading state for better UX
   }, [dispatch]);
 
   // Format date similar to History component
@@ -61,8 +60,8 @@ function TransferList() {
   };
 
   return (
-    <div className="history-container">
-      {/* Header Section - Matching History Page */}
+    <div className="transferlist-container">
+      {/* Header Section - Matching Profile Page */}
       <div className="header">
         <div className="nav-bar">
           <Link to="/wallets" className="back-arrow">
@@ -72,9 +71,9 @@ function TransferList() {
         </div>
       </div>
 
-      {/* Content Card - Matching History Page */}
+      {/* Content Card - Matching Profile Page */}
       <div className="content-card">
-        <div className="history-content">
+        <div className="transfer-content">
           {/* Loading State */}
           {loading && (
             <div className="loading-container">
@@ -91,10 +90,7 @@ function TransferList() {
                   transferList.map((transfer) => (
                     <div className="transaction-item" key={transfer._id}>
                       <div className="transaction-info">
-                        <div
-                          className="transaction-icon"
-                          style={{ backgroundColor: '#627EEA' }}
-                        >
+                        <div className="transaction-icon">
                           <i className="fas fa-exchange-alt" />
                         </div>
                         <div className="transaction-details">
@@ -107,15 +103,10 @@ function TransferList() {
                         </div>
                       </div>
                       <div className="transaction-amount">
-                        <div
-                          className="amount"
-                          style={{ color: '#2ff378' }}
-                        >
+                        <div className="amount positive">
                           +{transfer.amount}
                         </div>
-                        <div
-                          className={`transaction-status status-${transfer.status}`}
-                        >
+                        <div className={`transaction-status status-${transfer.status}`}>
                           {transfer.status === 'completed' ? i18n("pages.transfer.status.completed") : transfer.status}
                         </div>
                       </div>
@@ -134,57 +125,42 @@ function TransferList() {
       </div>
 
       <style>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
-
-        body {
-          background-color: #f5f7fa;
-          color: #333;
-          line-height: 1.6;
-          overflow-x: hidden;
-        }
-
-        .history-container {
-          max-width: 400px;
+        /* TransferList Container – matches login/profile containers */
+        .transferlist-container {
+          max-width: 430px;
           margin: 0 auto;
-          position: relative;
           min-height: 100vh;
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
+          background-color: #000000;
+          border-top: 2px solid #39FF14;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          color: #ffffff;
         }
 
-        /* Header Section */
+        /* Header / Navigation */
         .header {
-          min-height: 60px;
-          position: relative;
-          padding: 15px 20px;
+          padding: 16px 20px;
+          border-bottom: 1px solid #2a2a2a;
         }
-
         .nav-bar {
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          gap: 16px;
+          position: relative;
         }
-
         .back-arrow {
-          color: white;
+          color: #ffffff;
           font-size: 20px;
-          font-weight: 300;
           text-decoration: none;
-          transition: opacity 0.3s ease;
         }
-
         .back-arrow:hover {
-          opacity: 0.8;
+          color: #39FF14;
         }
-
         .page-title {
-          color: white;
-          font-size: 17px;
-          font-weight: 600;
+          font-size: 18px;
+          font-weight: 500;
+          color: #ffffff;
           position: absolute;
           left: 50%;
           transform: translateX(-50%);
@@ -192,14 +168,16 @@ function TransferList() {
 
         /* Content Card */
         .content-card {
-          background: white;
-          border-radius: 40px 40px 0 0;
-          padding: 30px 20px 100px;
-          box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
-          min-height: calc(100vh - 60px);
+          flex: 1;
+          background-color: #1c1c1c;
+          border-top-left-radius: 24px;
+          border-top-right-radius: 24px;
+          padding: 24px 20px;
+          margin-top: 20px;
+          border-top: 2px solid #39FF14;
         }
 
-        .history-content {
+        .transfer-content {
           width: 100%;
         }
 
@@ -221,18 +199,16 @@ function TransferList() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 15px;
-          background-color: #f8f9fa;
+          padding: 16px;
+          background-color: #1c1c1c;
+          border: 1px solid #2a2a2a;
           border-radius: 12px;
-          border: 1px solid #e7eaee;
           cursor: pointer;
           transition: all 0.2s ease;
         }
-
         .transaction-item:hover {
-          background-color: #f0f2f5;
-          transform: translateY(-2px);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          border-color: #39FF14;
+          background-color: #2a2a2a;
         }
 
         .transaction-info {
@@ -245,11 +221,12 @@ function TransferList() {
           width: 40px;
           height: 40px;
           border-radius: 50%;
+          background-color: #2a2a2a;
           display: flex;
           justify-content: center;
           align-items: center;
           font-size: 16px;
-          color: #FFF;
+          color: #39FF14;
         }
 
         .transaction-details {
@@ -261,11 +238,11 @@ function TransferList() {
           font-weight: 600;
           margin-bottom: 4px;
           font-size: 14px;
-          color: #222;
+          color: #ffffff;
         }
 
         .transaction-date {
-          color: #888f99;
+          color: #777777;
           font-size: 12px;
         }
 
@@ -278,6 +255,9 @@ function TransferList() {
           margin-bottom: 4px;
           font-size: 14px;
         }
+        .amount.positive {
+          color: #39FF14;
+        }
 
         .transaction-status {
           font-size: 11px;
@@ -285,20 +265,17 @@ function TransferList() {
           border-radius: 10px;
           display: inline-block;
         }
-
         .transaction-status.status-completed {
-          background-color: rgba(40, 167, 69, 0.1);
-          color: #28a745;
+          background-color: rgba(57, 255, 20, 0.1);
+          color: #39FF14;
         }
-
         .transaction-status.status-pending {
           background-color: rgba(255, 193, 7, 0.1);
           color: #ffc107;
         }
-
         .transaction-status.status-canceled {
-          background-color: rgba(220, 53, 69, 0.1);
-          color: #dc3545;
+          background-color: rgba(255, 77, 77, 0.1);
+          color: #ff4d4d;
         }
 
         .no-data-message {
@@ -308,58 +285,37 @@ function TransferList() {
           justify-content: center;
           min-height: 200px;
           text-align: center;
-          color: #888f99;
+          color: #777777;
           padding: 40px 20px;
         }
-
         .no-data-message i {
           font-size: 48px;
-          color: #e7eaee;
+          color: #2a2a2a;
           margin-bottom: 16px;
         }
-
         .no-data-message p {
           font-size: 14px;
           max-width: 250px;
           line-height: 1.4;
+          color: #aaaaaa;
         }
 
         /* Responsive adjustments */
         @media (max-width: 380px) {
-          .history-container {
-            padding: 0;
-          }
-
           .header {
             padding: 16px;
-            min-height: 50px;
           }
-
           .content-card {
-            padding: 25px 16px 100px;
+            padding: 20px 16px;
           }
-
           .transaction-type {
             font-size: 13px;
           }
-
           .transaction-date {
             font-size: 11px;
           }
-
           .amount {
             font-size: 13px;
-          }
-        }
-
-        @media (min-width: 768px) {
-          .content-card {
-            border-radius: 30px 30px 0 0;
-          }
-
-          .transaction-list {
-            max-width: 600px;
-            margin: 0 auto;
           }
         }
       `}</style>
@@ -367,4 +323,4 @@ function TransferList() {
   );
 }
 
-export default TransferList; // Changed from transferList to TransferList
+export default TransferList;

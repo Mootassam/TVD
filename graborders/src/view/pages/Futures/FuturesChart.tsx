@@ -7,25 +7,99 @@ type IndicatorName = (typeof INDICATORS)[number];
 const TIMEFRAMES = ["1m", "5m", "15m", "1h", "4h", "1d"] as const;
 type TF = (typeof TIMEFRAMES)[number];
 
-const tfToBinance: Record<TF, string> = {
-  "1m": "1m",
-  "5m": "5m",
-  "15m": "15m",
-  "1h": "1h",
-  "4h": "4h",
-  "1d": "1d",
-};
-
 const chartTypes = ["candle", "bar", "area"] as const;
 type ChartType = (typeof chartTypes)[number];
 
+// Base prices for forex pairs (used as starting point)
+const basePrices: Record<string, number> = {
+  EURUSD: 1.0850,
+  GBPUSD: 1.2650,
+  USDJPY: 148.50,
+  AUDUSD: 0.6550,
+  USDCAD: 1.3550,
+  USDCHF: 0.8750,
+  NZDUSD: 0.6050,
+  EURGBP: 0.8570,
+  EURJPY: 161.20,
+  GBPJPY: 188.30,
+  AUDJPY: 97.20,
+  EURAUD: 1.6550,
+  GBPAUD: 1.9300,
+  USDMXN: 17.20,
+  USDRY: 30.50,
+  USDZAR: 18.90,
+  USDSGD: 1.3450,
+  USDHKD: 7.8200,
+  USDKRW: 1330.00,
+  USDINR: 83.20,
+};
+
+// Get decimal places for a symbol (forex convention)
+const getDecimalPlaces = (symbol: string): number => {
+  if (symbol.includes("JPY") && !symbol.startsWith("JPY")) return 3;
+  return 5;
+};
+
+// Random walk price change
+const randomChange = (current: number, volatility: number = 0.001): number => {
+  const change = (Math.random() * 2 - 1) * volatility;
+  return current * (1 + change);
+};
+
+// Generate a full history of candles
+const generateHistory = (
+  symbol: string,
+  timeframe: TF,
+  count: number = 500
+): KLineData[] => {
+  const basePrice = basePrices[symbol] || 1.0;
+  const volatilityMap: Record<TF, number> = {
+    "1m": 0.0001,
+    "5m": 0.0002,
+    "15m": 0.0003,
+    "1h": 0.0005,
+    "4h": 0.0008,
+    "1d": 0.002,
+  };
+  const volatility = volatilityMap[timeframe] || 0.0005;
+
+  const data: KLineData[] = [];
+  let price = basePrice;
+  const now = Date.now();
+  const intervalMs: Record<TF, number> = {
+    "1m": 60 * 1000,
+    "5m": 5 * 60 * 1000,
+    "15m": 15 * 60 * 1000,
+    "1h": 60 * 60 * 1000,
+    "4h": 4 * 60 * 60 * 1000,
+    "1d": 24 * 60 * 60 * 1000,
+  };
+
+  for (let i = count; i >= 0; i--) {
+    const timestamp = now - i * intervalMs[timeframe];
+    const open = price;
+    const close = randomChange(open, volatility);
+    const high = Math.max(open, close) * (1 + Math.random() * volatility * 0.5);
+    const low = Math.min(open, close) * (1 - Math.random() * volatility * 0.5);
+    const volume = 1000000 + Math.random() * 500000;
+    data.push({
+      timestamp,
+      open,
+      high,
+      low,
+      close,
+      volume,
+    });
+    price = close;
+  }
+  return data;
+};
+
 interface FuturesChartProps {
-  symbol?: string; // optional, will fallback to BTCUSDT
+  symbol?: string; // e.g., "EURUSD"
 }
 
-/**
- * Helpers to keep compatibility across klinecharts versions
- */
+// Helper functions for indicator management (unchanged)
 const tryCreateIndicator = (chart: any, name: string, isOverlay: boolean) => {
   const paneOptionsOverlay = { id: "candle_pane" };
   const paneOptionsOsc = { id: "osc_pane", height: 140 };
@@ -83,167 +157,133 @@ const tryRemoveIndicator = (chart: any, nameOrId: string) => {
   return false;
 };
 
-const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "BTCUSDT" }) => {
+const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "EURUSD" }) => {
   const chartRef = useRef<any>(null);
-  const wsRef = useRef<WebSocket | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [activeTf, setActiveTf] = useState<TF>("1m");
   const [activeIndicators, setActiveIndicators] = useState<Record<string, string | true>>({});
   const [chartType, setChartType] = useState<ChartType>("candle");
 
-  // fetch historical data
-  const loadData = async (tf: TF) => {
-    try {
-      const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${tfToBinance[tf]}&limit=500`;
-      const res = await fetch(url);
-      const raw = await res.json();
-      const data: KLineData[] = raw.map((d: any) => ({
-        timestamp: d[0],
-        open: +d[1],
-        high: +d[2],
-        low: +d[3],
-        close: +d[4],
-        volume: +d[5],
-      }));
-      chartRef.current?.applyNewData?.(data);
-      chartRef.current?.setData?.(data);
-    } catch (e) {
-      console.error("loadData error", e);
-    }
-  };
-
-  // websocket live updates
-  const startWS = (tf: TF) => {
-    wsRef.current?.close();
-    const stream = `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${tfToBinance[tf]}`;
-    try {
-      const ws = new WebSocket(stream);
-      wsRef.current = ws;
-      ws.onmessage = (ev) => {
-        const msg = JSON.parse(ev.data);
-        const k = msg?.k;
-        if (!k) return;
-        const payload = {
-          timestamp: k.t,
-          open: +k.o,
-          high: +k.h,
-          low: +k.l,
-          close: +k.c,
-          volume: +k.v,
-        };
-        chartRef.current?.updateData?.(payload);
-        chartRef.current?.appendData?.(payload);
-      };
-    } catch (e) {
-      console.warn("WS start failed", e);
-    }
-  };
-
-  // init chart
+  // Initialize chart on mount
   useEffect(() => {
     const chart = init("futures-chart");
     chartRef.current = chart;
 
-    // Light theme styles
+    // Dark theme styles (matching the rest of the app)
     chart.setStyles?.({
       candle: {
         type: "candle_solid",
         bar: {
-          upColor: "#37b66a", // Green for up
-          downColor: "#f56c6c", // Red for down
-          noChangeColor: "#999",
+          upColor: "#39FF14",
+          downColor: "#ff4d4d",
+          noChangeColor: "#777777",
         },
         priceMark: {
           last: {
-            line: { color: "#6c757d", style: "dashed" },
-            text: { color: "#333", backgroundColor: "#f8f9fa" },
+            line: { color: "#aaaaaa", style: "dashed" },
+            text: { color: "#ffffff", backgroundColor: "#1c1c1c" },
           },
         },
         tooltip: {
           text: {
-            color: '#333',
+            color: '#ffffff',
             size: 12
           }
         }
       },
       grid: {
-        horizontal: { color: "rgba(0,0,0,0.06)" },
-        vertical: { color: "rgba(0,0,0,0.03)" },
+        horizontal: { color: "rgba(255,255,255,0.06)" },
+        vertical: { color: "rgba(255,255,255,0.03)" },
       },
       xAxis: {
-        axisLine: {
-          color: '#e9ecef'
-        },
-        tickLine: {
-          color: '#e9ecef'
-        },
-        tickText: {
-          color: '#6c757d'
-        }
+        axisLine: { color: '#2a2a2a' },
+        tickLine: { color: '#2a2a2a' },
+        tickText: { color: '#aaaaaa' }
       },
       yAxis: {
-        axisLine: {
-          color: '#e9ecef'
-        },
-        tickLine: {
-          color: '#e9ecef'
-        },
-        tickText: {
-          color: '#6c757d'
-        }
+        axisLine: { color: '#2a2a2a' },
+        tickLine: { color: '#2a2a2a' },
+        tickText: { color: '#aaaaaa' }
       },
       crosshair: {
         horizontal: {
-          line: {
-            color: '#106cf5',
-            size: 1
-          },
-          text: {
-            color: '#333',
-            backgroundColor: '#f8f9fa'
-          }
+          line: { color: '#39FF14', size: 1 },
+          text: { color: '#ffffff', backgroundColor: '#1c1c1c' }
         },
         vertical: {
-          line: {
-            color: '#106cf5',
-            size: 1
-          },
-          text: {
-            color: '#333',
-            backgroundColor: '#f8f9fa'
-          }
+          line: { color: '#39FF14', size: 1 },
+          text: { color: '#ffffff', backgroundColor: '#1c1c1c' }
         }
       },
       technicalIndicator: {
-        margin: {
-          top: 0.2,
-          bottom: 0.1
-        }
+        margin: { top: 0.2, bottom: 0.1 }
       }
     });
 
-    loadData(activeTf);
-    startWS(activeTf);
+    // Generate initial data
+    const history = generateHistory(symbol, activeTf, 300);
+    chart.applyNewData?.(history);
 
     const onResize = () => chart.resize?.();
     window.addEventListener("resize", onResize);
 
     return () => {
       window.removeEventListener("resize", onResize);
-      wsRef.current?.close();
+      if (intervalRef.current) clearInterval(intervalRef.current);
       dispose("futures-chart");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // empty deps – chart init only once
 
-  // reload on timeframe or symbol change
+  // Handle timeframe/symbol changes (reload data and restart real‑time updates)
   useEffect(() => {
     if (!chartRef.current) return;
-    loadData(activeTf);
-    startWS(activeTf);
-  }, [activeTf, symbol]);
+    const history = generateHistory(symbol, activeTf, 300);
+    chartRef.current.applyNewData?.(history);
 
-  // chart type updates
+    // Clear old interval and set up new one for real‑time updates
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      const chart = chartRef.current;
+      if (!chart) return;
+
+      // ✅ Correct way: use getDataList() to retrieve all candles
+      const dataList = chart.getDataList?.();
+      const lastCandle = dataList?.[dataList.length - 1];
+      if (!lastCandle) return;
+
+      const volatilityMap: Record<TF, number> = {
+        "1m": 0.0001,
+        "5m": 0.0002,
+        "15m": 0.0003,
+        "1h": 0.0005,
+        "4h": 0.0008,
+        "1d": 0.002,
+      };
+      const volatility = volatilityMap[activeTf] || 0.0005;
+
+      const newClose = randomChange(lastCandle.close, volatility);
+      const newHigh = Math.max(lastCandle.high, newClose);
+      const newLow = Math.min(lastCandle.low, newClose);
+      const updatedCandle = {
+        ...lastCandle,
+        high: newHigh,
+        low: newLow,
+        close: newClose,
+        volume: lastCandle.volume + Math.random() * 10000,
+      };
+
+      // Update the last candle with the new tick
+      chart.updateData?.(updatedCandle);
+    }, 1000); // update every second
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [symbol, activeTf]); // ✅ Dependencies correct
+
+  // Chart type updates
   useEffect(() => {
     if (!chartRef.current) return;
     if (chartType === "candle") {
@@ -251,9 +291,9 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "BTCUSDT" }) => {
         candle: { 
           type: "candle_solid",
           bar: {
-            upColor: "#37b66a",
-            downColor: "#f56c6c",
-            noChangeColor: "#999",
+            upColor: "#39FF14",
+            downColor: "#ff4d4d",
+            noChangeColor: "#777777",
           }
         } 
       });
@@ -262,9 +302,9 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "BTCUSDT" }) => {
         candle: { 
           type: "candle_stroke",
           bar: {
-            upColor: "#37b66a",
-            downColor: "#f56c6c",
-            noChangeColor: "#999",
+            upColor: "#39FF14",
+            downColor: "#ff4d4d",
+            noChangeColor: "#777777",
           }
         } 
       });
@@ -273,11 +313,11 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "BTCUSDT" }) => {
         candle: {
           type: "area",
           area: {
-            lineColor: "#37b66a",
+            lineColor: "#39FF14",
             lineSize: 2,
             gradient: [
-              { offset: 0, color: "rgba(55,182,106,0.35)" },
-              { offset: 1, color: "rgba(55,182,106,0.04)" },
+              { offset: 0, color: "rgba(57,255,20,0.35)" },
+              { offset: 1, color: "rgba(57,255,20,0.04)" },
             ],
           },
         },
@@ -285,7 +325,7 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "BTCUSDT" }) => {
     }
   }, [chartType]);
 
-  // toggle indicator
+  // Toggle indicator (unchanged)
   const toggleIndicator = (name: IndicatorName) => {
     const chart = chartRef.current;
     if (!chart) return;
@@ -315,7 +355,7 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "BTCUSDT" }) => {
   };
 
   return (
-    <div style={{ width: "100%", height: "100%", background: "#ffffff", color: "#333", }}>
+    <div style={{ width: "100%", height: "100%", background: "#000000", color: "#ffffff" }}>
       {/* toolbar */}
       <div style={{ 
         display: "flex", 
@@ -332,10 +372,10 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "BTCUSDT" }) => {
               onClick={() => setActiveTf(tf)}
               style={{
                 padding: "6px 12px",
-                background: activeTf === tf ? "#106cf5" : "transparent",
-                color: activeTf === tf ? "#fff" : "#6c757d",
+                background: activeTf === tf ? "#39FF14" : "transparent",
+                color: activeTf === tf ? "#000000" : "#aaaaaa",
                 borderRadius: 6,
-                border: activeTf === tf ? "1px solid #106cf5" : "1px solid #e9ecef",
+                border: activeTf === tf ? "1px solid #39FF14" : "1px solid #2a2a2a",
                 cursor: "pointer",
                 fontSize: "12px",
                 fontWeight: "500",
@@ -354,9 +394,9 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "BTCUSDT" }) => {
             style={{
               padding: "6px 12px",
               borderRadius: 6,
-              background: "#ffffff",
-              color: "#333",
-              border: "1px solid #e9ecef",
+              background: "#1c1c1c",
+              color: "#ffffff",
+              border: "1px solid #2a2a2a",
               fontSize: "12px",
               cursor: "pointer"
             }}
@@ -388,9 +428,9 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "BTCUSDT" }) => {
             style={{
               padding: "6px 12px",
               borderRadius: 6,
-              background: activeIndicators[ind] ? "#106cf5" : "transparent",
-              color: activeIndicators[ind] ? "#fff" : "#6c757d",
-              border: activeIndicators[ind] ? "1px solid #106cf5" : "1px solid #e9ecef",
+              background: activeIndicators[ind] ? "#39FF14" : "transparent",
+              color: activeIndicators[ind] ? "#000000" : "#aaaaaa",
+              border: activeIndicators[ind] ? "1px solid #39FF14" : "1px solid #2a2a2a",
               cursor: "pointer",
               fontSize: "12px",
               fontWeight: "500",

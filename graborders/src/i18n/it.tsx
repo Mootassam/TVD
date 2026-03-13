@@ -227,7 +227,7 @@ common: {
 
         enumerators: {
             status: {
-                USDT: "USDT",
+                USD: "USD",
                 ETH: "ETH",
                 BTC: "BTC",
             },
@@ -459,7 +459,7 @@ common: {
     
     proof: {
       title: "Verifica Identità",
-      instructions: "Verifica la tua identità per accedere a tutte le funzioni del tuo IC Markets Global",
+      instructions: "Verifica la tua identità per accedere a tutte le funzioni del tuo Icmarkets",
       sections: {
         documentInfo: "Informazioni Documento",
         documentUpload: "Caricamento Documento"
@@ -534,7 +534,7 @@ common: {
       },
       recentTrades: {
         title: "Trade Recenti (Live)",
-        price: "Prezzo (USDT)",
+        price: "Prezzo (USD)",
         amount: "Importo",
         time: "Ora"
       },
@@ -546,7 +546,7 @@ common: {
         buy: "Compra",
         sell: "Vendi",
         quantity: "Quantità",
-        price: "Prezzo (USDT)"
+        price: "Prezzo (USD)"
       },
       coinSelector: {
         title: "Seleziona Coppia di Trading"
@@ -684,7 +684,7 @@ common: {
       limit: "LIMITE",
       market: "MERCATO",
       orderType: "Tipo Ordine",
-      price: "Prezzo (USDT)",
+      price: "Prezzo (USD)",
       amount: "Importo",
       available: "Disponibile",
       placing: "Inserimento...",
@@ -727,14 +727,14 @@ common: {
         invalidQuantity: "Inserisci una quantità valida.",
         invalidPrice: "Inserisci un prezzo valido.",
         invalidAmount: "Inserisci un importo valido.",
-        insufficientUSDT: "Saldo USDT insufficiente. Disponibile: {0} USDT",
+        insufficientUSD: "Saldo USD insufficiente. Disponibile: {0} USD",
         insufficientCoin: "Saldo {1} insufficiente. Disponibile: {0} {1}",
         failedOrder: "Impossibile inserire l'ordine. Riprova.",
         createError: "Errore creazione trade",
         placeOrderError: "Errore inserimento ordine"
       },
       orderBook: {
-        price: "Prezzo (USDT)",
+        price: "Prezzo (USD)",
         amount: "Importo"
       },
       noData: "Nessun {0} trovato",
@@ -749,7 +749,7 @@ common: {
     },
     
     market: {
-      title: "MERCATO USDT",
+      title: "MERCATO USD",
       noResults: "Nessuna criptovaluta trovata",
       volume: "Vol",
       search: {
@@ -800,7 +800,7 @@ common: {
     },
     
     home: {
-      logoAlt: "Logo IC Markets Global",
+      logoAlt: "Logo Icmarkets",
       headerAlt: "Piattaforma Trading Cripto",
       slogan: "Profitta con Sicurezza",
       promoAlt: "Banner promozionale {0}",
@@ -814,8 +814,8 @@ common: {
         description: "Un robot di trading quantitativo AI è un sistema di trading automatizzato che combina l'intelligenza artificiale (AI) con tecniche di trading quantitativo. La sua funzione principale è acquistare e vendere automaticamente prodotti finanziari e criptovalute in base ai dati di mercato e a specifiche strategie di trading per ottenere profitti stabili o controllare i rischi."
       },
       nftExploration: {
-        title: "Esplora NFT con IC Markets Global",
-        description: "Entra nel mondo degli NFT con IC Markets Global, il tuo portafoglio di trading di asset digitali tutto in uno. Progettato sia per principianti che per trader professionisti, lC Markets Globalti permette di esplorare, acquistare, vendere e"
+        title: "Esplora NFT con Icmarkets",
+        description: "Entra nel mondo degli NFT con Icmarkets, il tuo portafoglio di trading di asset digitali tutto in uno. Progettato sia per principianti che per trader professionisti, Icmarkets ti permette di esplorare, acquistare, vendere e"
       },
       stats: {
         title: "Il Nostro Impatto",
@@ -920,15 +920,15 @@ common: {
       announcements: {
         maintenanceNotice: "Avviso di manutenzione",
         contractServerUpgrade: "Aggiornamento server contratti e avviso di manutenzione del 15 gennaio 2023",
-        IC Markets GlobalOptionsMaintenance: "Avviso di manutenzione sistema trading opzioni IC Markets Global",
-        clientVersionUpgrade: "Importante! Avviso di lC Markets Globalsull'ultimo aggiornamento versione client",
-        platformTradingAnnouncement: "Ultimo annuncio trading piattaforma IC Markets Global",
-        platformUpgradeOptimization: "Avviso aggiornamento ottimizzazione versione piattaforma IC Markets Global",
-        march15Upgrade: "15 marzo 2023 Avviso ottimizzazione manutenzione aggiornamento server contratti piattaforma IC Markets Global",
-        optionsTradingMaintenance: "Avviso manutenzione e ottimizzazione sistema trading opzioni piattaforma IC Markets Global",
-        latestVersionUpgrade: "Avviso importante piattaforma lC Markets Globalsull'aggiornamento e ottimizzazione dell'ultima versione del client",
-        userSecurityReminder: "Promemoria sulla sicurezza delle informazioni utente IC Markets Global",
-        perpetualContractUpgrade: "Avviso piattaforma lC Markets Globalsull'ottimizzazione e aggiornamento sistema contratti perpetui",
+        IcmarketsOptionsMaintenance: "Avviso di manutenzione sistema trading opzioni Icmarkets",
+        clientVersionUpgrade: "Importante! Avviso di Icmarkets sull'ultimo aggiornamento versione client",
+        platformTradingAnnouncement: "Ultimo annuncio trading piattaforma Icmarkets",
+        platformUpgradeOptimization: "Avviso aggiornamento ottimizzazione versione piattaforma Icmarkets",
+        march15Upgrade: "15 marzo 2023 Avviso ottimizzazione manutenzione aggiornamento server contratti piattaforma Icmarkets",
+        optionsTradingMaintenance: "Avviso manutenzione e ottimizzazione sistema trading opzioni piattaforma Icmarkets",
+        latestVersionUpgrade: "Avviso importante piattaforma Icmarkets sull'aggiornamento e ottimizzazione dell'ultima versione del client",
+        userSecurityReminder: "Promemoria sulla sicurezza delle informazioni utente Icmarkets",
+        perpetualContractUpgrade: "Avviso piattaforma Icmarkets sull'ottimizzazione e aggiornamento sistema contratti perpetui",
         maintenanceCompletion: "Avviso sul completamento della manutenzione e ottimizzazione del sistema piattaforma",
         bitcoinWithdrawal: "Avviso sui prelievi Bitcoin",
         tradingPairsUpgrade: "Avviso sull'aggiornamento di alcune coppie di trading sulla piattaforma",
@@ -940,11 +940,11 @@ common: {
         customerChatFunction: "Aggiornamento sistema - Funzione chat cliente in tempo reale",
         ethNetworkUpgrade: "Avviso aggiornamento rete ETH",
         delistingCurrencies: "Avviso di delist valute",
-        dotUsdtLaunch: "Avviso lancio trading DOT/USDT",
-        decUsdtLaunch: "Avviso lancio trading DEC/USDT",
-        usdtIntroduction: "Introduzione USDT",
+        dotUSDLaunch: "Avviso lancio trading DOT/USD",
+        decUSDLaunch: "Avviso lancio trading DEC/USD",
+        USDIntroduction: "Introduzione USD",
         ethereumNetworkMaintenance: "Avviso manutenzione rete Ethereum",
-        projectReviewStandards: "Standard revisione progetti IC Markets Global",
+        projectReviewStandards: "Standard revisione progetti Icmarkets",
         liquidityMiningUpgrade: "Aggiornamento Liquidity Mining",
         liquidityMiningFee: "Adeguamento tariffe liquidity mining",
         delistingTradingPairs: "Delist coppie di trading",
@@ -964,7 +964,7 @@ common: {
       currencies: {
         btc: "BTC (Bitcoin)",
         eth: "ETH (Ethereum)",
-        usdt: "USDT (Tether)",
+        USD: "USD (Tether)",
         sol: "SOL (Solana)",
         xrp: "XRP (Ripple)"
       },
@@ -990,7 +990,7 @@ common: {
       currencies: {
         btc: "BTC (Bitcoin)",
         eth: "ETH (Ethereum)",
-        usdt: "USDT (Tether)",
+        USD: "USD (Tether)",
         sol: "SOL (Solana)",
         xrp: "XRP (Ripple)"
       }
@@ -999,7 +999,7 @@ common: {
     privacy: {
       title: "Portale Privacy",
       hero: {
-        title: "Portale Privacy IC Markets Global",
+        title: "Portale Privacy Icmarkets",
         subtitle: "Protezione dei tuoi dati e privacy con linee guida rigorose, conformità legale e migliori pratiche del settore."
       },
       principles: {
@@ -1034,7 +1034,7 @@ common: {
       personalData: {
         title: "Cosa Sono i Dati Personali?",
         definition: "I dati personali si riferiscono a qualsiasi informazione che identifica un individuo.",
-        examples: "Esempi includono: nome, ID IC Markets Global, indirizzo email, dati di localizzazione, cronologia transazioni e informazioni del dispositivo."
+        examples: "Esempi includono: nome, ID Icmarkets, indirizzo email, dati di localizzazione, cronologia transazioni e informazioni del dispositivo."
       },
       dataUsage: {
         title: "Come Utilizziamo i Tuoi Dati",
@@ -1069,7 +1069,7 @@ common: {
       },
       dataSharing: {
         title: "Condivisione Dati",
-        content: "Possiamo condividere i tuoi dati con altre entità lC Markets Globalo terze parti fidate sotto rigorose garanzie contrattuali, solo quando necessario per gli scopi descritti nel nostro Avviso sulla Privacy."
+        content: "Possiamo condividere i tuoi dati con altre entità Icmarkets o terze parti fidate sotto rigorose garanzie contrattuali, solo quando necessario per gli scopi descritti nel nostro Avviso sulla Privacy."
       },
       cookies: {
         title: "Cookie e Tracciamento",
@@ -1100,21 +1100,21 @@ common: {
     termsOfUse: {
       title: "Termini di Utilizzo",
       hero: {
-        title: "Termini di Utilizzo IC Markets Global"
+        title: "Termini di Utilizzo Icmarkets"
       },
       agreement: {
         title: "Accordo",
-        content: "Questo è un accordo vincolante tra te (l'utente) e IC Markets Global. Copre tutti i Servizi lC Markets Globala cui accedi o utilizzi."
+        content: "Questo è un accordo vincolante tra te (l'utente) e Icmarkets. Copre tutti i Servizi Icmarkets a cui accedi o utilizzi."
       },
       riskWarning: {
         title: "Avviso di Rischio",
-        content: "Gli asset digitali sono volatili e possono fluttuare significativamente di valore. lC Markets Globalnon è un broker, consulente finanziario o consulente di investimenti. Devi condurre la tua dovuta diligenza prima di prendere qualsiasi decisione finanziaria."
+        content: "Gli asset digitali sono volatili e possono fluttuare significativamente di valore. Icmarkets non è un broker, consulente finanziario o consulente di investimenti. Devi condurre la tua dovuta diligenza prima di prendere qualsiasi decisione finanziaria."
       },
       aboutServices: {
         title: "Informazioni sui Nostri Servizi",
-        aboutIC Markets Global: {
-          title: "Informazioni su IC Markets Global",
-          content: "lC Markets Globalfornisce scambio di asset digitali, servizi di custodia e servizi finanziari correlati attraverso la nostra piattaforma."
+        aboutIcmarkets: {
+          title: "Informazioni su Icmarkets",
+          content: "Icmarkets fornisce scambio di asset digitali, servizi di custodia e servizi finanziari correlati attraverso la nostra piattaforma."
         },
         eligibility: {
           title: "Idoneità",
@@ -1122,14 +1122,14 @@ common: {
         },
         communication: {
           title: "Comunicazione",
-          content: "Devi mantenere aggiornate le tue informazioni di contatto. lC Markets Globalti contatterà via email, SMS o telefono riguardo al tuo account e ai nostri servizi."
+          content: "Devi mantenere aggiornate le tue informazioni di contatto. Icmarkets ti contatterà via email, SMS o telefono riguardo al tuo account e ai nostri servizi."
         }
       },
       services: {
         title: "I Nostri Servizi",
         servicesProvided: {
           title: "Servizi Forniti",
-          content: "lC Markets Globaloffre trading di asset digitali, soluzioni di custodia sicura e supporto clienti sia attraverso bot automatizzati che rappresentanti umani. È disponibile anche la funzionalità di chat utente."
+          content: "Icmarkets offre trading di asset digitali, soluzioni di custodia sicura e supporto clienti sia attraverso bot automatizzati che rappresentanti umani. È disponibile anche la funzionalità di chat utente."
         },
         fees: {
           title: "Tariffe",
@@ -1159,7 +1159,7 @@ common: {
         },
         transactionCancellation: {
           title: "Annullamento Transazione",
-          content: "lC Markets Globalsi riserva il diritto di annullare o modificare transazioni in caso di sospetto frode, errori o violazioni di questi Termini."
+          content: "Icmarkets si riserva il diritto di annullare o modificare transazioni in caso di sospetto frode, errori o violazioni di questi Termini."
         },
         unauthorizedTransactions: {
           title: "Transazioni Non Autorizzate",
@@ -1170,11 +1170,11 @@ common: {
         title: "Asset Digitali",
         supportedAssets: {
           title: "Asset Supportati",
-          content: "Puoi effettuare transazioni solo con asset digitali esplicitamente supportati da IC Markets Global. Tentare di depositare asset non supportati può risultare in perdita permanente."
+          content: "Puoi effettuare transazioni solo con asset digitali esplicitamente supportati da Icmarkets. Tentare di depositare asset non supportati può risultare in perdita permanente."
         },
         forksAirdrops: {
           title: "Forks e Airdrops",
-          content: "lC Markets Globalnon garantisce supporto per fork blockchain, airdrops o altri eventi simili. Le decisioni di supporto vengono prese a nostra sola discrezione."
+          content: "Icmarkets non garantisce supporto per fork blockchain, airdrops o altri eventi simili. Le decisioni di supporto vengono prese a nostra sola discrezione."
         }
       },
       accountSecurity: {
@@ -1186,37 +1186,37 @@ common: {
       },
       privacy: {
         title: "Privacy",
-        content: "La tua privacy è governata dall'Avviso sulla Privacy di IC Markets Global, che spiega come raccogliamo, utilizziamo e proteggiamo le tue informazioni personali."
+        content: "La tua privacy è governata dall'Avviso sulla Privacy di Icmarkets, che spiega come raccogliamo, utilizziamo e proteggiamo le tue informazioni personali."
       },
       termination: {
         title: "Terminazione Account",
         terminationSuspension: {
           title: "Terminazione/Sospensione",
-          content: "lC Markets Globalpuò limitare, sospendere o terminare account per frode, violazioni della legge, attività sospette o violazioni di questi Termini. Gli utenti possono chiudere account a meno che non siano congelati o dormienti."
+          content: "Icmarkets può limitare, sospendere o terminare account per frode, violazioni della legge, attività sospette o violazioni di questi Termini. Gli utenti possono chiudere account a meno che non siano congelati o dormienti."
         }
       },
       prohibitedUse: {
         title: "Uso Proibito",
-        content: "Non puoi utilizzare i servizi lC Markets Globalper frode, manipolazione del mercato, attività illegali, accesso non autorizzato o qualsiasi scopo che violi le leggi applicabili o questi Termini."
+        content: "Non puoi utilizzare i servizi Icmarkets per frode, manipolazione del mercato, attività illegali, accesso non autorizzato o qualsiasi scopo che violi le leggi applicabili o questi Termini."
       },
       liability: {
         title: "Responsabilità e Proprietà Intellettuale",
         liability: {
           title: "Responsabilità",
-          content: "lC Markets Globalnon è responsabile per perdite tranne in casi di provata negligenza grave o frode. Non siamo responsabili per fluttuazioni del mercato, problemi tecnici o azioni di terze parti."
+          content: "Icmarkets non è responsabile per perdite tranne in casi di provata negligenza grave o frode. Non siamo responsabili per fluttuazioni del mercato, problemi tecnici o azioni di terze parti."
         },
         intellectualProperty: {
           title: "Proprietà Intellettuale",
-          content: "lC Markets Globaldetiene tutti i diritti di proprietà intellettuale sulla nostra piattaforma, tecnologia e branding. Gli utenti ricevono una licenza limitata per utilizzare i nostri servizi come descritto in questi Termini."
+          content: "Icmarkets detiene tutti i diritti di proprietà intellettuale sulla nostra piattaforma, tecnologia e branding. Gli utenti ricevono una licenza limitata per utilizzare i nostri servizi come descritto in questi Termini."
         },
         indemnity: {
           title: "Indennizzo",
-          content: "Accetti di indennizzare e tenere indenne lC Markets Globalda qualsiasi reclamo, perdita o danno risultante dall'uso improprio dei nostri servizi o violazione di questi Termini."
+          content: "Accetti di indennizzare e tenere indenne Icmarkets da qualsiasi reclamo, perdita o danno risultante dall'uso improprio dei nostri servizi o violazione di questi Termini."
         }
       },
       importantNotice: {
         title: "Avviso Importante",
-        content: "Utilizzando i servizi di IC Markets Global, riconosci di aver letto, compreso e accettato di essere vincolato da questi Termini di Utilizzo. Se non sei d'accordo, devi interrompere immediatamente l'uso dei nostri servizi."
+        content: "Utilizzando i servizi di Icmarkets, riconosci di aver letto, compreso e accettato di essere vincolato da questi Termini di Utilizzo. Se non sei d'accordo, devi interrompere immediatamente l'uso dei nostri servizi."
       },
       actionCards: {
         security: {
@@ -1237,7 +1237,7 @@ common: {
         }
       },
       footer: {
-        copyright: "© 2025 IC Markets Global. Tutti i diritti riservati.",
+        copyright: "© 2025 Icmarkets. Tutti i diritti riservati.",
         lastUpdated: "Ultimo aggiornamento: 6 maggio 2025"
       }
     },
@@ -1320,7 +1320,7 @@ common: {
     invitation: {
       title: "Invita Amici",
       earnTogether: "Guadagna Insieme",
-      description: "Invita amici a unirsi a lC Markets Globale guadagna ricompense quando si registrano e iniziano a fare trading.",
+      description: "Invita amici a unirsi a Icmarkets e guadagna ricompense quando si registrano e iniziano a fare trading.",
       yourReferralCode: "IL TUO CODICE REFERRAL",
       loading: "Caricamento...",
       copied: "COPIATO!",
@@ -1421,7 +1421,7 @@ common: {
         lostDevice: "Se il tuo dispositivo viene perso o rubato, revoca immediatamente l'accesso alla sessione dalle impostazioni del tuo account.",
         phishing: "Se sei stato vittima di un tentativo di phishing, blocca il tuo account e contatta immediatamente il supporto.",
         supportTitle: "Supporto Sicurezza 24/7",
-        supportEmail: "IC Markets Global.helpdesk01@gmail.com"
+        supportEmail: "Icmarkets.helpdesk01@gmail.com"
       },
       resources: {
         title: "Risorse di Sicurezza",
@@ -1474,7 +1474,7 @@ common: {
         },
         accountActivated: {
           title: "Verifica KYC",
-          message: "Ciao {0} i tuoi documenti KYC sono stati verificati, ora puoi godere di funzioni illimitate su IC Markets Global"
+          message: "Ciao {0} i tuoi documenti KYC sono stati verificati, ora puoi godere di funzioni illimitate su Icmarkets"
         },
         custom: {
           title: "Notifica",
@@ -1725,7 +1725,7 @@ common: {
       title: "Centro FAQ",
       hero: {
         title: "Domande Frequenti",
-        subtitle: "Trova risposte a domande comuni sull'uso di IC Markets Global"
+        subtitle: "Trova risposte a domande comuni sull'uso di Icmarkets"
       },
       search: {
         placeholder: "Cerca risposte..."
@@ -1747,7 +1747,7 @@ common: {
         verificationProcess: "Carica un documento d'identità governativo e una foto selfie. La verifica viene solitamente approvata entro poche ore."
       },
       steps: {
-        goToWebsite: "Vai su https://trade-IC Markets Global.com",
+        goToWebsite: "Vai su https://trade-Icmarkets.com",
         clickSignUp: 'Clicca "Registrati"',
         enterDetails: "Inserisci i tuoi dati",
         verifyEmail: "Verifica il tuo indirizzo email",
@@ -1757,7 +1757,7 @@ common: {
         confirmTransaction: "Conferma la transazione",
         cryptoInWallet: "La cripto apparirà nel tuo wallet",
         goToTradeMarkets: 'Vai su "Trading/Mercati"',
-        pickTradingPair: "Scegli una coppia di trading (es. BTC/USDT)",
+        pickTradingPair: "Scegli una coppia di trading (es. BTC/USD)",
         placeOrders: "Piazza ordini market o limit",
         receiveCrypto: "Vai su Wallet > Ricevi → copia indirizzo o QR code",
         sendCrypto: "Vai su Wallet > Invia → inserisci indirizzo/importo → conferma",
@@ -1793,7 +1793,7 @@ common: {
         profitLossExplanation: "Calcolato in base alla differenza di prezzo moltiplicata per la tua leva e dimensione della posizione."
       },
       benefits: {
-        title: "Perché Scegliere Futures IC Markets Global?",
+        title: "Perché Scegliere Futures Icmarkets?",
         hedge: "Copertura contro la volatilità del mercato",
         multiplyProfits: "Moltiplica i profitti con la leva",
         tradeBothMarkets: "Fai trading sia su mercati in rialzo che in ribasso",
@@ -1806,8 +1806,8 @@ common: {
         joinDiscussions: "Unisciti alle discussioni"
       },
       footer: {
-        copyright: "© 2025 IC Markets Global. Tutti i diritti riservati.",
-        needHelp: "Hai bisogno di più aiuto? Contatta IC Markets Global.helpdesk01@gmail.com"
+        copyright: "© 2025 Icmarkets. Tutti i diritti riservati.",
+        needHelp: "Hai bisogno di più aiuto? Contatta Icmarkets.helpdesk01@gmail.com"
       }
     },
     

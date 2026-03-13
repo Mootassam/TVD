@@ -32,6 +32,8 @@ const privateRoutes = [
     exact: true,
   },
 
+
+
   {
     path: "/",
     loader: () => import("src/view/pages/Home/Home"),
@@ -64,6 +66,8 @@ const privateRoutes = [
     permissionRequired: permissions.categoryRead,
     exact: true,
   },
+
+
 ];
 
 const screenRoutes = [
@@ -71,6 +75,33 @@ const screenRoutes = [
     path: "/invitation",
     loader: () => import("src/view/pages/invitation/invitation"),
     permissionRequired: permissions.categoryRead,
+  },
+
+    {
+    path: "/walletSettings",
+    loader: () => import("src/view/pages/wallet/withdrawWallet"),
+    permissionRequired: permissions.categoryRead,
+  },
+
+
+  {
+    path: "/bind-account",
+    loader: () => import("src/view/pages/bindAccount/BindAccount"),
+    permissionRequired: permissions.categoryRead,
+  },
+  
+  {
+    path: "/wallet",
+    loader: () => import("src/view/pages/wallet/withdrawWallet"),
+    permissionRequired: permissions.categoryRead,
+
+  },
+
+  {
+    path: "/bank_details",
+    loader: () => import("src/view/pages/BankDetails/BankDetails"),
+    permissionRequired: permissions.categoryRead,
+   
   },
 
   {
@@ -171,7 +202,7 @@ const screenRoutes = [
   },
   {
     path: "/formwithdrawaddress/:id",
-    loader: () => import("src/view/pages/withdraw/formWithdrawAdress"),
+    loader: () => import("src/view/pages/withdraw/WalletSettings"),
     permissionRequired: permissions.categoryRead,
   },
 
@@ -352,7 +383,7 @@ const navRoutes = [
 
 const routeswithoutmobilemenue = [
 
-    {
+  {
     path: "/product/details/:id",
     loader: () => import("src/view/pages/product/productDetails"),
   },

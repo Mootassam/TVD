@@ -23,11 +23,11 @@ function WirthdrawAddress() {
       id: "ETH",
     },
     {
-      path: "/formwithdrawaddress/USDT",
-      label: i18n("pages.withdrawAddress.currencies.usdt"),
+      path: "/formwithdrawaddress/USD",
+      label: i18n("pages.withdrawAddress.currencies.USD"),
       icon: "fas fa-chevron-right",
-      symbol: "USDT",
-      id: "USDT",
+      symbol: "USD",
+      id: "USD",
     },
     {
       path: "/formwithdrawaddress/SOL",

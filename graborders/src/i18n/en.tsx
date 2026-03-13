@@ -15,7 +15,7 @@ const en = {
     back: "Back",
     close: "Close",
 
-
+    hidden: "****",
     or: "Or",
     cancel: "Cancel",
     reset: "Reset",
@@ -58,7 +58,7 @@ const en = {
   },
 
   app: {
-    title: "BINEX",
+    title: "ICMarketsGlobal",
   },
 
   api: {
@@ -90,33 +90,39 @@ const en = {
       }
     },
 
-      helpCenterDetail: {
-    faqNotFound: "FAQ item not found, redirect needed",
-    
-    questions: {
-      aiQuantification: "Introduction to AI Quantification",
-      exploreNFTs: "Explore NFTs with AureX",
-      bitcoinEnergy: "Elon Musk Says Bitcoin Is Based on Energy, Which Is Impossible to Fake\n10/13/2025, 8:00:00 AM (UTC-8)",
-      bitcoinRecordPrice: "Bitcoin Touches Record Price Above $125,000\n10/4/2025, 8:00:00 AM (UTC-8)",
-      trumpStatueBitcoin: "Giant Trump statue holding Bitcoin displayed outside US Capitol to mark Fed rate decision\n9/16/2025, 8:00:00 AM (UTC-8)"
+        online: {
+      title: "Customer Service",
+      description: "If you have any questions or encounter issues, please email us or chat with our online customer support team.",
+      contactWhatsApp: "Contact on WhatsApp",
+      contactTelegram: "Contact on Telegram"
     },
-    
-    answers: {
-      aboutAccounts: "Formal accounts can use all online functions of the platform, while demo accounts can only use some of the functions of the platform to a limited extent, cannot use liquidity mining to make profits, and cannot deposit and withdraw coins. (Demo accounts can receive fixed virtual funds once on the 1st of each month)",
-      transactionVolume: "According to the relevant provisions of the Anti-Money Laundering Law, each transaction requires price control, and a certain transaction volume must be completed before the currency can be withdrawn, so as to prevent users from laundering money on the exchange! For example, if you deposit 10,000U, the transaction amount must reach the relevant specified amount!",
-      transferFunds: "In order to ensure the independence of funds between your various accounts and facilitate your reasonable risk control, the accounts of major trading modules are divided Transfer refers to the process of converting assets between various trading accounts.",
-      whatAreFutures: "Futures, also known as futures, are a form of trading that spans time. Buyers and sellers sign a contract to agree to deliver a specified amount of spot goods at a specified time, price and other trading conditions. Futures are usually concentrated in futures exchanges and bought and sold with standardized contracts. The assets traded are usually commodities or financial instruments. The predetermined price that both parties agree to buy and sell an asset is called the forward price.",
-      convertedAmountChanges: "The converted value in assets is the value of the digital currency currently held in USD. It changes due to the price fluctuations of digital assets, but the amount of your digital assets does not change.",
-      realNameAuthentication: "For the safety of your funds, we limit the association of your receiving account with the real-name information of your current account.",
-      frozenAssets: "Frozen assets means that when you perform transactions or withdrawal operations, the process is not fully completed. The current assets are temporarily managed by the system and cannot be freely controlled by you. It does not mean that you have lost the asset or that something is abnormal with the asset. Please rest assured.",
-      futuresTradingRules: "Participate in transactions by estimating the next price trend (up or down) of the current trading pair. The range of the increase or decrease is not calculated during settlement, and only the income is calculated based on the result of the increase or decrease The profit percentages for settlement at different delivery times are different, and the profits will be accurately displayed in the trading interface.",
-      aiQuantification: "An AI quantitative trading robot is an automated trading system that combines artificial intelligence (AI) with quantitative trading techniques. Its primary function is to automatically buy and sell financial products and cryptocurrencies based on market data and specific trading strategies to achieve stable profits or control risks.",
-      exploreNFTs: "Step into the world of NFTs with AureX, your all-in-one digital asset trading wallet. Designed for both beginners and professional traders, AureX lets you explore, buy, sell, and manage high-quality NFTs securely and efficiently.\n\nWith advanced security, real-time tracking, and seamless transactions, AureX keeps you in full control of your digital collectibles. From exclusive art pieces to limited-edition digital assets, discover the future of digital ownership — all in one place, with confidence and ease.",
-      bitcoinEnergy: "Tesla and Spacex CEO Elon Musk said on Oct. 14 on X that bitcoin is based on energy, contrasting it with fiat currencies that governments can inflate. His remark was in response to a Zerohedge post linking the rise in gold, silver, and bitcoin prices to currency debasement driven by government spending on the global artificial intelligence arms race. Zerohedge added that money can be printed but energy cannot. Musk agreed, writing: 'True. That is why bitcoin is based on energy: you can issue fake fiat currency, and every government in history has done so, but it is impossible to fake energy.'\n\nWhat did Elon Musk say about bitcoin and energy?\nElon Musk stated that Bitcoin is based on energy, emphasizing that while governments can print fiat currency, energy cannot be faked or created artificially.\n\nWhy did Elon Musk contrast bitcoin with fiat currencies?\nMusk highlighted that fiat currencies are prone to inflation because governments can issue more of them, while bitcoin's foundation in energy gives it a more tangible and limited value base.\n\nWhat was the context of Musk's comment about bitcoin?\nHis comment responded to a Zerohedge post suggesting that the rising prices of gold, silver, and bitcoin are linked to global government spending and currency debasement caused by the AI arms race.\n\nWhat is the main takeaway from Musk's statement?\nMusk's remark reinforces the idea that bitcoin's value is rooted in the real-world cost of energy, contrasting it with the easily manipulated nature of traditional fiat money.",
-      bitcoinRecordPrice: "Bitcoin nabbed a new high.\n\nThe leading cryptocurrency overnight touched a record, reaching all-time highs around $125,400 to top the old high-water mark, around $124,480, set in August. (It more recently traded closer to $123,000.)\n\nThe latest moves have bitcoin's total market value at about $2.45 trillion, according to CoinMarketCap, and the total value of crypto at around $4.21 trillion. Bitcoin has had a dramatic year, climbing off prices below $80,000 seen in April.\n\nWhile bitcoin bulls generally have seen the continued climb of the currency as inevitable, some have had more specific reasons for foreseeing more upside in late 2025. It has a history of posting new records in the 1,064-day window after bear-market lows, the last of which was on Nov. 21, 2022.\n\nMeanwhile, bitcoin trading volumes on crypto exchanges have been rising since a September-end drawdown. Rising volumes have tended to be good for prices.\n\nSome analysts see reasons to expect bitcoin to keep climbing. JPMorgan analysts in an Oct. 1 note suggested that the 'debasement trade'—in which both retail and institutional investors hedge their bets with gold and bitcoin—to pick up steam amid concerns ranging from heightened geopolitical uncertainty to enduringly high government debt across economies and waning U.S. dollar dominance.\n\nMore broadly, recent developments have suggested that the crypto industry is making continued progress as it seeks to claim more investor dollars and position in the world of finance—among them the launch of several new crypto ETFs and the rise in popularity of crypto treasury stocks.",
-      trumpStatueBitcoin: "WASHINGTON (7News) — A 12-foot golden statue of President Donald Trump holding a Bitcoin was installed outside the U.S. Capitol, coinciding with the Federal Reserve's upcoming interest rate decision on Wednesday.\n\nAt 2 p.m., the Fed announced that it reduced its key interest rate by a quarter-point, marking the first cut since Dec. 2024. The cut will lower the short-term rate to about 4.1% down from 4.3%. Last year, the central bank lowered rates three times due to concerns that job growth was slowing and unemployment was rising.\n\nThe central bank also revealed plans for two more rate cuts this year. However, only one is anticipated in 2026, which might disappoint Wall Street, as they had expected five cuts by next year.\n\nThe temporary piece, located on 3rd Street from 9 a.m. to 4 p.m., was funded by a collective of cryptocurrency investors. Organizers said the piece is intended to provoke debate about the future of digital currency, monetary policy, and the federal government's role in financial markets."
-    }
-  },
+    helpCenterDetail: {
+      faqNotFound: "FAQ item not found, redirect needed",
+
+      questions: {
+        aiQuantification: "Introduction to AI Quantification",
+        exploreNFTs: "Explore NFTs with AureX",
+        bitcoinEnergy: "Elon Musk Says Bitcoin Is Based on Energy, Which Is Impossible to Fake\n10/13/2025, 8:00:00 AM (UTC-8)",
+        bitcoinRecordPrice: "Bitcoin Touches Record Price Above $125,000\n10/4/2025, 8:00:00 AM (UTC-8)",
+        trumpStatueBitcoin: "Giant Trump statue holding Bitcoin displayed outside US Capitol to mark Fed rate decision\n9/16/2025, 8:00:00 AM (UTC-8)"
+      },
+
+      answers: {
+        aboutAccounts: "Formal accounts can use all online functions of the platform, while demo accounts can only use some of the functions of the platform to a limited extent, cannot use liquidity mining to make profits, and cannot deposit and withdraw coins. (Demo accounts can receive fixed virtual funds once on the 1st of each month)",
+        transactionVolume: "According to the relevant provisions of the Anti-Money Laundering Law, each transaction requires price control, and a certain transaction volume must be completed before the currency can be withdrawn, so as to prevent users from laundering money on the exchange! For example, if you deposit 10,000U, the transaction amount must reach the relevant specified amount!",
+        transferFunds: "In order to ensure the independence of funds between your various accounts and facilitate your reasonable risk control, the accounts of major trading modules are divided Transfer refers to the process of converting assets between various trading accounts.",
+        whatAreFutures: "Futures, also known as futures, are a form of trading that spans time. Buyers and sellers sign a contract to agree to deliver a specified amount of spot goods at a specified time, price and other trading conditions. Futures are usually concentrated in futures exchanges and bought and sold with standardized contracts. The assets traded are usually commodities or financial instruments. The predetermined price that both parties agree to buy and sell an asset is called the forward price.",
+        convertedAmountChanges: "The converted value in assets is the value of the digital currency currently held in USD. It changes due to the price fluctuations of digital assets, but the amount of your digital assets does not change.",
+        realNameAuthentication: "For the safety of your funds, we limit the association of your receiving account with the real-name information of your current account.",
+        frozenAssets: "Frozen assets means that when you perform transactions or withdrawal operations, the process is not fully completed. The current assets are temporarily managed by the system and cannot be freely controlled by you. It does not mean that you have lost the asset or that something is abnormal with the asset. Please rest assured.",
+        futuresTradingRules: "Participate in transactions by estimating the next price trend (up or down) of the current trading pair. The range of the increase or decrease is not calculated during settlement, and only the income is calculated based on the result of the increase or decrease The profit percentages for settlement at different delivery times are different, and the profits will be accurately displayed in the trading interface.",
+        aiQuantification: "An AI quantitative trading robot is an automated trading system that combines artificial intelligence (AI) with quantitative trading techniques. Its primary function is to automatically buy and sell financial products and cryptocurrencies based on market data and specific trading strategies to achieve stable profits or control risks.",
+        exploreNFTs: "Step into the world of NFTs with AureX, your all-in-one digital asset trading wallet. Designed for both beginners and professional traders, AureX lets you explore, buy, sell, and manage high-quality NFTs securely and efficiently.\n\nWith advanced security, real-time tracking, and seamless transactions, AureX keeps you in full control of your digital collectibles. From exclusive art pieces to limited-edition digital assets, discover the future of digital ownership — all in one place, with confidence and ease.",
+        bitcoinEnergy: "Tesla and Spacex CEO Elon Musk said on Oct. 14 on X that bitcoin is based on energy, contrasting it with fiat currencies that governments can inflate. His remark was in response to a Zerohedge post linking the rise in gold, silver, and bitcoin prices to currency debasement driven by government spending on the global artificial intelligence arms race. Zerohedge added that money can be printed but energy cannot. Musk agreed, writing: 'True. That is why bitcoin is based on energy: you can issue fake fiat currency, and every government in history has done so, but it is impossible to fake energy.'\n\nWhat did Elon Musk say about bitcoin and energy?\nElon Musk stated that Bitcoin is based on energy, emphasizing that while governments can print fiat currency, energy cannot be faked or created artificially.\n\nWhy did Elon Musk contrast bitcoin with fiat currencies?\nMusk highlighted that fiat currencies are prone to inflation because governments can issue more of them, while bitcoin's foundation in energy gives it a more tangible and limited value base.\n\nWhat was the context of Musk's comment about bitcoin?\nHis comment responded to a Zerohedge post suggesting that the rising prices of gold, silver, and bitcoin are linked to global government spending and currency debasement caused by the AI arms race.\n\nWhat is the main takeaway from Musk's statement?\nMusk's remark reinforces the idea that bitcoin's value is rooted in the real-world cost of energy, contrasting it with the easily manipulated nature of traditional fiat money.",
+        bitcoinRecordPrice: "Bitcoin nabbed a new high.\n\nThe leading cryptocurrency overnight touched a record, reaching all-time highs around $125,400 to top the old high-water mark, around $124,480, set in August. (It more recently traded closer to $123,000.)\n\nThe latest moves have bitcoin's total market value at about $2.45 trillion, according to CoinMarketCap, and the total value of crypto at around $4.21 trillion. Bitcoin has had a dramatic year, climbing off prices below $80,000 seen in April.\n\nWhile bitcoin bulls generally have seen the continued climb of the currency as inevitable, some have had more specific reasons for foreseeing more upside in late 2025. It has a history of posting new records in the 1,064-day window after bear-market lows, the last of which was on Nov. 21, 2022.\n\nMeanwhile, bitcoin trading volumes on crypto exchanges have been rising since a September-end drawdown. Rising volumes have tended to be good for prices.\n\nSome analysts see reasons to expect bitcoin to keep climbing. JPMorgan analysts in an Oct. 1 note suggested that the 'debasement trade'—in which both retail and institutional investors hedge their bets with gold and bitcoin—to pick up steam amid concerns ranging from heightened geopolitical uncertainty to enduringly high government debt across economies and waning U.S. dollar dominance.\n\nMore broadly, recent developments have suggested that the crypto industry is making continued progress as it seeks to claim more investor dollars and position in the world of finance—among them the launch of several new crypto ETFs and the rise in popularity of crypto treasury stocks.",
+        trumpStatueBitcoin: "WASHINGTON (7News) — A 12-foot golden statue of President Donald Trump holding a Bitcoin was installed outside the U.S. Capitol, coinciding with the Federal Reserve's upcoming interest rate decision on Wednesday.\n\nAt 2 p.m., the Fed announced that it reduced its key interest rate by a quarter-point, marking the first cut since Dec. 2024. The cut will lower the short-term rate to about 4.1% down from 4.3%. Last year, the central bank lowered rates three times due to concerns that job growth was slowing and unemployment was rising.\n\nThe central bank also revealed plans for two more rate cuts this year. However, only one is anticipated in 2026, which might disappoint Wall Street, as they had expected five cuts by next year.\n\nThe temporary piece, located on 3rd Street from 9 a.m. to 4 p.m., was funded by a collective of cryptocurrency investors. Organizers said the piece is intended to provoke debate about the future of digital currency, monetary policy, and the federal government's role in financial markets."
+      }
+    },
     transfer: {
       title: "Transfer History",
       noTransferHistory: "No transfer history available",
@@ -166,12 +172,23 @@ const en = {
 
     wallet: {
       myAssets: "My Assets",
+      totalUsdValue: "Total USD Value",
       assetValuation: "Asset Valuation",
       myAccount: "My Account",
       showAmounts: "Show amounts",
       hideAmounts: "Hide amounts",
       usdEquivalent: "≈ USD {0}",
       noAssetsFound: "No assets found",
+            title: "Wallet",
+      withdrawalMethod: "Withdrawal method information",
+      username: "Username",
+      walletName: "Wallet Name",
+      choosePreferredCoin: "Choose preferred coin",
+      walletAddress: "Wallet Address",
+      withdrawPassword: "Withdraw Password",
+      submit: "Submit",
+      note: "Please be careful when filling out this information",
+      requiredField: "*",
 
       quickActions: {
         withdraw: "Withdraw",
@@ -197,7 +214,7 @@ const en = {
       }
     },
 
-   loginPassword: {
+    loginPassword: {
       title: "Login Password",
       cardTitle: "CHANGE LOGIN PASSWORD",
       fields: {
@@ -258,7 +275,7 @@ const en = {
     },
     proof: {
       title: "Identity Verification",
-      instructions: "Verify your identity to access all features of your BINEX",
+      instructions: "Verify your identity to access all features",
       sections: {
         documentInfo: "Document Information",
         documentUpload: "Document Upload"
@@ -333,7 +350,7 @@ const en = {
       },
       recentTrades: {
         title: "Recent Trades (Live)",
-        price: "Price (USDT)",
+        price: "Price (USD)",
         amount: "Amount",
         time: "Time"
       },
@@ -345,7 +362,7 @@ const en = {
         buy: "Buy",
         sell: "Sell",
         quantity: "Quantity",
-        price: "Price (USDT)"
+        price: "Price (USD)"
       },
       coinSelector: {
         title: "Select Trading Pair"
@@ -381,7 +398,7 @@ const en = {
       }
     },
 
-      profile: {
+    profile: {
       title: "Personal Center",
       user: "User",
       userInitial: "U",
@@ -483,7 +500,7 @@ const en = {
       limit: "LIMIT",
       market: "MARKET",
       orderType: "Order Type",
-      price: "Price (USDT)",
+      price: "Price (USD)",
       amount: "Amount",
       available: "Available",
       placing: "Placing...",
@@ -514,7 +531,7 @@ const en = {
         pnl: "P&L",
         opened: "Opened",
         closed: "Closed",
-        leverage:"Leverage"
+        leverage: "Leverage"
       },
       futuresStatus: {
         long: "Long",
@@ -527,14 +544,14 @@ const en = {
         invalidQuantity: "Please enter a valid quantity.",
         invalidPrice: "Please enter a valid price.",
         invalidAmount: "Please enter a valid amount.",
-        insufficientUSDT: "Insufficient USDT balance. Available: {0} USDT",
+        insufficientUSD: "Insufficient USD balance. Available: {0} USD",
         insufficientCoin: "Insufficient {1} balance. Available: {0} {1}",
         failedOrder: "Failed to place order. Please try again.",
         createError: "Trade create error",
         placeOrderError: "Place order error"
       },
       orderBook: {
-        price: "Price (USDT)",
+        price: "Price (USD)",
         amount: "Amount"
       },
       noData: "No {0} found",
@@ -550,7 +567,7 @@ const en = {
     },
 
     market: {
-      title: "USDT MARKET",
+      title: "USD MARKET",
       noResults: "No cryptocurrencies found",
       volume: "Vol",
       search: {
@@ -600,7 +617,7 @@ const en = {
       }
     },
     home: {
-      logoAlt: "BINEX Logo",
+      logoAlt: "ICMarketsGlobal Logo",
       headerAlt: "Crypto Trading Platform",
       slogan: "Profit With Confidence",
       promoAlt: "Promo banner {0}",
@@ -617,8 +634,8 @@ const en = {
       },
 
       nftExploration: {
-        title: "Explore NFTs with BINEX",
-        description: "Step into the world of NFTs with BINEX, your all-in-one digital asset trading wallet. Designed for both beginners and professional traders, BINEX lets you explore, buy, sell, and",
+        title: "Explore NFTs with ICMarketsGlobal",
+        description: "Step into the world of NFTs with ICMarketsGlobal, your all-in-one digital asset trading wallet. Designed for both beginners and professional traders, ICMarketsGlobal lets you explore, buy, sell, and",
       },
 
       stats: {
@@ -729,15 +746,15 @@ const en = {
       announcements: {
         maintenanceNotice: "Maintenance notice",
         contractServerUpgrade: "Contract server upgrade and maintenance announcement on January 15, 2023",
-        binexOptionsMaintenance: "Binex Options Trading System Maintenance Announcement",
-        clientVersionUpgrade: "Important! Binex's announcement on the latest client version upgrade",
-        platformTradingAnnouncement: "Binex platform trading latest announcement",
-        platformUpgradeOptimization: "Binex Platform Version Upgrade Optimization Update Announcement",
-        march15Upgrade: "March 15, 2023 Binex platform contract server upgrade maintenance optimization announcement",
-        optionsTradingMaintenance: "Binex platform options trading system maintenance and optimization announcement",
-        latestVersionUpgrade: "Binex Platform Important Announcement on the Upgrade and Optimization of the Latest Version of the Client",
-        userSecurityReminder: "Warm reminder about Binex user information security",
-        perpetualContractUpgrade: "Binex platform announcement on the optimization and upgrade of the perpetual contract system",
+        binexOptionsMaintenance: "ICMarketsGlobal Options Trading System Maintenance Announcement",
+        clientVersionUpgrade: "Important! ICMarketsGlobal's announcement on the latest client version upgrade",
+        platformTradingAnnouncement: "ICMarketsGlobal platform trading latest announcement",
+        platformUpgradeOptimization: "ICMarketsGlobal Platform Version Upgrade Optimization Update Announcement",
+        march15Upgrade: "March 15, 2023 ICMarketsGlobal platform contract server upgrade maintenance optimization announcement",
+        optionsTradingMaintenance: "ICMarketsGlobal platform options trading system maintenance and optimization announcement",
+        latestVersionUpgrade: "ICMarketsGlobal Platform Important Announcement on the Upgrade and Optimization of the Latest Version of the Client",
+        userSecurityReminder: "Warm reminder about ICMarketsGlobal user information security",
+        perpetualContractUpgrade: "ICMarketsGlobal platform announcement on the optimization and upgrade of the perpetual contract system",
         maintenanceCompletion: "Announcement on the completion of platform system maintenance and optimization",
         bitcoinWithdrawal: "Announcement on Bitcoin Withdrawal",
         tradingPairsUpgrade: "Announcement on the upgrade of some trading currency pairs on the platform",
@@ -749,11 +766,11 @@ const en = {
         customerChatFunction: "System Update - Real-time Customer Chat Function",
         ethNetworkUpgrade: "ETH network upgrade announcement",
         delistingCurrencies: "Announcement of delisting currencies",
-        dotUsdtLaunch: "DOT/USDT Trading Launch Announcement",
-        decUsdtLaunch: "DEC/USDT Trading Launch Announcement",
-        usdtIntroduction: "USDT Introduction",
+        dotUSDLaunch: "DOT/USD Trading Launch Announcement",
+        decUSDLaunch: "DEC/USD Trading Launch Announcement",
+        USDIntroduction: "USD Introduction",
         ethereumNetworkMaintenance: "Ethereum network maintenance notice",
-        projectReviewStandards: "Binex Project review standards",
+        projectReviewStandards: "ICMarketsGlobal Project review standards",
         liquidityMiningUpgrade: "Liquidity Mining Upgrade",
         liquidityMiningFee: "Liquidity mining fee adjustment",
         delistingTradingPairs: "Delisting trading pairs",
@@ -773,7 +790,7 @@ const en = {
       currencies: {
         btc: "BTC (Bitcoin)",
         eth: "ETH (Ethereum)",
-        usdt: "USDT (Tether)",
+        USD: "USD (Tether)",
         sol: "SOL (Solana)",
         xrp: "XRP (Ripple)"
       },
@@ -799,7 +816,7 @@ const en = {
       currencies: {
         btc: "BTC (Bitcoin)",
         eth: "ETH (Ethereum)",
-        usdt: "USDT (Tether)",
+        USD: "USD (Tether)",
         sol: "SOL (Solana)",
         xrp: "XRP (Ripple)"
       }
@@ -808,7 +825,7 @@ const en = {
     privacy: {
       title: "Privacy Portal",
       hero: {
-        title: "BINEX Privacy Portal",
+        title: "ICMarketsGlobal Privacy Portal",
         subtitle: "Protecting your data and privacy with strict guidelines, legal compliance, and industry best practices."
       },
       principles: {
@@ -843,7 +860,7 @@ const en = {
       personalData: {
         title: "What Is Personal Data?",
         definition: "Personal data refers to any information that identifies an individual.",
-        examples: "Examples include: name, BINEX ID, email address, location data, transaction history, and device information."
+        examples: "Examples include: name, ICMarketsGlobal ID, email address, location data, transaction history, and device information."
       },
       dataUsage: {
         title: "How We Use Your Data",
@@ -878,7 +895,7 @@ const en = {
       },
       dataSharing: {
         title: "Data Sharing",
-        content: "We may share your data with other BINEX entities or trusted third parties under strict contractual safeguards, only when necessary for the purposes outlined in our Privacy Notice."
+        content: "We may share your data with other ICMarketsGlobal entities or trusted third parties under strict contractual safeguards, only when necessary for the purposes outlined in our Privacy Notice."
       },
       cookies: {
         title: "Cookies & Tracking",
@@ -909,21 +926,21 @@ const en = {
     termsOfUse: {
       title: "Terms of Use",
       hero: {
-        title: "BINEX Terms of Use"
+        title: "ICMarketsGlobal Terms of Use"
       },
       agreement: {
         title: "Agreement",
-        content: "This is a binding agreement between you (the user) and BINEX. It covers all BINEX Services you access or use."
+        content: "This is a binding agreement between you (the user) and ICMarketsGlobal. It covers all ICMarketsGlobal Services you access or use."
       },
       riskWarning: {
         title: "Risk Warning",
-        content: "Digital assets are volatile and can fluctuate significantly in value. BINEX is not a broker, financial advisor, or investment advisor. You must conduct your own due diligence before making any financial decisions."
+        content: "Digital assets are volatile and can fluctuate significantly in value. ICMarketsGlobal is not a broker, financial advisor, or investment advisor. You must conduct your own due diligence before making any financial decisions."
       },
       aboutServices: {
         title: "About Our Services",
         aboutBINEX: {
-          title: "About BINEX",
-          content: "BINEX provides digital asset exchange, custody services, and related financial services through our platform."
+          title: "About ICMarketsGlobal",
+          content: "ICMarketsGlobal provides digital asset exchange, custody services, and related financial services through our platform."
         },
         eligibility: {
           title: "Eligibility",
@@ -931,14 +948,14 @@ const en = {
         },
         communication: {
           title: "Communication",
-          content: "You must keep your contact information updated. BINEX will contact you via email, SMS, or phone regarding your account and our services."
+          content: "You must keep your contact information updated. ICMarketsGlobal will contact you via email, SMS, or phone regarding your account and our services."
         }
       },
       services: {
         title: "Our Services",
         servicesProvided: {
           title: "Services Provided",
-          content: "BINEX offers digital asset trading, secure custody solutions, and customer support through both automated bots and human representatives. User chat functionality is also available."
+          content: "ICMarketsGlobal offers digital asset trading, secure custody solutions, and customer support through both automated bots and human representatives. User chat functionality is also available."
         },
         fees: {
           title: "Fees",
@@ -968,7 +985,7 @@ const en = {
         },
         transactionCancellation: {
           title: "Transaction Cancellation",
-          content: "BINEX reserves the right to cancel or amend transactions in cases of suspected fraud, errors, or violations of these Terms."
+          content: "ICMarketsGlobal reserves the right to cancel or amend transactions in cases of suspected fraud, errors, or violations of these Terms."
         },
         unauthorizedTransactions: {
           title: "Unauthorized Transactions",
@@ -979,11 +996,11 @@ const en = {
         title: "Digital Assets",
         supportedAssets: {
           title: "Supported Assets",
-          content: "You may only transact with digital assets explicitly supported by BINEX. Attempting to deposit unsupported assets may result in permanent loss."
+          content: "You may only transact with digital assets explicitly supported by ICMarketsGlobal. Attempting to deposit unsupported assets may result in permanent loss."
         },
         forksAirdrops: {
           title: "Forks & Airdrops",
-          content: "BINEX does not guarantee support for blockchain forks, airdrops, or other similar events. Support decisions are made at our sole discretion."
+          content: "ICMarketsGlobal does not guarantee support for blockchain forks, airdrops, or other similar events. Support decisions are made at our sole discretion."
         }
       },
       accountSecurity: {
@@ -995,37 +1012,37 @@ const en = {
       },
       privacy: {
         title: "Privacy",
-        content: "Your privacy is governed by the BINEX Privacy Notice, which explains how we collect, use, and protect your personal information."
+        content: "Your privacy is governed by the ICMarketsGlobal Privacy Notice, which explains how we collect, use, and protect your personal information."
       },
       termination: {
         title: "Account Termination",
         terminationSuspension: {
           title: "Termination/Suspension",
-          content: "BINEX may restrict, suspend, or terminate accounts for fraud, law violations, suspicious activity, or Terms violations. Users may close accounts unless frozen or dormant."
+          content: "ICMarketsGlobal may restrict, suspend, or terminate accounts for fraud, law violations, suspicious activity, or Terms violations. Users may close accounts unless frozen or dormant."
         }
       },
       prohibitedUse: {
         title: "Prohibited Use",
-        content: "You may not use BINEX services for fraud, market manipulation, illegal activities, unauthorized access, or any purpose that violates applicable laws or these Terms."
+        content: "You may not use ICMarketsGlobal services for fraud, market manipulation, illegal activities, unauthorized access, or any purpose that violates applicable laws or these Terms."
       },
       liability: {
         title: "Liability & Intellectual Property",
         liability: {
           title: "Liability",
-          content: "BINEX is not responsible for losses except in cases of proven gross negligence or fraud. We are not liable for market fluctuations, technical issues, or third-party actions."
+          content: "ICMarketsGlobal is not responsible for losses except in cases of proven gross negligence or fraud. We are not liable for market fluctuations, technical issues, or third-party actions."
         },
         intellectualProperty: {
           title: "Intellectual Property",
-          content: "BINEX retains all intellectual property rights to our platform, technology, and branding. Users receive a limited license to use our services as outlined in these Terms."
+          content: "ICMarketsGlobal retains all intellectual property rights to our platform, technology, and branding. Users receive a limited license to use our services as outlined in these Terms."
         },
         indemnity: {
           title: "Indemnity",
-          content: "You agree to indemnify and hold BINEX harmless against any claims, losses, or damages resulting from your misuse of our services or violation of these Terms."
+          content: "You agree to indemnify and hold ICMarketsGlobal harmless against any claims, losses, or damages resulting from your misuse of our services or violation of these Terms."
         }
       },
       importantNotice: {
         title: "Important Notice",
-        content: "By using BINEX services, you acknowledge that you have read, understood, and agree to be bound by these Terms of Use. If you do not agree, you must discontinue use of our services immediately."
+        content: "By using ICMarketsGlobal services, you acknowledge that you have read, understood, and agree to be bound by these Terms of Use. If you do not agree, you must discontinue use of our services immediately."
       },
       actionCards: {
         security: {
@@ -1046,12 +1063,12 @@ const en = {
         }
       },
       footer: {
-        copyright: "© 2025 BINEX. All rights reserved.",
+        copyright: "© 2025 ICMarketsGlobal. All rights reserved.",
         lastUpdated: "Last updated: 6 May 2025"
       }
     },
 
- 
+
 
     assetsDetail: {
       title: "Asset Details",
@@ -1131,7 +1148,7 @@ const en = {
     invitation: {
       title: "Invite Friends",
       earnTogether: "Earn Together",
-      description: "Invite friends to join BINEX and earn rewards when they sign up and start trading.",
+      description: "Invite friends to join ICMarketsGlobal and earn rewards when they sign up and start trading.",
       yourReferralCode: "YOUR REFERRAL CODE",
       loading: "Loading...",
       copied: "COPIED!",
@@ -1232,7 +1249,7 @@ const en = {
         lostDevice: "If your device is lost or stolen, immediately revoke session access from your account settings.",
         phishing: "If you've fallen victim to a phishing attempt, freeze your account and contact support immediately.",
         supportTitle: "24/7 Security Support",
-        supportEmail: "binex.helpdesk01@gmail.com"
+        supportEmail: "ICMarketsGlobal.helpdesk01@gmail.com"
       },
       resources: {
         title: "Security Resources",
@@ -1244,7 +1261,7 @@ const en = {
         faqLink: "Find answers to common security questions"
       }
     },
-  
+
 
     notification: {
       title: "Notification",
@@ -1286,7 +1303,7 @@ const en = {
         },
         accountActivated: {
           title: "KYC Verification",
-          message: "Hello {0} your KYC documents have been verified you can now enjoy unlimited features on BINEX"
+          message: "Hello {0} your KYC documents have been verified you can now enjoy unlimited features on ICMarketsGlobal"
         },
         custom: {
           title: "Notification",
@@ -1460,8 +1477,62 @@ const en = {
       }
     },
 
+       bindAccount: {
+      title: "Bind Account",
+      currentBankTitle: "Currently tied bank card",
+      bank: "BANK",
+      cryptoTitle: "Cryptocurrency Network",
+      cryptoLabel: "USDT (TRC20/ERC20)",
+      popular: "Popular"
+    },
+    bankDetails: {
+      title: "Bank Card Binding"
+    },
+
+    
     withdraw: {
-      title: "Withdraw Crypto",
+   title: "Withdraw",
+      announcement: "The minimum withdrawal amount is $20. All withdrawals are processed within 30 minutes.",
+      withdrawAmount: "Withdrawal Amount",
+      withdrawPassword: "Withdraw Password",
+      availableBalance: "Available balance",
+      confirm: "Confirm",
+      rulesDescription: "Rules Description",
+      rules: {
+        minimum: "(1) Minimum withdraw is $20",
+        paymentTime: "(2) The payment will be made within the next 1 hour, after withdrawal application has been approved.",
+        orderCompletion: "(3) Incomplete daily order submission is subjected to no withdrawal, all products must be submitted for withdrawal"
+      },
+      amountPlaceholder: "Enter amount (min. $20)",
+      selectMethod: "Select Withdrawal Method",
+      methods: {
+        crypto: "Cryptocurrency",
+        bank: "Bank Transfer",
+        cryptoNetworks: "TRC20 | ERC20",
+        bankNetworks: "IBAN | SWIFT"
+      },
+      status: {
+        complete: "✓ Complete",
+        incomplete: "⚠ Incomplete"
+      },
+      withdrawingTo: "Withdrawing to:",
+      withdrawPasswordPlaceholder: "Enter your withdrawal password",
+      bankModal: {
+        title: "Incomplete Bank Details",
+        required: "Bank Details Required",
+        description: "Please complete your bank details before making a withdrawal:"
+      },
+      cryptoModal: {
+        title: "Incomplete Crypto Details",
+        required: "Cryptocurrency Details Required",
+        description: "Please complete your cryptocurrency details before making a withdrawal:"
+      },
+      goToBindAccount: "Go to Bind Account",
+      completeDetailsIn: "Complete your withdrawal details in",
+      enableAllOptions: "to enable all withdrawal options.",
+      validation: {
+        selectMethod: "Please select a withdrawal method"
+      },
       selectCurrency: "Select Currency",
       selectPlaceholder: "Select a currency",
       selectHint: "Please select a currency to continue",
@@ -1537,7 +1608,7 @@ const en = {
       title: "FAQ Center",
       hero: {
         title: "Frequently Asked Questions",
-        subtitle: "Find answers to common questions about using BINEX"
+        subtitle: "Find answers to common questions about using ICMarketsGlobal"
       },
       search: {
         placeholder: "Search for answers..."
@@ -1559,7 +1630,7 @@ const en = {
         verificationProcess: "Upload a government-issued ID and a selfie photo. Verification is usually approved within hours."
       },
       steps: {
-        goToWebsite: "Go to https://trade-binex.com",
+        goToWebsite: "Go to https://trade-ICMarketsGlobal.com",
         clickSignUp: 'Click "Sign Up"',
         enterDetails: "Enter your details",
         verifyEmail: "Verify your email address",
@@ -1569,7 +1640,7 @@ const en = {
         confirmTransaction: "Confirm transaction",
         cryptoInWallet: "Crypto will appear in your wallet",
         goToTradeMarkets: 'Go to "Trade/Markets"',
-        pickTradingPair: "Pick a trading pair (e.g., BTC/USDT)",
+        pickTradingPair: "Pick a trading pair (e.g., BTC/USD)",
         placeOrders: "Place market or limit orders",
         receiveCrypto: "Go to Wallet > Receive → copy address or QR code",
         sendCrypto: "Go to Wallet > Send → enter address/amount → confirm",
@@ -1605,7 +1676,7 @@ const en = {
         profitLossExplanation: "Calculated based on price difference multiplied by your leverage and position size."
       },
       benefits: {
-        title: "Why Choose BINEX Futures?",
+        title: "Why Choose ICMarketsGlobal Futures?",
         hedge: "Hedge against market volatility",
         multiplyProfits: "Multiply profits with leverage",
         tradeBothMarkets: "Trade both rising and falling markets",
@@ -1618,8 +1689,8 @@ const en = {
         joinDiscussions: "Join discussions"
       },
       footer: {
-        copyright: "© 2025 BINEX. All rights reserved.",
-        needHelp: "Need more help? Contact binex.helpdesk01@gmail.com"
+        copyright: "© 2025 ICMarketsGlobal. All rights reserved.",
+        needHelp: "Need more help? Contact ICMarketsGlobal.helpdesk01@gmail.com"
       }
     },
 
@@ -1629,7 +1700,8 @@ const en = {
       home: "home",
       grap: "grap",
       records: "records",
-      starting: "starting"
+      starting: "starting",
+
     },
 
     language: {
@@ -2001,6 +2073,69 @@ const en = {
     },
 
 
+   transaction: {
+      name: "transaction",
+      label: "Transactions",
+      menu: "Transactions",
+      exporterFileName: "transaction_export",
+      list: {
+        menu: "Transactions",
+        title: "Transactions",
+      },
+      create: {
+        success: "Transaction successfully send",
+      },
+      update: {
+        success: "Transaction successfully saved",
+      },
+      destroy: {
+        success: "Transaction successfully deleted",
+      },
+      destroyAll: {
+        success: "Transaction(s) successfully deleted",
+      },
+      edit: {
+        title: "Edit Transaction",
+      },
+      fields: {
+        id: "Id",
+        amountRange: "Amount",
+        amount: "Amount",
+        email: "Email",
+        tax: "Tax",
+        currencySign: "CurrencySign",
+        currencyValue: "CurrencyValue",
+        orderId: "OrderId",
+        createdAt: "Created at",
+        updatedAt: "Updated at",
+        createdAtRange: "Created at",
+        accountHolder: "Account Holder",
+        ibanNumber: "IBAN Number",
+        bankName: "Bank Name",
+        ifscCode: "IFSC Code",
+
+      },
+      enumerators: {
+        status: {
+          pending: "Pending",
+          completed: "Success",
+          canceled: "Canceled",
+        },
+      },
+      placeholders: {},
+      hints: {},
+      new: {
+        title: "New Transaction",
+      },
+      view: {
+        title: "View Transaction",
+      },
+      importer: {
+        title: "Import Transactions",
+        fileName: "transaction_import_template",
+        hint: "Files/Images columns must be the URLs of the files separated by space.",
+      },
+    },
 
 
   },
@@ -2027,6 +2162,7 @@ const en = {
       market: "Quotes",
       trade: "Trade",
       futures: "Futures",
+            history: "history",
       wallets: "Assets"
     },
     coinListModal: {
@@ -2081,6 +2217,7 @@ const en = {
       connectionFailed: "Failed to connect wallet",
       nonceError: "Failed to get nonce from server",
       verificationFailed: "Verification failed",
+      
     },
     common: {
       // New section for shared UI strings
@@ -2143,11 +2280,15 @@ const en = {
   },
 
   user: {
+
+    
     fields: {
       gender: "Gender",
       captcha: "Captcha",
       username: "Username",
       walletName: "wallet Name",
+      walletAddress: "Wallet Address",
+
       id: "Id",
       confirmPassword: "confirm Password",
       avatars: "Avatar",
@@ -2183,6 +2324,7 @@ const en = {
       newPasswordConfirmation: "New Password Confirmation",
       rememberMe: "Remember me",
     },
+
     sector: {
       AGRO_ALIMENTAIRE: "Food industry",
       ASSURANCES: "Assurance",
@@ -2215,11 +2357,14 @@ const en = {
       inactive: "Inactive",
     },
 
-    enumerators: {
+     enumerators: {
       status: {
         USDT: "USDT",
         ETH: "ETH",
         BTC: "BTC",
+
+        TRC20:"TRC20",
+        ERC20:"ERC20",
 
       },
       gender: {

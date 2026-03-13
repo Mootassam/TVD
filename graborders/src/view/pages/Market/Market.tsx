@@ -1,173 +1,94 @@
-import axios from "axios";
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { i18n } from "../../../i18n";
 
-// Interface for Binance ticker data
-interface BinanceTicker {
-  s: string; // Symbol
-  c: string; // Last price
-  P: string; // Price change percent
-  v: string; // Total traded base asset volume
-  p: string; // Price change
-  q: string; // Quote asset volume (USDT volume)
-}
-
-// Interface for cryptocurrency data
-interface CryptoData {
+interface ForexData {
   symbol: string;
   name: string;
   price: string;
   change: string;
   changePercent: string;
+  isPositive: boolean;
   volume: string;
   volumeFormatted: string;
-  isPositive: boolean;
   quoteVolume: number;
 }
 
-// Main Market Component
-const Market: React.FC = () => {
-  const [cryptoData, setCryptoData] = useState<{ [key: string]: CryptoData }>({});
+// Mapping currency codes to country codes for flags (ISO 3166-1 alpha-2)
+const currencyToCountry: Record<string, string> = {
+  EUR: 'eu',       // European Union
+  USD: 'us',
+  GBP: 'gb',
+  JPY: 'jp',
+  AUD: 'au',
+  CAD: 'ca',
+  CHF: 'ch',
+  NZD: 'nz',
+  MXN: 'mx',
+  TRY: 'tr',
+  ZAR: 'za',
+  SGD: 'sg',
+  HKD: 'hk',
+  KRW: 'kr',
+  INR: 'in',
+  // Add more as needed
+};
+
+const ForexMarket: React.FC = () => {
+  const [forexData, setForexData] = useState<{ [key: string]: ForexData }>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const ws = useRef<WebSocket | null>(null);
-  const dataFetchController = useRef<AbortController | null>(null);
+  const updateInterval = useRef<NodeJS.Timeout | null>(null);
   const isComponentMounted = useRef(true);
 
-  // Specific list of pairs you want to display
   const targetPairs = useMemo(() => [
-    "SHIBUSDT", "USDCUSDT", "DOGEUSDT", "TRXUSDT",
-    "XRPUSDT", "ADAUSDT", "FILUSDT", "TONUSDT",
-    "MATICUSDT", "DOTUSDT", "SOLUSDT", "TRUMPUSDT",
-    "EOSUSDT", "LINKUSDT", "ZECUSDT", "DASHUSDT",
-    "LTCUSDT", "ETHUSDT", "BCHUSDT", "BNBUSDT",
-    "BTCUSDT", "XMRUSDT", "YFIUSDT"
+    "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
+    "EURGBP", "EURJPY", "GBPJPY", "AUDJPY", "EURAUD", "GBPAUD", "USDMXN",
+    "USDRY", "USDZAR", "USDSGD", "USDHKD", "USDKRW", "USDINR"
   ], []);
 
-  // Format volume helper
-  const formatVolume = useCallback((volumeNum: number) => {
-    if (volumeNum >= 1000000000) {
-      return (volumeNum / 1000000000).toFixed(1) + "B";
-    } else if (volumeNum >= 1000000) {
-      return (volumeNum / 1000000).toFixed(1) + "M";
-    }
-    return volumeNum.toFixed(0);
+  const formatPrice = useCallback((priceNum: number) => {
+    if (isNaN(priceNum)) return "0.0000";
+    return priceNum.toFixed(5);
   }, []);
 
-  // Format price helper
-  const formatPrice = useCallback((price: string) => {
-    const priceNum = Number(price);
-    if (isNaN(priceNum)) return "0.00";
-    
-    return priceNum.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: priceNum < 1 ? 6 : 4,
-    });
+  const generateRandomChange = useCallback((basePrice: number) => {
+    const changePercent = (Math.random() * 4 - 2) / 100;
+    const newPrice = basePrice * (1 + changePercent);
+    return { price: newPrice, changePercent: changePercent * 100 };
   }, []);
 
-  // Cancel pending requests
-  const cancelPendingRequests = useCallback(() => {
-    if (dataFetchController.current) {
-      dataFetchController.current.abort();
-      dataFetchController.current = null;
-    }
-  }, []);
+  const updateForexPrices = useCallback(() => {
+    setForexData((prevData) => {
+      const newData = { ...prevData };
+      targetPairs.forEach((symbol) => {
+        if (!newData[symbol]) {
+          let basePrice = 1.0;
+          if (symbol === "EURUSD") basePrice = 1.0850;
+          else if (symbol === "GBPUSD") basePrice = 1.2650;
+          else if (symbol === "USDJPY") basePrice = 148.50;
+          else if (symbol === "AUDUSD") basePrice = 0.6550;
+          else if (symbol === "USDCAD") basePrice = 1.3550;
+          else if (symbol === "USDCHF") basePrice = 0.8750;
+          else if (symbol === "NZDUSD") basePrice = 0.6050;
+          else if (symbol === "EURGBP") basePrice = 0.8570;
+          else if (symbol === "EURJPY") basePrice = 161.20;
+          else if (symbol === "GBPJPY") basePrice = 188.30;
+          else if (symbol === "AUDJPY") basePrice = 97.20;
+          else if (symbol === "EURAUD") basePrice = 1.6550;
+          else if (symbol === "GBPAUD") basePrice = 1.9300;
+          else if (symbol === "USDMXN") basePrice = 17.20;
+          else if (symbol === "USDRY") basePrice = 30.50;
+          else if (symbol === "USDZAR") basePrice = 18.90;
+          else if (symbol === "USDSGD") basePrice = 1.3450;
+          else if (symbol === "USDHKD") basePrice = 7.8200;
+          else if (symbol === "USDKRW") basePrice = 1330.00;
+          else if (symbol === "USDINR") basePrice = 83.20;
 
-  // Close WebSocket
-  const closeWebSocket = useCallback(() => {
-    if (ws.current) {
-      try {
-        ws.current.onclose = null;
-        ws.current.close();
-      } catch (error) {
-        console.warn("Error closing WebSocket:", error);
-      }
-      ws.current = null;
-    }
-  }, []);
-
-  // Fetch initial market data for specific pairs
-  useEffect(() => {
-    const fetchSpecificPrices = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Cancel any existing requests
-        cancelPendingRequests();
-        dataFetchController.current = new AbortController();
-        const signal = dataFetchController.current.signal;
-
-        // Set timeout for API call
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error(i18n('common.timeout'))), 5000);
-        });
-
-        // Create symbols parameter for batch request
-        const symbolsParam = targetPairs.map(symbol => `"${symbol}"`).join(',');
-        const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=[${symbolsParam}]`;
-
-        const fetchPromise = axios.get(url, { signal });
-        const response = await Promise.race([fetchPromise, timeoutPromise]);
-
-        const formattedData: { [key: string]: CryptoData } = {};
-
-        response.data.forEach((item: any) => {
-          const symbol = item.symbol;
-          const baseSymbol = symbol.replace("USDT", "");
-          const isPositive = parseFloat(item.priceChangePercent) >= 0;
-          const changePercent = Math.abs(Number(item.priceChangePercent)).toFixed(2);
-
-          formattedData[symbol] = {
+          newData[symbol] = {
             symbol,
-            name: `${baseSymbol}/USDT`,
-            price: formatPrice(item.lastPrice),
-            change: item.priceChange,
-            changePercent: changePercent,
-            volume: item.volume,
-            volumeFormatted: formatVolume(Number(item.volume)),
-            isPositive: isPositive,
-            quoteVolume: parseFloat(item.quoteVolume),
-          };
-        });
-
-        // Fill in any missing pairs with placeholder data
-        targetPairs.forEach(symbol => {
-          if (!formattedData[symbol]) {
-            const baseSymbol = symbol.replace("USDT", "");
-            formattedData[symbol] = {
-              symbol,
-              name: `${baseSymbol}/USDT`,
-              price: "0.00",
-              change: "0.00",
-              changePercent: "0.00",
-              volume: "0",
-              volumeFormatted: "0",
-              isPositive: true,
-              quoteVolume: 0,
-            };
-          }
-        });
-
-        if (isComponentMounted.current) {
-          setCryptoData(formattedData);
-          setIsLoading(false);
-        }
-      } catch (error: any) {
-        if (error.name === 'AbortError') {
-          console.log(i18n('common.requestAborted'));
-          return;
-        }
-        console.error(i18n('common.fetchError'), error);
-        
-        // Set fallback data
-        const fallbackData: { [key: string]: CryptoData } = {};
-        targetPairs.forEach(symbol => {
-          const baseSymbol = symbol.replace("USDT", "");
-          fallbackData[symbol] = {
-            symbol,
-            name: `${baseSymbol}/USDT`,
-            price: "0.00",
+            name: `${symbol.slice(0,3)}/${symbol.slice(3)}`,
+            price: formatPrice(basePrice),
             change: "0.00",
             changePercent: "0.00",
             volume: "0",
@@ -175,154 +96,73 @@ const Market: React.FC = () => {
             isPositive: true,
             quoteVolume: 0,
           };
-        });
-
-        if (isComponentMounted.current) {
-          setCryptoData(fallbackData);
-          setIsLoading(false);
         }
-      }
-    };
 
-    fetchSpecificPrices();
+        const currentPrice = parseFloat(newData[symbol].price);
+        const { price: newPrice, changePercent } = generateRandomChange(currentPrice);
+        const isPositive = changePercent >= 0;
 
-    return () => {
-      cancelPendingRequests();
-    };
-  }, [targetPairs, formatPrice, formatVolume, cancelPendingRequests]);
+        newData[symbol] = {
+          ...newData[symbol],
+          price: formatPrice(newPrice),
+          change: (newPrice - currentPrice).toFixed(5),
+          changePercent: Math.abs(changePercent).toFixed(2),
+          isPositive,
+        };
+      });
+      return newData;
+    });
+  }, [targetPairs, formatPrice, generateRandomChange]);
 
-  // Setup optimized WebSocket for real-time updates
   useEffect(() => {
     isComponentMounted.current = true;
+    setIsLoading(true);
+    updateForexPrices();
+    setIsLoading(false);
 
-    const setupWebSocket = () => {
-      try {
-        // Create individual streams for better performance
-        const streams = targetPairs.map(pair => `${pair.toLowerCase()}@ticker`).join('/');
-        ws.current = new WebSocket(`wss://stream.binance.com:9443/ws/${streams}`);
-
-        ws.current.onopen = () => {
-          console.log(i18n('pages.market.websocketConnected'));
-        };
-
-        ws.current.onmessage = (event) => {
-          if (!isComponentMounted.current) return;
-
-          try {
-            const data = JSON.parse(event.data);
-            
-            // Handle both array (for multiple streams) and single object
-            const updates = Array.isArray(data) ? data : [data];
-
-            setCryptoData((prevData) => {
-              const newData = { ...prevData };
-
-              updates.forEach((ticker: BinanceTicker) => {
-                if (targetPairs.includes(ticker.s) && newData[ticker.s]) {
-                  const isPositive = parseFloat(ticker.P) >= 0;
-                  const changePercent = Math.abs(Number(ticker.P)).toFixed(2);
-
-                  newData[ticker.s] = {
-                    ...newData[ticker.s],
-                    price: formatPrice(ticker.c),
-                    change: ticker.p,
-                    changePercent: changePercent,
-                    volume: ticker.v,
-                    volumeFormatted: formatVolume(Number(ticker.v)),
-                    isPositive: isPositive,
-                    quoteVolume: parseFloat(ticker.q),
-                  };
-                }
-              });
-
-              return newData;
-            });
-          } catch (error) {
-            console.error(i18n('pages.market.websocketParseError'), error);
-          }
-        };
-
-        ws.current.onerror = (error) => {
-          console.error(i18n('pages.market.websocketError'), error);
-        };
-
-        ws.current.onclose = (event) => {
-          console.log(i18n('pages.market.websocketClosed'), event.code);
-          // Reconnect after delay if not normal closure
-          if (event.code !== 1000 && isComponentMounted.current) {
-            setTimeout(() => {
-              if (isComponentMounted.current) {
-                setupWebSocket();
-              }
-            }, 2000);
-          }
-        };
-      } catch (error) {
-        console.error(i18n('pages.market.websocketSetupError'), error);
-      }
-    };
-
-    setupWebSocket();
+    updateInterval.current = setInterval(() => {
+      if (isComponentMounted.current) updateForexPrices();
+    }, 3000);
 
     return () => {
       isComponentMounted.current = false;
-      closeWebSocket();
+      if (updateInterval.current) clearInterval(updateInterval.current);
     };
-  }, [targetPairs, formatPrice, formatVolume, closeWebSocket]);
+  }, [updateForexPrices]);
 
-  // Filter cryptocurrencies based on search
-  const filteredCrypto = useMemo(() => {
-    const cryptoArray = Object.values(cryptoData);
-
-    if (cryptoArray.length === 0) return [];
-
-    let filtered = cryptoArray;
-
-    // Apply search filter
+  const filteredForex = useMemo(() => {
+    const forexArray = Object.values(forexData);
+    if (forexArray.length === 0) return [];
+    let filtered = forexArray;
     if (searchTerm) {
-      const searchTermLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (crypto) =>
-          crypto.name.toLowerCase().includes(searchTermLower) ||
-          crypto.symbol.toLowerCase().includes(searchTermLower)
-      );
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(p => p.name.toLowerCase().includes(term) || p.symbol.toLowerCase().includes(term));
     }
+    return targetPairs.map(sym => filtered.find(p => p.symbol === sym)).filter(Boolean) as ForexData[];
+  }, [forexData, searchTerm, targetPairs]);
 
-    // Return in the order of targetPairs
-    return targetPairs
-      .map(symbol => filtered.find(crypto => crypto.symbol === symbol))
-      .filter(Boolean) as CryptoData[];
-  }, [cryptoData, searchTerm, targetPairs]);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value);
+  const clearSearch = () => setSearchTerm("");
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const clearSearch = useCallback(() => {
-    setSearchTerm("");
-  }, []);
-
-  // Loading placeholder row
-  const LoadingRow = useCallback(({ pair }: { pair: string }) => (
+  const LoadingRow = () => (
     <div className="loading-row">
       <div className="loading-icon"></div>
       <div className="loading-line"></div>
       <div className="loading-line short"></div>
       <div className="loading-line"></div>
     </div>
-  ), []);
+  );
 
   return (
-    <div className="market-container">
-      {/* Header with title and search */}
-      <div className="market-header">
-        <h1 className="market-title">{i18n('pages.market.title')}</h1>
+    <div className="forex-container">
+      <div className="forex-header">
+        <h1 className="forex-title">Forex Market</h1>
         <div className="search-wrapper">
           <i className="fas fa-search search-icon" />
           <input
             type="text"
             className="search-input"
-            placeholder={i18n('pages.market.search.placeholder')}
+            placeholder="Search pair (e.g., EURUSD)"
             value={searchTerm}
             onChange={handleSearchChange}
           />
@@ -334,70 +174,68 @@ const Market: React.FC = () => {
         </div>
       </div>
 
-      {/* Market List */}
-      <div className="market-list">
-        {/* Table header (hidden on mobile if desired, but kept for clarity) */}
+      <div className="forex-list">
         <div className="list-header">
-          <span>{i18n('pages.market.tableHeaders.pair')}</span>
-          <span>{i18n('pages.market.tableHeaders.latestPrice')}</span>
-          <span>{i18n('pages.market.tableHeaders.change24h')}</span>
+          <span>Pair</span>
+          <span>Latest Price</span>
+          <span>Change 24h</span>
         </div>
 
         {isLoading ? (
           <div className="loading-container">
-            {targetPairs.map((pair) => (
-              <LoadingRow key={pair} pair={pair} />
-            ))}
+            {targetPairs.map(pair => <LoadingRow key={pair} />)}
           </div>
-        ) : filteredCrypto.length > 0 ? (
-          filteredCrypto.map((crypto) => (
-            <Link
-              key={crypto.symbol}
-              to={`/market/detail/${crypto.symbol}`}
-              className="crypto-link"
-            >
-              <div className="crypto-row">
-                <div className="crypto-pair">
-                  <div className="crypto-icon">
-                    <img
-                      src={`https://images.weserv.nl/?url=https://bin.bnbstatic.com/static/assets/logos/${crypto.name.split("/")[0]}.png`}
-                      alt={crypto.name.split("/")[0]}
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        // Show text fallback
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.innerText = crypto.name.split("/")[0].substring(0, 2);
-                          parent.style.display = 'flex';
-                          parent.style.alignItems = 'center';
-                          parent.style.justifyContent = 'center';
-                        }
-                      }}
-                    />
+        ) : filteredForex.length > 0 ? (
+          filteredForex.map(pair => {
+            // Extract base currency (first 3 letters)
+            const baseCurrency = pair.symbol.slice(0, 3);
+            const countryCode = currencyToCountry[baseCurrency] || baseCurrency.toLowerCase(); // fallback to lowercase code
+            // FlagCDN URL: https://flagcdn.com/w40/{code}.png  (40px width)
+            const flagUrl = `https://flagcdn.com/w40/${countryCode}.png`;
+
+            return (
+              <Link key={pair.symbol} to={`/market/detail/${pair.symbol}`} className="forex-link">
+                <div className="forex-row">
+                  <div className="forex-pair">
+                    <div className="forex-icon">
+                      <img
+                        src={flagUrl}
+                        alt={baseCurrency}
+                        onError={(e) => {
+                          // If flag fails, fallback to currency code text
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerText = baseCurrency;
+                            parent.style.display = 'flex';
+                            parent.style.alignItems = 'center';
+                            parent.style.justifyContent = 'center';
+                          }
+                        }}
+                      />
+                    </div>
+                    <span className="pair-name">{pair.name}</span>
                   </div>
-                  <span className="pair-name">{crypto.name}</span>
+                  <div className="forex-price">
+                    <span className="price">${pair.price}</span>
+                  </div>
+                  <div className="forex-change">
+                    <span className={pair.isPositive ? "change-positive" : "change-negative"}>
+                      {pair.isPositive ? '+' : ''}{pair.changePercent}%
+                    </span>
+                  </div>
                 </div>
-                <div className="crypto-price">
-                  <span className="price">${crypto.price}</span>
-                </div>
-                <div className="crypto-change">
-                  <span className={crypto.isPositive ? "change-positive" : "change-negative"}>
-                    {crypto.isPositive ? '+' : ''}{crypto.changePercent}%
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))
+              </Link>
+            );
+          })
         ) : (
-          <div className="no-results">
-            {i18n('pages.market.noResults')}
-          </div>
+          <div className="no-results">No matching pairs found</div>
         )}
       </div>
 
       <style>{`
-        .market-container {
+        .forex-container {
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
@@ -408,24 +246,20 @@ const Market: React.FC = () => {
           padding: 20px;
           box-sizing: border-box;
         }
-
-        .market-header {
+        .forex-header {
           margin-bottom: 24px;
         }
-
-        .market-title {
+        .forex-title {
           color: #ffffff;
           font-size: 28px;
           font-weight: 600;
           margin: 0 0 16px 0;
           text-align: center;
         }
-
         .search-wrapper {
           position: relative;
           width: 100%;
         }
-
         .search-icon {
           position: absolute;
           left: 16px;
@@ -435,7 +269,6 @@ const Market: React.FC = () => {
           font-size: 16px;
           pointer-events: none;
         }
-
         .search-input {
           background-color: #1c1c1c;
           border: 1px solid #2a2a2a;
@@ -454,7 +287,6 @@ const Market: React.FC = () => {
         .search-input::placeholder {
           color: #777777;
         }
-
         .clear-search {
           position: absolute;
           right: 16px;
@@ -471,7 +303,6 @@ const Market: React.FC = () => {
         .clear-search:hover {
           color: #39FF14;
         }
-
         .list-header {
           display: flex;
           justify-content: space-between;
@@ -483,14 +314,12 @@ const Market: React.FC = () => {
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
-
-        .crypto-link {
+        .forex-link {
           text-decoration: none;
           display: block;
           margin-bottom: 8px;
         }
-
-        .crypto-row {
+        .forex-row {
           background-color: #1c1c1c;
           border: 1px solid #2a2a2a;
           border-radius: 8px;
@@ -500,18 +329,16 @@ const Market: React.FC = () => {
           justify-content: space-between;
           transition: border-color 0.2s;
         }
-        .crypto-row:hover {
+        .forex-row:hover {
           border-color: #39FF14;
         }
-
-        .crypto-pair {
+        .forex-pair {
           display: flex;
           align-items: center;
           gap: 12px;
           flex: 2;
         }
-
-        .crypto-icon {
+        .forex-icon {
           width: 32px;
           height: 32px;
           border-radius: 50%;
@@ -521,50 +348,44 @@ const Market: React.FC = () => {
           justify-content: center;
           color: #39FF14;
           font-weight: bold;
-          font-size: 14px;
+          font-size: 12px;
+          text-transform: uppercase;
           overflow: hidden;
         }
-        .crypto-icon img {
+        .forex-icon img {
           width: 100%;
           height: 100%;
           object-fit: cover;
         }
-
         .pair-name {
           color: #ffffff;
           font-weight: 500;
           font-size: 14px;
         }
-
-        .crypto-price {
+        .forex-price {
           flex: 1;
           text-align: right;
           color: #ffffff;
           font-weight: 500;
           font-size: 14px;
         }
-
-        .crypto-change {
+        .forex-change {
           flex: 0.8;
           text-align: right;
           font-weight: 600;
           font-size: 14px;
         }
-
         .change-positive {
           color: #39FF14;
         }
         .change-negative {
           color: #ff6b6b;
         }
-
-        /* Loading states */
         .loading-container {
           display: flex;
           flex-direction: column;
           gap: 8px;
         }
-
         .loading-row {
           background-color: #1c1c1c;
           border: 1px solid #2a2a2a;
@@ -591,13 +412,11 @@ const Market: React.FC = () => {
         .loading-line.short {
           flex: 0.5;
         }
-
         @keyframes pulse {
           0% { opacity: 0.6; }
           50% { opacity: 1; }
           100% { opacity: 0.6; }
         }
-
         .no-results {
           text-align: center;
           padding: 40px 20px;
@@ -609,4 +428,4 @@ const Market: React.FC = () => {
   );
 };
 
-export default Market;
+export default ForexMarket;

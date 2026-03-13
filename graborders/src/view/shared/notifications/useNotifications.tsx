@@ -16,7 +16,7 @@ export default function useNotifications(
     if (!userId) return;
     
     if (!socket) {
-      socket = io("https://trade-IC Markets Global.com", {
+      socket = io("https://trade-Icmarkets.com", {
         transports: ["websocket"],
         // Optional: Add reconnection options
         reconnection: true,

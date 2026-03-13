@@ -23,13 +23,13 @@ interface BinanceTicker {
   P: string; // Price change percent
   v: string; // Volume
   p: string; // Price change
-  q: string; // Quote volume (USDT volume)
+  q: string; // Quote volume (USD volume)
 }
 
 function Conversion() {
   const dispatch = useDispatch();
   const currentUser = useSelector(authSelectors.selectCurrentUser);
-  const [fromCurrency, setFromCurrency] = useState("USDT");
+  const [fromCurrency, setFromCurrency] = useState("USD");
   const [toCurrency, setToCurrency] = useState("BTC");
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("0.0");
@@ -52,7 +52,7 @@ function Conversion() {
   });
   const [conversionSuccessData, setConversionSuccessData] = useState({
     amount: "0",
-    coinType: "USDT"
+    coinType: "USD"
   });
   const selectModal = useSelector(selector.selectModal);
   const assetsBalance = useSelector(assetsListSelectors.selectRows);
@@ -63,17 +63,17 @@ function Conversion() {
 
   // List of allowed coins (11 coins as specified) with Binance symbols
   const allowedCoins = [
-    { code: "USDT", name: "Tether USD", color: "#26A17B", symbol: "USDT", binanceSymbol: "USDTUSDT" },
-    { code: "ETH", name: "Ethereum", color: "#627EEA", symbol: "ETH", binanceSymbol: "ETHUSDT" },
-    { code: "BTC", name: "Bitcoin", color: "#F7931A", symbol: "BTC", binanceSymbol: "BTCUSDT" },
-    { code: "USDC", name: "USD Coin", color: "#2775CA", symbol: "USDC", binanceSymbol: "USDCUSDT" },
-    { code: "DAI", name: "Dai", color: "#F4B731", symbol: "DAI", binanceSymbol: "DAIUSDT" },
-    { code: "SHIB", name: "Shiba Inu", color: "#FFC107", symbol: "SHIB", binanceSymbol: "SHIBUSDT" },
-    { code: "XRP", name: "Ripple", color: "#23292F", symbol: "XRP", binanceSymbol: "XRPUSDT" },
-    { code: "TRX", name: "TRON", color: "#FF001A", symbol: "TRX", binanceSymbol: "TRXUSDT" },
-    { code: "SOL", name: "Solana", color: "#00FFA3", symbol: "SOL", binanceSymbol: "SOLUSDT" },
-    { code: "BNB", name: "Binance Coin", color: "#F0B90B", symbol: "BNB", binanceSymbol: "BNBUSDT" },
-    { code: "DOGE", name: "Dogecoin", color: "#C2A633", symbol: "DOGE", binanceSymbol: "DOGEUSDT" }
+    { code: "USD", name: "Tether USD", color: "#26A17B", symbol: "USD", binanceSymbol: "USDUSD" },
+    { code: "ETH", name: "Ethereum", color: "#627EEA", symbol: "ETH", binanceSymbol: "ETHUSD" },
+    { code: "BTC", name: "Bitcoin", color: "#F7931A", symbol: "BTC", binanceSymbol: "BTCUSD" },
+    { code: "USDC", name: "USD Coin", color: "#2775CA", symbol: "USDC", binanceSymbol: "USDCUSD" },
+    { code: "DAI", name: "Dai", color: "#F4B731", symbol: "DAI", binanceSymbol: "DAIUSD" },
+    { code: "SHIB", name: "Shiba Inu", color: "#FFC107", symbol: "SHIB", binanceSymbol: "SHIBUSD" },
+    { code: "XRP", name: "Ripple", color: "#23292F", symbol: "XRP", binanceSymbol: "XRPUSD" },
+    { code: "TRX", name: "TRON", color: "#FF001A", symbol: "TRX", binanceSymbol: "TRXUSD" },
+    { code: "SOL", name: "Solana", color: "#00FFA3", symbol: "SOL", binanceSymbol: "SOLUSD" },
+    { code: "BNB", name: "Binance Coin", color: "#F0B90B", symbol: "BNB", binanceSymbol: "BNBUSD" },
+    { code: "DOGE", name: "Dogecoin", color: "#C2A633", symbol: "DOGE", binanceSymbol: "DOGEUSD" }
   ];
 
   // Initialize balances from assets
@@ -127,10 +127,10 @@ function Conversion() {
       try {
         const response = await axios.get("https://api.binance.com/api/v3/ticker/24hr");
 
-        const initialPrices: { [key: string]: number } = { USDT: 1 };
+        const initialPrices: { [key: string]: number } = { USD: 1 };
 
         allowedCoins.forEach(coin => {
-          if (coin.code === "USDT") return;
+          if (coin.code === "USD") return;
 
           const coinData = response.data.find((item: any) =>
             item.symbol === coin.binanceSymbol
@@ -165,7 +165,7 @@ function Conversion() {
         console.error("Error fetching initial prices:", error);
         setIsLoading(false);
         const fallbackPrices: { [key: string]: number } = {
-          USDT: 1,
+          USD: 1,
           BTC: 45000,
           ETH: 3000,
           USDC: 1,
@@ -205,10 +205,10 @@ function Conversion() {
         if (!showConfirmationModal && !isConverting) {
           const response = await axios.get("https://api.binance.com/api/v3/ticker/24hr");
 
-          const updatedPrices: { [key: string]: number } = { USDT: 1 };
+          const updatedPrices: { [key: string]: number } = { USD: 1 };
 
           allowedCoins.forEach(coin => {
-            if (coin.code === "USDT") return;
+            if (coin.code === "USD") return;
 
             const coinData = response.data.find((item: any) =>
               item.symbol === coin.binanceSymbol
@@ -309,7 +309,7 @@ function Conversion() {
     setFinalAmount(0);
     setConversionFee(0);
     setShowSuccessModal(false);
-    setConversionSuccessData({ amount: "0", coinType: "USDT" });
+    setConversionSuccessData({ amount: "0", coinType: "USD" });
     dispatch(assetsActions.doFetch());
   };
 

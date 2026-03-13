@@ -231,7 +231,7 @@ common: {
 
     enumerators: {
       status: {
-        USDT: "USDT",
+        USD: "USD",
         ETH: "ETH",
         BTC: "BTC",
       },
@@ -454,7 +454,7 @@ common: {
     
     proof: {
       title: "Kimlik Doğrulama",
-      instructions: "IC Markets Global'inizin tüm özelliklerine erişmek için kimliğinizi doğrulayın",
+      instructions: "Icmarkets'inizin tüm özelliklerine erişmek için kimliğinizi doğrulayın",
       sections: {
         documentInfo: "Belge Bilgileri",
         documentUpload: "Belge Yükleme"
@@ -529,7 +529,7 @@ common: {
       },
       recentTrades: {
         title: "Son İşlemler (Canlı)",
-        price: "Fiyat (USDT)",
+        price: "Fiyat (USD)",
         amount: "Miktar",
         time: "Zaman"
       },
@@ -541,7 +541,7 @@ common: {
         buy: "Al",
         sell: "Sat",
         quantity: "Miktar",
-        price: "Fiyat (USDT)"
+        price: "Fiyat (USD)"
       },
       coinSelector: {
         title: "İşlem Çifti Seçin"
@@ -679,7 +679,7 @@ common: {
       limit: "LİMİT",
       market: "PİYASA",
       orderType: "Emir Türü",
-      price: "Fiyat (USDT)",
+      price: "Fiyat (USD)",
       amount: "Miktar",
       available: "Mevcut",
       placing: "Yerleştiriliyor...",
@@ -722,14 +722,14 @@ common: {
         invalidQuantity: "Lütfen geçerli bir miktar girin.",
         invalidPrice: "Lütfen geçerli bir fiyat girin.",
         invalidAmount: "Lütfen geçerli bir miktar girin.",
-        insufficientUSDT: "Yetersiz USDT bakiyesi. Mevcut: {0} USDT",
+        insufficientUSD: "Yetersiz USD bakiyesi. Mevcut: {0} USD",
         insufficientCoin: "Yetersiz {1} bakiyesi. Mevcut: {0} {1}",
         failedOrder: "Emir yerleştirilemedi. Lütfen tekrar deneyin.",
         createError: "Ticaret oluşturma hatası",
         placeOrderError: "Emir yerleştirme hatası"
       },
       orderBook: {
-        price: "Fiyat (USDT)",
+        price: "Fiyat (USD)",
         amount: "Miktar"
       },
       noData: "{0} bulunamadı",
@@ -744,7 +744,7 @@ common: {
     },
     
     market: {
-      title: "USDT PİYASASI",
+      title: "USD PİYASASI",
       noResults: "Kripto para bulunamadı",
       volume: "Hacim",
       search: {
@@ -795,7 +795,7 @@ common: {
     },
     
     home: {
-      logoAlt: "lC Markets GlobalLogosu",
+      logoAlt: "Icmarkets Logosu",
       headerAlt: "Kripto Ticaret Platformu",
       slogan: "Güvenle Kâr Edin",
       promoAlt: "Promosyon banner {0}",
@@ -809,8 +809,8 @@ common: {
         description: "Bir AI kantitatif ticaret robotu, yapay zeka (AI) ile kantitatif ticaret tekniklerini birleştiren otomatik bir ticaret sistemidir. Temel işlevi, istikrarlı kârlar elde etmek veya riskleri kontrol etmek için piyasa verilerine ve belirli ticaret stratejilerine dayalı olarak finansal ürünleri ve kripto para birimlerini otomatik olarak alıp satmaktır."
       },
       nftExploration: {
-        title: "lC Markets Globalile NFT'leri Keşfedin",
-        description: "lC Markets Globalile NFT'lerin dünyasına adım atın, tümü bir arada dijital varlık ticaret cüzdanınız. Hem yeni başlayanlar hem de profesyonel tüccarlar için tasarlanmış IC Markets Global, NFT'leri keşfetmenize, satın almanıza, satmanıza ve"
+        title: "Icmarkets ile NFT'leri Keşfedin",
+        description: "Icmarkets ile NFT'lerin dünyasına adım atın, tümü bir arada dijital varlık ticaret cüzdanınız. Hem yeni başlayanlar hem de profesyonel tüccarlar için tasarlanmış Icmarkets, NFT'leri keşfetmenize, satın almanıza, satmanıza ve"
       },
       stats: {
         title: "Etkimiz",
@@ -915,15 +915,15 @@ common: {
       announcements: {
         maintenanceNotice: "Bakım bildirimi",
         contractServerUpgrade: "15 Ocak 2023 kontrat sunucusu yükseltme ve bakım duyurusu",
-        IC Markets GlobalOptionsMaintenance: "lC Markets GlobalOpsiyon Ticaret Sistemi Bakım Duyurusu",
-        clientVersionUpgrade: "Önemli! IC Markets Global'in en son istemci sürüm yükseltmesi hakkında duyurusu",
-        platformTradingAnnouncement: "lC Markets Globalplatform ticaret en son duyurusu",
-        platformUpgradeOptimization: "lC Markets GlobalPlatform Sürüm Yükseltme Optimizasyon Güncelleme Duyurusu",
-        march15Upgrade: "15 Mart 2023 lC Markets Globalplatform kontrat sunucusu yükseltme bakım optimizasyon duyurusu",
-        optionsTradingMaintenance: "lC Markets Globalplatform opsiyon ticaret sistemi bakım ve optimizasyon duyurusu",
-        latestVersionUpgrade: "lC Markets GlobalPlatform İstemcinin En Son Sürümünün Yükseltilmesi ve Optimizasyonu Hakkında Önemli Duyuru",
-        userSecurityReminder: "lC Markets Globalkullanıcı bilgi güvenliği hakkında hatırlatma",
-        perpetualContractUpgrade: "lC Markets Globalplatform sürekli kontrat sisteminin optimizasyonu ve yükseltilmesi hakkında duyuru",
+        IcmarketsOptionsMaintenance: "Icmarkets Opsiyon Ticaret Sistemi Bakım Duyurusu",
+        clientVersionUpgrade: "Önemli! Icmarkets'in en son istemci sürüm yükseltmesi hakkında duyurusu",
+        platformTradingAnnouncement: "Icmarkets platform ticaret en son duyurusu",
+        platformUpgradeOptimization: "Icmarkets Platform Sürüm Yükseltme Optimizasyon Güncelleme Duyurusu",
+        march15Upgrade: "15 Mart 2023 Icmarkets platform kontrat sunucusu yükseltme bakım optimizasyon duyurusu",
+        optionsTradingMaintenance: "Icmarkets platform opsiyon ticaret sistemi bakım ve optimizasyon duyurusu",
+        latestVersionUpgrade: "Icmarkets Platform İstemcinin En Son Sürümünün Yükseltilmesi ve Optimizasyonu Hakkında Önemli Duyuru",
+        userSecurityReminder: "Icmarkets kullanıcı bilgi güvenliği hakkında hatırlatma",
+        perpetualContractUpgrade: "Icmarkets platform sürekli kontrat sisteminin optimizasyonu ve yükseltilmesi hakkında duyuru",
         maintenanceCompletion: "Platform sistem bakımı ve optimizasyonunun tamamlanması hakkında duyuru",
         bitcoinWithdrawal: "Bitcoin Para Çekme Hakkında Duyuru",
         tradingPairsUpgrade: "Platformdaki bazı ticaret para çiftlerinin yükseltilmesi hakkında duyuru",
@@ -935,11 +935,11 @@ common: {
         customerChatFunction: "Sistem Güncellemesi - Gerçek Zamanlı Müşteri Sohbet Fonksiyonu",
         ethNetworkUpgrade: "ETH ağ yükseltme duyurusu",
         delistingCurrencies: "Para birimlerinin listeden çıkarılması duyurusu",
-        dotUsdtLaunch: "DOT/USDT Ticaret Başlatma Duyurusu",
-        decUsdtLaunch: "DEC/USDT Ticaret Başlatma Duyurusu",
-        usdtIntroduction: "USDT Tanıtımı",
+        dotUSDLaunch: "DOT/USD Ticaret Başlatma Duyurusu",
+        decUSDLaunch: "DEC/USD Ticaret Başlatma Duyurusu",
+        USDIntroduction: "USD Tanıtımı",
         ethereumNetworkMaintenance: "Ethereum ağ bakım bildirimi",
-        projectReviewStandards: "lC Markets GlobalProje inceleme standartları",
+        projectReviewStandards: "Icmarkets Proje inceleme standartları",
         liquidityMiningUpgrade: "Likidite Madenciliği Yükseltmesi",
         liquidityMiningFee: "Likidite madenciliği ücret ayarlaması",
         delistingTradingPairs: "Ticaret çiftlerini listeden çıkarma",
@@ -959,7 +959,7 @@ common: {
       currencies: {
         btc: "BTC (Bitcoin)",
         eth: "ETH (Ethereum)",
-        usdt: "USDT (Tether)",
+        USD: "USD (Tether)",
         sol: "SOL (Solana)",
         xrp: "XRP (Ripple)"
       },
@@ -985,7 +985,7 @@ common: {
       currencies: {
         btc: "BTC (Bitcoin)",
         eth: "ETH (Ethereum)",
-        usdt: "USDT (Tether)",
+        USD: "USD (Tether)",
         sol: "SOL (Solana)",
         xrp: "XRP (Ripple)"
       }
@@ -994,7 +994,7 @@ common: {
     privacy: {
       title: "Gizlilik Portalı",
       hero: {
-        title: "lC Markets GlobalGizlilik Portalı",
+        title: "Icmarkets Gizlilik Portalı",
         subtitle: "Verilerinizi ve gizliliğinizi katı kurallar, yasal uyum ve sektörün en iyi uygulamaları ile korumak."
       },
       principles: {
@@ -1029,7 +1029,7 @@ common: {
       personalData: {
         title: "Kişisel Veri Nedir?",
         definition: "Kişisel veriler, bir bireyi tanımlayan herhangi bir bilgiyi ifade eder.",
-        examples: "Örnekler: ad, lC Markets GlobalID, e-posta adresi, konum verileri, işlem geçmişi ve cihaz bilgileri."
+        examples: "Örnekler: ad, Icmarkets ID, e-posta adresi, konum verileri, işlem geçmişi ve cihaz bilgileri."
       },
       dataUsage: {
         title: "Verilerinizi Nasıl Kullanıyoruz",
@@ -1064,7 +1064,7 @@ common: {
       },
       dataSharing: {
         title: "Veri Paylaşımı",
-        content: "Verilerinizi diğer lC Markets Globalkuruluşları veya güvenilir üçüncü taraflarla sıkı sözleşme güvenceleri altında, yalnızca Gizlilik Bildirimimizde belirtilen amaçlar için gerekli olduğunda paylaşabiliriz."
+        content: "Verilerinizi diğer Icmarkets kuruluşları veya güvenilir üçüncü taraflarla sıkı sözleşme güvenceleri altında, yalnızca Gizlilik Bildirimimizde belirtilen amaçlar için gerekli olduğunda paylaşabiliriz."
       },
       cookies: {
         title: "Çerezler ve İzleme",
@@ -1095,21 +1095,21 @@ common: {
     termsOfUse: {
       title: "Kullanım Şartları",
       hero: {
-        title: "lC Markets GlobalKullanım Şartları"
+        title: "Icmarkets Kullanım Şartları"
       },
       agreement: {
         title: "Sözleşme",
-        content: "Bu, siz (kullanıcı) ile lC Markets Globalarasında bağlayıcı bir sözleşmedir. Eriştiğiniz veya kullandığınız tüm lC Markets GlobalHizmetlerini kapsar."
+        content: "Bu, siz (kullanıcı) ile Icmarkets arasında bağlayıcı bir sözleşmedir. Eriştiğiniz veya kullandığınız tüm Icmarkets Hizmetlerini kapsar."
       },
       riskWarning: {
         title: "Risk Uyarısı",
-        content: "Dijital varlıklar oynaktır ve değer olarak önemli ölçüde dalgalanabilir. lC Markets Globalbir aracı, finansal danışman veya yatırım danışmanı değildir. Herhangi bir finansal karar vermeden önce kendi araştırmanızı yapmalısınız."
+        content: "Dijital varlıklar oynaktır ve değer olarak önemli ölçüde dalgalanabilir. Icmarkets bir aracı, finansal danışman veya yatırım danışmanı değildir. Herhangi bir finansal karar vermeden önce kendi araştırmanızı yapmalısınız."
       },
       aboutServices: {
         title: "Hizmetlerimiz Hakkında",
-        aboutIC Markets Global: {
-          title: "lC Markets GlobalHakkında",
-          content: "IC Markets Global, platformumuz aracılığıyla dijital varlık değişimi, saklama hizmetleri ve ilgili finansal hizmetler sağlar."
+        aboutIcmarkets: {
+          title: "Icmarkets Hakkında",
+          content: "Icmarkets, platformumuz aracılığıyla dijital varlık değişimi, saklama hizmetleri ve ilgili finansal hizmetler sağlar."
         },
         eligibility: {
           title: "Uygunluk",
@@ -1117,14 +1117,14 @@ common: {
         },
         communication: {
           title: "İletişim",
-          content: "İletişim bilgilerinizi güncel tutmalısınız. IC Markets Global, hesabınız ve hizmetlerimiz hakkında sizinle e-posta, SMS veya telefon yoluyla iletişime geçecektir."
+          content: "İletişim bilgilerinizi güncel tutmalısınız. Icmarkets, hesabınız ve hizmetlerimiz hakkında sizinle e-posta, SMS veya telefon yoluyla iletişime geçecektir."
         }
       },
       services: {
         title: "Hizmetlerimiz",
         servicesProvided: {
           title: "Sağlanan Hizmetler",
-          content: "lC Markets Globalhem otomatik botlar hem de insan temsilcileri aracılığıyla dijital varlık ticareti, güvenli saklama çözümleri ve müşteri desteği sunar. Kullanıcı sohbet işlevselliği de mevcuttur."
+          content: "Icmarkets hem otomatik botlar hem de insan temsilcileri aracılığıyla dijital varlık ticareti, güvenli saklama çözümleri ve müşteri desteği sunar. Kullanıcı sohbet işlevselliği de mevcuttur."
         },
         fees: {
           title: "Ücretler",
@@ -1154,7 +1154,7 @@ common: {
         },
         transactionCancellation: {
           title: "İşlem İptali",
-          content: "IC Markets Global, dolandırıcılık şüphesi, hatalar veya bu Şartların ihlali durumlarında işlemleri iptal etme veya değiştirme hakkını saklı tutar."
+          content: "Icmarkets, dolandırıcılık şüphesi, hatalar veya bu Şartların ihlali durumlarında işlemleri iptal etme veya değiştirme hakkını saklı tutar."
         },
         unauthorizedTransactions: {
           title: "Yetkisiz İşlemler",
@@ -1165,11 +1165,11 @@ common: {
         title: "Dijital Varlıklar",
         supportedAssets: {
           title: "Desteklenen Varlıklar",
-          content: "Yalnızca lC Markets Globaltarafından açıkça desteklenen dijital varlıklarla işlem yapabilirsiniz. Desteklenmeyen varlıkları yatırmaya çalışmak kalıcı kayıpla sonuçlanabilir."
+          content: "Yalnızca Icmarkets tarafından açıkça desteklenen dijital varlıklarla işlem yapabilirsiniz. Desteklenmeyen varlıkları yatırmaya çalışmak kalıcı kayıpla sonuçlanabilir."
         },
         forksAirdrops: {
           title: "Fork'lar ve Airdrop'lar",
-          content: "lC Markets Globalblockchain fork'ları, airdrop'ları veya benzer diğer olaylar için destek garantisi vermez. Destek kararları yalnızca takdirimize bağlı olarak alınır."
+          content: "Icmarkets blockchain fork'ları, airdrop'ları veya benzer diğer olaylar için destek garantisi vermez. Destek kararları yalnızca takdirimize bağlı olarak alınır."
         }
       },
       accountSecurity: {
@@ -1181,37 +1181,37 @@ common: {
       },
       privacy: {
         title: "Gizlilik",
-        content: "Gizliliğiniz, kişisel bilgilerinizi nasıl topladığımızı, kullandığımızı ve koruduğumuzu açıklayan lC Markets GlobalGizlilik Bildirimi tarafından yönetilir."
+        content: "Gizliliğiniz, kişisel bilgilerinizi nasıl topladığımızı, kullandığımızı ve koruduğumuzu açıklayan Icmarkets Gizlilik Bildirimi tarafından yönetilir."
       },
       termination: {
         title: "Hesap Sonlandırma",
         terminationSuspension: {
           title: "Sonlandırma/Askıya Alma",
-          content: "IC Markets Global, dolandırıcılık, yasa ihlalleri, şüpheli faaliyetler veya Şartların ihlali durumlarında hesapları kısıtlayabilir, askıya alabilir veya sonlandırabilir. Kullanıcılar, dondurulmuş veya hareketsiz olmadığı sürece hesaplarını kapatabilir."
+          content: "Icmarkets, dolandırıcılık, yasa ihlalleri, şüpheli faaliyetler veya Şartların ihlali durumlarında hesapları kısıtlayabilir, askıya alabilir veya sonlandırabilir. Kullanıcılar, dondurulmuş veya hareketsiz olmadığı sürece hesaplarını kapatabilir."
         }
       },
       prohibitedUse: {
         title: "Yasak Kullanım",
-        content: "lC Markets Globalhizmetlerini dolandırıcılık, piyasa manipülasyonu, yasa dışı faaliyetler, yetkisiz erişim veya uygulanabilir yasaları veya bu Şartları ihlal eden herhangi bir amaç için kullanamazsınız."
+        content: "Icmarkets hizmetlerini dolandırıcılık, piyasa manipülasyonu, yasa dışı faaliyetler, yetkisiz erişim veya uygulanabilir yasaları veya bu Şartları ihlal eden herhangi bir amaç için kullanamazsınız."
       },
       liability: {
         title: "Sorumluluk ve Fikri Mülkiyet",
         liability: {
           title: "Sorumluluk",
-          content: "IC Markets Global, kanıtlanmış ağır ihmal veya dolandırıcılık durumları hariç kayıplardan sorumlu değildir. Piyasa dalgalanmalarından, teknik sorunlardan veya üçüncü taraf eylemlerinden sorumlu değiliz."
+          content: "Icmarkets, kanıtlanmış ağır ihmal veya dolandırıcılık durumları hariç kayıplardan sorumlu değildir. Piyasa dalgalanmalarından, teknik sorunlardan veya üçüncü taraf eylemlerinden sorumlu değiliz."
         },
         intellectualProperty: {
           title: "Fikri Mülkiyet",
-          content: "IC Markets Global, platformumuz, teknolojimiz ve markalamamız üzerindeki tüm fikri mülkiyet haklarını saklı tutar. Kullanıcılar, bu Şartlarda belirtildiği şekilde hizmetlerimizi kullanmak için sınırlı bir lisans alır."
+          content: "Icmarkets, platformumuz, teknolojimiz ve markalamamız üzerindeki tüm fikri mülkiyet haklarını saklı tutar. Kullanıcılar, bu Şartlarda belirtildiği şekilde hizmetlerimizi kullanmak için sınırlı bir lisans alır."
         },
         indemnity: {
           title: "Tazminat",
-          content: "Hizmetlerimizi kötüye kullanmanızdan veya bu Şartları ihlal etmenizden kaynaklanan herhangi bir talep, kayıp veya hasara karşı IC Markets Global'i tazmin etmeyi ve zarara uğratmamayı kabul edersiniz."
+          content: "Hizmetlerimizi kötüye kullanmanızdan veya bu Şartları ihlal etmenizden kaynaklanan herhangi bir talep, kayıp veya hasara karşı Icmarkets'i tazmin etmeyi ve zarara uğratmamayı kabul edersiniz."
         }
       },
       importantNotice: {
         title: "Önemli Uyarı",
-        content: "lC Markets Globalhizmetlerini kullanarak, bu Kullanım Şartlarını okuduğunuzu, anladığınızı ve bunlara bağlı olmayı kabul ettiğinizi onaylarsınız. Kabul etmiyorsanız, hizmetlerimizi kullanmayı derhal durdurmalısınız."
+        content: "Icmarkets hizmetlerini kullanarak, bu Kullanım Şartlarını okuduğunuzu, anladığınızı ve bunlara bağlı olmayı kabul ettiğinizi onaylarsınız. Kabul etmiyorsanız, hizmetlerimizi kullanmayı derhal durdurmalısınız."
       },
       actionCards: {
         security: {
@@ -1232,7 +1232,7 @@ common: {
         }
       },
       footer: {
-        copyright: "© 2025 IC Markets Global. Tüm hakları saklıdır.",
+        copyright: "© 2025 Icmarkets. Tüm hakları saklıdır.",
         lastUpdated: "Son güncelleme: 6 Mayıs 2025"
       }
     },
@@ -1315,7 +1315,7 @@ common: {
     invitation: {
       title: "Arkadaşlarını Davet Et",
       earnTogether: "Birlikte Kazanın",
-      description: "Arkadaşlarınızı IC Markets Global'e katılmaya davet edin, kaydolup ticarete başladıklarında ödüller kazanın.",
+      description: "Arkadaşlarınızı Icmarkets'e katılmaya davet edin, kaydolup ticarete başladıklarında ödüller kazanın.",
       yourReferralCode: "REFERANS KODUNUZ",
       loading: "Yükleniyor...",
       copied: "KOPYALANDI!",
@@ -1416,7 +1416,7 @@ common: {
         lostDevice: "Cihazınız kaybolur veya çalınırsa, hesap ayarlarından oturum erişimini hemen iptal edin.",
         phishing: "Bir phishing girişimine kurban gittinizse, hesabınızı dondurun ve hemen destekle iletişime geçin.",
         supportTitle: "7/24 Güvenlik Desteği",
-        supportEmail: "IC Markets Global.helpdesk01@gmail.com"
+        supportEmail: "Icmarkets.helpdesk01@gmail.com"
       },
       resources: {
         title: "Güvenlik Kaynakları",
@@ -1469,7 +1469,7 @@ common: {
         },
         accountActivated: {
           title: "KYC Doğrulama",
-          message: "Merhaba {0}, KYC belgeleriniz doğrulandı, artık IC Markets Global'te sınırsız özelliklerin keyfini çıkarabilirsiniz"
+          message: "Merhaba {0}, KYC belgeleriniz doğrulandı, artık Icmarkets'te sınırsız özelliklerin keyfini çıkarabilirsiniz"
         },
         custom: {
           title: "Bildirim",
@@ -1720,7 +1720,7 @@ common: {
       title: "SSS Merkezi",
       hero: {
         title: "Sıkça Sorulan Sorular",
-        subtitle: "lC Markets Globalkullanımıyla ilgili yaygın sorulara yanıt bulun"
+        subtitle: "Icmarkets kullanımıyla ilgili yaygın sorulara yanıt bulun"
       },
       search: {
         placeholder: "Yanıtları ara..."
@@ -1742,7 +1742,7 @@ common: {
         verificationProcess: "Resmi kimlik ve selfie fotoğrafı yükleyin. Doğrulama genellikle birkaç saat içinde onaylanır."
       },
       steps: {
-        goToWebsite: "https://trade-IC Markets Global.com'a gidin",
+        goToWebsite: "https://trade-Icmarkets.com'a gidin",
         clickSignUp: '"Kaydol"a tıklayın',
         enterDetails: "Bilgilerinizi girin",
         verifyEmail: "E-posta adresinizi doğrulayın",
@@ -1752,7 +1752,7 @@ common: {
         confirmTransaction: "İşlemi onaylayın",
         cryptoInWallet: "Kripto cüzdanınızda görünecek",
         goToTradeMarkets: '"Ticaret/Piyasalar"a gidin',
-        pickTradingPair: "Bir ticaret çifti seçin (örn. BTC/USDT)",
+        pickTradingPair: "Bir ticaret çifti seçin (örn. BTC/USD)",
         placeOrders: "Market veya limit emirleri verin",
         receiveCrypto: "Cüzdan > Al'a gidin → adres veya QR kodu kopyalayın",
         sendCrypto: "Cüzdan > Gönder'e gidin → adres/miktar girin → onaylayın",
@@ -1788,7 +1788,7 @@ common: {
         profitLossExplanation: "Fiyat farkının kaldıracınız ve pozisyon büyüklüğünüzle çarpılmasına dayalı olarak hesaplanır."
       },
       benefits: {
-        title: "Neden lC Markets GlobalFutures'ı Seçmelisiniz?",
+        title: "Neden Icmarkets Futures'ı Seçmelisiniz?",
         hedge: "Piyasa oynaklığına karşı korunma",
         multiplyProfits: "Kaldıraçla kârları çoğaltın",
         tradeBothMarkets: "Hem yükselen hem de düşen piyasalarda işlem yapın",
@@ -1801,8 +1801,8 @@ common: {
         joinDiscussions: "Tartışmalara katılın"
       },
       footer: {
-        copyright: "© 2025 IC Markets Global. Tüm hakları saklıdır.",
-        needHelp: "Daha fazla yardıma mı ihtiyacınız var? IC Markets Global.helpdesk01@gmail.com ile iletişime geçin"
+        copyright: "© 2025 Icmarkets. Tüm hakları saklıdır.",
+        needHelp: "Daha fazla yardıma mı ihtiyacınız var? Icmarkets.helpdesk01@gmail.com ile iletişime geçin"
       }
     },
     

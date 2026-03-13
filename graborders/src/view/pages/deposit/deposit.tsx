@@ -14,7 +14,7 @@ import FieldFormItem from "src/shared/form/FieldFormItem";
 
 // Currency configurations
 const CURRENCIES = [
-  "USDT", "ETH", "BTC", "USDC", "DAI",
+  "USD", "ETH", "BTC", "USDC", "DAI",
   "SHIB", "XRP", "TRX", "SOL", "BNB", "DOGE"
 ];
 
@@ -23,7 +23,7 @@ const MIN_DEPOSIT_USD = 200;
 
 // Decimal places for each currency
 const CURRENCY_DECIMALS = {
-  USDT: 2,
+  USD: 2,
   ETH: 6,
   BTC: 8,
   USDC: 2,
@@ -394,21 +394,6 @@ function Deposit() {
       <div className="content-card">
         <div className="deposit-content">
           {/* Minimum deposit requirement */}
-          {symbol && exchangeRates[symbol.toUpperCase()] && (
-            <div className="info-box">
-              <div className="info-row">
-                <span className="info-label">Minimum deposit:</span>
-                <span className="info-value">
-                  {formattedMinAmount} {symbol} ({formatUSD(MIN_DEPOSIT_USD)})
-                </span>
-              </div>
-              {loadingRates && (
-                <div className="rate-loading">
-                  <i className="fas fa-spinner fa-spin" /> Loading rates...
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Currency display */}
           <div className="section">
@@ -427,14 +412,14 @@ function Deposit() {
                       parent.textContent = (symbol && symbol.charAt(0)) || "C";
                       parent.style.background = "#f0f0f0";
                       parent.style.color = "#333";
-                      parent.style.fontSize = "12px";
+                      parent.style.fontSize = "14px";
                       parent.style.fontWeight = "bold";
                       parent.style.display = "inline-flex";
                       parent.style.alignItems = "center";
                       parent.style.justifyContent = "center";
-                      parent.style.width = "36px";
-                      parent.style.height = "36px";
-                      parent.style.borderRadius = "6px";
+                      parent.style.width = "32px";
+                      parent.style.height = "32px";
+                      parent.style.borderRadius = "50%";
                     }
                   }}
                 />
@@ -530,7 +515,7 @@ function Deposit() {
                         name="amount"
                         label={`Amount (${symbol})`}
                         placeholder={`Minimum: ${formattedMinAmount} ${symbol}`}
-                        className="form-input"
+                        className="withdraw-input"
                       />
                       {enteredAmountUSD > 0 && (
                         <div className="usd-value-display">
@@ -550,7 +535,7 @@ function Deposit() {
                       name="txid"
                       label="Transaction ID"
                       placeholder="Enter your transaction ID"
-                      className="form-input"
+                      className="withdraw-input"
                     />
                   </div>
                 </div>
@@ -648,688 +633,547 @@ function Deposit() {
       )}
 
       <style>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
-
-        body {
-          background-color: #f5f7fa;
-          color: #333;
-          line-height: 1.6;
-          overflow-x: hidden;
-        }
-
+        /* Deposit Container – matches profile/wallet theme */
         .deposit-container {
-          max-width: 400px;
+          max-width: 430px;
           margin: 0 auto;
-          position: relative;
           min-height: 100vh;
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
+          background-color: #000000;
+          border-top: 2px solid #39FF14;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          color: #ffffff;
         }
 
+        /* Header / Navigation */
         .header {
-          min-height: 60px;
-          position: relative;
-          padding: 15px 20px;
+          padding: 16px 20px;
+          border-bottom: 1px solid #2a2a2a;
         }
-
         .nav-bar {
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          gap: 16px;
         }
-
         .back-arrow {
-          color: white;
+          color: #ffffff;
           font-size: 20px;
-          font-weight: 300;
           text-decoration: none;
-          transition: opacity 0.3s ease;
         }
-
         .back-arrow:hover {
-          opacity: 0.8;
+          color: #39FF14;
         }
-
         .page-title {
-          color: white;
-          font-size: 17px;
-          font-weight: 600;
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
+          font-size: 18px;
+          font-weight: 500;
+          color: #ffffff;
+          flex: 1;
         }
 
+        /* Content Card */
         .content-card {
-          background: #f2f4f7;
-          border-radius: 40px 40px 0 0;
-          padding: 20px;
-          box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
-          min-height: calc(100vh - 60px);
+          flex: 1;
+          background-color: #1c1c1c;
+          border-top-left-radius: 24px;
+          border-top-right-radius: 24px;
+          padding: 24px 20px;
+          border-top: 2px solid #39FF14;
         }
 
+        /* Deposit Content */
         .deposit-content {
-          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
         }
 
-        /* Info Box */
+        /* Info Box (minimum deposit) */
         .info-box {
-          background: #e8f4ff;
-          border: 1px solid #b6d9ff;
+          background-color: #2a2a2a;
           border-radius: 8px;
-          padding: 12px;
-          margin-bottom: 16px;
+          padding: 12px 16px;
+          border: 1px solid #3a3a3a;
         }
-
         .info-row {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 4px;
+          font-size: 14px;
         }
-
         .info-label {
-          font-size: 12px;
-          color: #106cf5;
-          font-weight: 500;
+          color: #aaaaaa;
         }
-
         .info-value {
-          font-size: 12px;
+          color: #39FF14;
           font-weight: 600;
-          color: #222;
+        }
+        .rate-loading {
+          font-size: 12px;
+          color: #aaaaaa;
+          margin-top: 8px;
+        }
+        .rate-loading i {
+          margin-right: 4px;
         }
 
-        .rate-loading {
-          font-size: 11px;
-          color: #666;
-          text-align: center;
+        /* Section */
+        .section {
+          margin-bottom: 8px;
+        }
+        .section-label {
+          font-size: 14px;
+          font-weight: 500;
+          color: #ffffff;
+          margin-bottom: 8px;
+        }
+        .section-note {
+          font-size: 12px;
+          color: #777777;
           margin-top: 4px;
         }
 
-        .rate-loading .fa-spin {
-          margin-right: 6px;
-        }
-
-        .section {
-          margin-bottom: 14px;
-        }
-
-        .section-label {
-          font-size: 14px;
-          font-weight: 600;
-          color: #222;
-          margin-bottom: 8px;
-        }
-
+        /* Currency Display - updated for consistent height */
         .currency-display {
           display: flex;
           align-items: center;
           gap: 12px;
-          background: white;
-          padding: 12px;
-          border-radius: 12px;
-          border: 1px solid #e0e0e0;
-          margin-bottom: 8px;
+          background-color: #2a2a2a;
+          border-radius: 8px;
+          padding: 8px 12px;
+          border: 1px solid #3a3a3a;
+          min-height: 46px;
+          box-sizing: border-box;
         }
 
+        /* Icon container - smaller and consistent */
         .currency-icon {
-          width: 36px;
-          height: 36px;
+          height: 25px;
           border-radius: 50%;
+          background-color: #1c1c1c;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #f8f9fa;
+          border: 1px solid #39FF14;
           overflow: hidden;
           flex-shrink: 0;
+        }
+
+        /* Fallback text inside icon */
+        .currency-icon:empty::before,
+        .currency-icon span {
+          font-size: 14px;
+          font-weight: bold;
+          color: #39FF14;
         }
 
         .currency-icon img {
           width: 100%;
           height: 100%;
-          object-fit: contain;
+          object-fit: cover;
         }
 
         .currency-details {
           flex: 1;
         }
-
         .currency-name {
-          font-size: 13px;
+          font-size: 16px;
           font-weight: 600;
-          color: #222;
-          margin-bottom: 2px;
+          color: #ffffff;
         }
-
         .currency-rate {
-          font-size: 11px;
-          color: #666;
-        }
-
-        .section-note {
           font-size: 12px;
-          color: #666;
-          font-style: italic;
+          color: #aaaaaa;
+          margin-top: 2px;
         }
 
+        /* Network Select - updated for consistent height */
         .network-select-wrapper {
           position: relative;
+          height: 46px;
         }
 
         .network-select {
           width: 100%;
-          padding: 14px 16px;
-          border: 1px solid #e0e0e0;
-          border-radius: 12px;
+          padding: 12px 16px;
+          background-color: #2a2a2a;
+          border: 1px solid #3a3a3a;
+          border-radius: 6px;
+          color: #ffffff;
           font-size: 14px;
-          background-color: white;
-          color: #333;
           appearance: none;
           cursor: pointer;
-          transition: all 0.3s ease;
+          line-height: 1.2;
+          height: 46px;
         }
 
         .network-select:focus {
           outline: none;
-          border-color: #106cf5;
-          box-shadow: 0 0 0 3px rgba(16, 108, 245, 0.1);
+          border-color: #39FF14;
         }
 
         .select-arrow {
           position: absolute;
-          right: 16px;
+          right: 12px;
           top: 50%;
           transform: translateY(-50%);
-          color: #666;
+          color: #39FF14;
           pointer-events: none;
         }
 
+        /* QR Section */
+        .qr-section {
+          margin-top: 8px;
+        }
         .qr-container {
-          background: white;
-          border-radius: 16px;
-          padding: 24px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .qr-box {
           display: flex;
-          justify-content: center;
-          padding: 10px;
-          background: white;
-          border-radius: 8px;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+          background-color: #2a2a2a;
+          border-radius: 12px;
+          padding: 20px;
+          border: 1px solid #3a3a3a;
         }
-
-        .qr-box canvas {
-          border-radius: 8px;
-        }
-
-        .address-section {
-          text-align: center;
-        }
-
-        .address-label {
-          font-size: 14px;
-          font-weight: 600;
-          color: #666;
-          margin-bottom: 12px;
-        }
-
-        .address-text {
-          font-size: 13px;
-          color: #333;
-          background: #f8f9fa;
+        .qr-box {
+          background: #ffffff;
           padding: 12px;
           border-radius: 8px;
-          margin-bottom: 16px;
-          word-break: break-all;
-          font-family: monospace;
-          line-height: 1.4;
+          display: inline-block;
         }
-
+        .qr-box canvas {
+          display: block;
+          width: 180px;
+          height: 180px;
+        }
+        .address-section {
+          width: 100%;
+          text-align: center;
+        }
+        .address-label {
+          font-size: 12px;
+          color: #aaaaaa;
+          margin-bottom: 4px;
+        }
+        .address-text {
+          font-size: 14px;
+          font-weight: 500;
+          color: #ffffff;
+          word-break: break-all;
+          background-color: #1c1c1c;
+          padding: 8px;
+          border-radius: 6px;
+          margin-bottom: 12px;
+        }
         .address-actions {
           display: flex;
-          gap: 12px;
-          justify-content: center;
+          gap: 8px;
         }
-
         .action-btn {
-          padding: 10px 16px;
-          border: none;
-          border-radius: 8px;
+          flex: 1;
+          background: none;
+          border: 1px solid #39FF14;
+          color: #39FF14;
+          padding: 8px;
+          border-radius: 6px;
           font-size: 14px;
-          font-weight: 600;
           cursor: pointer;
-          transition: all 0.3s ease;
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 6px;
+          transition: all 0.2s;
+        }
+        .action-btn:hover {
+          background-color: #39FF14;
+          color: #000000;
+        }
+        .action-btn i {
+          font-size: 14px;
         }
 
-        .copy-btn {
-          background: #106cf5;
-          color: white;
-        }
-
-        .copy-btn:hover {
-          background: #0a4fc4;
-          transform: translateY(-2px);
-        }
-
-        .save-btn {
-          background: white;
-          color: #106cf5;
-          border: 1px solid #106cf5;
-        }
-
-        .save-btn:hover {
-          background: #f0f7ff;
-          transform: translateY(-2px);
-        }
-
+        /* Form */
         .deposit-form {
-          margin-top: 20px;
+          margin-top: 16px;
         }
-
         .form-group {
           margin-bottom: 16px;
         }
-
         .input-with-usd {
           position: relative;
         }
-
-        .form-input {
+        .withdraw-input {
           width: 100%;
-          padding: 14px 16px;
-          border: 1px solid #e0e0e0;
-          border-radius: 12px;
-          font-size: 14px;
-          background-color: white;
-          color: #333;
-          transition: all 0.3s ease;
         }
-
-        .form-input:focus {
+        .withdraw-input input {
+          width: 100%;
+          padding: 12px;
+          background-color: #2a2a2a;
+          border: 1px solid #3a3a3a;
+          border-radius: 6px;
+          color: #ffffff;
+          font-size: 16px;
+        }
+        .withdraw-input input:focus {
           outline: none;
-          border-color: #106cf5;
-          box-shadow: 0 0 0 3px rgba(16, 108, 245, 0.1);
+          border-color: #39FF14;
         }
-
         .usd-value-display {
           position: absolute;
-          right: 16px;
+          right: 12px;
           top: 50%;
           transform: translateY(-50%);
-          font-size: 12px;
-          color: #666;
-          background: white;
-          padding: 2px 6px;
-          border-radius: 4px;
+          color: #39FF14;
+          font-size: 14px;
+          font-weight: 500;
+          background-color: #2a2a2a;
+          padding-left: 8px;
         }
-
-        .error-message {
-          color: #ff4757;
+        .min-amount-note {
           font-size: 12px;
+          color: #777777;
           margin-top: 4px;
         }
 
-        .min-amount-note {
-          font-size: 12px;
-          color: #666;
-          margin-top: 8px;
-          font-style: italic;
-        }
-
+        /* Submit Button */
         .form-actions {
           margin-top: 24px;
         }
-
         .submit-btn {
           width: 100%;
-          padding: 12px;
-          background: #106cf5;
-          color: white;
+          background-color: #39FF14;
+          color: #000000;
           border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 600;
+          border-radius: 6px;
+          padding: 14px;
+          font-size: 16px;
+          font-weight: bold;
           cursor: pointer;
-          transition: all 0.3s ease;
+          transition: background-color 0.2s;
+        }
+        .submit-btn:hover:not(:disabled) {
+          background-color: #2ecc10;
+        }
+        .submit-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          background-color: #2a2a2a;
+          color: #777777;
+        }
+
+        /* Loading / Error */
+        .loading-section {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          justify-content: center;
+          gap: 8px;
+          padding: 24px;
+          color: #aaaaaa;
+        }
+        .spinner {
+          width: 30px;
+          height: 30px;
+          border: 2px solid #39FF14;
+          border-top-color: transparent;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        .error-section {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          padding: 24px;
+          color: #ff6b6b;
+          text-align: center;
+        }
+        .error-section i {
+          font-size: 32px;
+        }
+        .error-note {
+          font-size: 14px;
+          color: #aaaaaa;
+        }
+
+        /* Hint Section */
+        .hint-section {
+          background-color: #2a2a2a;
+          border-radius: 8px;
+          padding: 16px;
+          border: 1px solid #3a3a3a;
+          margin-top: 8px;
+        }
+        .hint-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #39FF14;
+          margin-bottom: 12px;
+        }
+        .hint-content {
+          display: flex;
+          flex-direction: column;
           gap: 8px;
         }
-
-        .submit-btn:hover:not(:disabled) {
-          background: #0a4fc4;
-          transform: translateY(-2px);
+        .hint-item {
+          font-size: 13px;
+          color: #cccccc;
+          line-height: 1.5;
         }
 
-        .submit-btn:disabled {
-          background: #ccc;
-          cursor: not-allowed;
+        /* Toast */
+        .toast {
+          position: fixed;
+          bottom: 24px;
+          left: 50%;
+          transform: translateX(-50%) translateY(100px);
+          background-color: #39FF14;
+          color: #000000;
+          padding: 12px 24px;
+          border-radius: 30px;
+          font-size: 14px;
+          font-weight: 600;
+          box-shadow: 0 4px 15px rgba(57, 255, 20, 0.3);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: transform 0.3s ease;
+          z-index: 1100;
+          max-width: 90%;
+          white-space: nowrap;
+        }
+        .toast.visible {
+          transform: translateX(-50%) translateY(0);
+        }
+        .toast-icon {
+          font-size: 16px;
         }
 
-        .fa-spin {
-          animation: fa-spin 1s infinite linear;
-        }
-
-        @keyframes fa-spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
+        /* Modal */
         .modal-overlay {
           position: fixed;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
+          background-color: rgba(0, 0, 0, 0.8);
+          backdrop-filter: blur(4px);
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 1000;
-          animation: fadeIn 0.3s ease;
-        }
-
-        .modal-content {
-          background: white;
-          border-radius: 20px;
-          width: 90%;
-          max-width: 400px;
-          overflow: hidden;
-          animation: slideUp 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-
-        .modal-header {
+          z-index: 2000;
           padding: 20px;
-          border-bottom: 1px solid #e0e0e0;
+        }
+        .modal-content {
+          background-color: #1c1c1c;
+          border-top: 2px solid #39FF14;
+          border-radius: 24px;
+          width: 100%;
+          max-width: 380px;
+          max-height: 90vh;
+          overflow-y: auto;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+          animation: modalSlideUp 0.3s ease;
+        }
+        @keyframes modalSlideUp {
+          from {
+            opacity: 0;
+            transform: translateY(50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .modal-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          padding: 16px 20px;
+          border-bottom: 1px solid #2a2a2a;
         }
-
         .modal-header h3 {
           margin: 0;
           font-size: 18px;
-          color: #222;
+          font-weight: 600;
+          color: #ffffff;
         }
-
         .modal-close {
-          background: none;
+          background: #2a2a2a;
           border: none;
-          color: #666;
-          cursor: pointer;
-          font-size: 18px;
-          transition: color 0.3s ease;
-        }
-
-        .modal-close:hover {
-          color: #ff4757;
-        }
-
-        .modal-body {
-          padding: 30px 20px;
-          text-align: center;
-        }
-
-        .success-icon {
-          font-size: 60px;
-          color: #4CAF50;
-          margin-bottom: 20px;
-        }
-
-        .success-message {
+          color: #ffffff;
           font-size: 16px;
-          color: #222;
-          margin-bottom: 15px;
-          font-weight: 600;
-        }
-
-        .success-details {
-          font-size: 14px;
-          color: #666;
-          line-height: 1.5;
-        }
-
-        .success-details p {
-          margin: 10px 0;
-        }
-
-        .modal-footer {
-          padding: 20px;
-          border-top: 1px solid #e0e0e0;
-        }
-
-        .modal-btn {
-          width: 100%;
-          padding: 14px;
-          background: #106cf5;
-          color: white;
-          border: none;
-          border-radius: 12px;
-          font-size: 16px;
-          font-weight: 600;
           cursor: pointer;
-          transition: background 0.3s ease;
-        }
-
-        .modal-btn:hover {
-          background: #0a4fc4;
-        }
-
-        .loading-section {
-          text-align: center;
-          padding: 40px 0;
-          color: #666;
-        }
-
-        .spinner {
-          border: 3px solid #f3f3f3;
-          border-top: 3px solid #106cf5;
+          padding: 8px;
           border-radius: 50%;
-          width: 40px;
-          height: 40px;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        .error-section {
-          text-align: center;
-          padding: 40px 20px;
-          color: #ff4757;
-        }
-
-        .error-section i {
-          font-size: 40px;
-          margin-bottom: 20px;
-        }
-
-        .error-note {
-          margin-top: 10px;
-          font-size: 14px;
-          color: #666;
-        }
-
-        .hint-section {
-          margin-top: 24px;
-          background: white;
-          border-radius: 16px;
-          padding: 20px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .hint-title {
-          font-size: 14px;
-          font-weight: 600;
-          color: #222;
-          margin-bottom: 12px;
-        }
-
-        .hint-content {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .hint-item {
-          font-size: 10px;
-          color: #666;
-          line-height: 1.4;
-          position: relative;
-          padding-left: 12px;
-        }
-
-        .hint-item::before {
-          content: "•";
-          position: absolute;
-          left: 0;
-          color: #106cf5;
-          font-weight: bold;
-        }
-
-        .toast {
-          position: fixed;
-          bottom: 20px;
-          left: 50%;
-          transform: translateX(-50%) translateY(100px);
-          background: rgba(0, 0, 0, 0.8);
-          color: white;
-          padding: 12px 24px;
-          border-radius: 8px;
-          font-size: 14px;
+          width: 36px;
+          height: 36px;
           display: flex;
           align-items: center;
-          gap: 8px;
-          transition: transform 0.3s ease;
-          z-index: 1000;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .modal-close:hover {
+          background: #39FF14;
+          color: #000000;
+        }
+        .modal-body {
+          padding: 24px 20px;
+          text-align: center;
+        }
+        .success-icon {
+          font-size: 48px;
+          color: #39FF14;
+          margin-bottom: 16px;
+        }
+        .success-message {
+          font-size: 16px;
+          font-weight: 500;
+          color: #ffffff;
+          margin-bottom: 12px;
+        }
+        .success-details {
+          font-size: 14px;
+          color: #aaaaaa;
+          line-height: 1.5;
+        }
+        .modal-footer {
+          padding: 16px 20px;
+          border-top: 1px solid #2a2a2a;
+          display: flex;
+          justify-content: center;
+        }
+        .modal-btn {
+          background-color: #39FF14;
+          color: #000000;
+          border: none;
+          border-radius: 6px;
+          padding: 12px 30px;
+          font-size: 16px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+        .modal-btn:hover {
+          background-color: #2ecc10;
         }
 
-        .toast.visible {
-          transform: translateX(-50%) translateY(0);
-        }
-
-        .toast-icon {
-          color: #4CAF50;
-        }
-
-        @media (max-width: 380px) {
-          .deposit-container {
-            padding: 0;
-          }
-
-          .header {
-            padding: 16px;
-            min-height: 50px;
-          }
-
+        /* Responsive */
+        @media (max-width: 360px) {
           .content-card {
-            padding: 16px;
-            border-radius: 30px 30px 0 0;
+            padding: 20px 16px;
           }
-
-          .currency-display {
-            padding: 12px;
-          }
-
-          .currency-icon {
-            width: 36px;
-            height: 36px;
-          }
-
-          .currency-name {
-            font-size: 15px;
-          }
-
-          .network-select {
-            padding: 12px 14px;
-            font-size: 14px;
-          }
-
-          .qr-container {
-            padding: 20px;
-          }
-
           .qr-box canvas {
-            width: 160px;
-            height: 160px;
-          }
-
-          .address-text {
-            font-size: 12px;
-            padding: 10px;
-          }
-
-          .address-actions {
-            flex-direction: column;
-          }
-
-          .action-btn {
-            width: 100%;
-            justify-content: center;
-          }
-
-          .form-input {
-            padding: 12px 14px;
-            font-size: 14px;
-          }
-
-          .submit-btn {
-            padding: 14px;
-            font-size: 15px;
-          }
-
-          .hint-section {
-            padding: 16px;
-          }
-
-          .hint-title {
-            font-size: 13px;
-          }
-
-          .hint-item {
-            font-size: 9px;
-          }
-
-          .modal-content {
-            width: 95%;
+            width: 150px;
+            height: 150px;
           }
         }
 
-        @media (min-width: 768px) {
-          .content-card {
-            border-radius: 30px 30px 0 0;
-          }
-
-          .deposit-content {
-            max-width: 500px;
-            margin: 0 auto;
-          }
-
-          .address-actions {
-            flex-direction: row;
-          }
+        /* Remove blue highlight on tap */
+        .back-arrow, .action-btn, .submit-btn, .modal-close, .modal-btn {
+          -webkit-tap-highlight-color: transparent;
         }
       `}</style>
     </div>

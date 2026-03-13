@@ -269,7 +269,7 @@ pages:{
         },
         recentTrades: {
             title: "Transactions Récentes (En Direct)",
-            price: "Prix (USDT)",
+            price: "Prix (USD)",
             amount: "Montant",
             time: "Heure"
         },
@@ -281,7 +281,7 @@ pages:{
             buy: "Acheter",
             sell: "Vendre",
             quantity: "Quantité",
-            price: "Prix (USDT)"
+            price: "Prix (USD)"
         },
         coinSelector: {
             title: "Sélectionner la Paire de Trading"
@@ -418,7 +418,7 @@ pages:{
         limit: "LIMITE",
         market: "MARCHÉ",
         orderType: "Type d'Ordre",
-        price: "Prix (USDT)",
+        price: "Prix (USD)",
         amount: "Montant",
         available: "Disponible",
         placing: "En cours...",
@@ -461,14 +461,14 @@ pages:{
             invalidQuantity: "Veuillez entrer une quantité valide.",
             invalidPrice: "Veuillez entrer un prix valide.",
             invalidAmount: "Veuillez entrer un montant valide.",
-            insufficientUSDT: "Solde USDT insuffisant. Disponible : {0} USDT",
+            insufficientUSD: "Solde USD insuffisant. Disponible : {0} USD",
             insufficientCoin: "Solde {1} insuffisant. Disponible : {0} {1}",
             failedOrder: "Échec de la passation de l'ordre. Veuillez réessayer.",
             createError: "Erreur de création de trade",
             placeOrderError: "Erreur de passation d'ordre"
         },
         orderBook: {
-            price: "Prix (USDT)",
+            price: "Prix (USD)",
             amount: "Montant"
         },
         noData: "Aucun(e) {0} trouvé(e)",
@@ -483,7 +483,7 @@ pages:{
     },
 
     market: {
-        title: "MARCHÉ USDT",
+        title: "MARCHÉ USD",
         noResults: "Aucune crypto-monnaie trouvée",
         volume: "Vol",
         search: {
@@ -681,9 +681,9 @@ pages:{
             customerChatFunction: "Mise à jour du système - Fonction de chat client en temps réel",
             ethNetworkUpgrade: "Annonce de mise à niveau du réseau ETH",
             delistingCurrencies: "Annonce de radiation de devises",
-            dotUsdtLaunch: "Annonce de lancement du trading DOT/USDT",
-            decUsdtLaunch: "Annonce de lancement du trading DEC/USDT",
-            usdtIntroduction: "Présentation de l'USDT",
+            dotUSDLaunch: "Annonce de lancement du trading DOT/USD",
+            decUSDLaunch: "Annonce de lancement du trading DEC/USD",
+            USDIntroduction: "Présentation de l'USD",
             ethereumNetworkMaintenance: "Avis de maintenance du réseau Ethereum",
             projectReviewStandards: "Normes d'examen de projet Icmarkets",
             liquidityMiningUpgrade: "Mise à niveau du mining de liquidité",
@@ -705,7 +705,7 @@ pages:{
         currencies: {
             btc: "BTC (Bitcoin)",
             eth: "ETH (Ethereum)",
-            usdt: "USDT (Tether)",
+            USD: "USD (Tether)",
             sol: "SOL (Solana)",
             xrp: "XRP (Ripple)"
         },
@@ -731,7 +731,7 @@ pages:{
         currencies: {
             btc: "BTC (Bitcoin)",
             eth: "ETH (Ethereum)",
-            usdt: "USDT (Tether)",
+            USD: "USD (Tether)",
             sol: "SOL (Solana)",
             xrp: "XRP (Ripple)"
         }
@@ -1496,7 +1496,7 @@ pages:{
             confirmTransaction: "Confirmez la transaction",
             cryptoInWallet: "La crypto apparaîtra dans votre portefeuille",
             goToTradeMarkets: 'Allez dans "Trade/Marchés"',
-            pickTradingPair: "Choisissez une paire de trading (ex. BTC/USDT)",
+            pickTradingPair: "Choisissez une paire de trading (ex. BTC/USD)",
             placeOrders: "Passez des ordres au marché ou à limite",
             receiveCrypto: "Allez dans Portefeuille > Recevoir → copiez l'adresse ou le QR code",
             sendCrypto: "Allez dans Portefeuille > Envoyer → entrez l'adresse/le montant → confirmez",
@@ -1774,7 +1774,7 @@ common: {
 
     enumerators: {
       status: {
-        USDT: "USDT",
+        USD: "USD",
         ETH: "ETH",
         BTC: "BTC",
       },

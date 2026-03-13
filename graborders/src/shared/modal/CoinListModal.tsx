@@ -38,9 +38,9 @@ const CoinListModal = ({ isOpen, onClose, onSelectCoin }) => {
         setIsLoading(true);
         const response = await axios.get('https://api.binance.com/api/v3/ticker/24hr');
         
-        // Process only USDT pairs
-        const usdtPairs = response.data.filter((item: any) => 
-          item.symbol.endsWith('USDT') && 
+        // Process only USD pairs
+        const USDPairs = response.data.filter((item: any) => 
+          item.symbol.endsWith('USD') && 
           !item.symbol.includes('UP') && 
           !item.symbol.includes('DOWN') &&
           !item.symbol.includes('BEAR') && 
@@ -48,16 +48,16 @@ const CoinListModal = ({ isOpen, onClose, onSelectCoin }) => {
         );
         
         // Sort by volume to get most important pairs
-        usdtPairs.sort((a: any, b: any) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume));
+        USDPairs.sort((a: any, b: any) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume));
         
         // Take top 100 pairs by volume
-        const topPairs = usdtPairs.slice(0, 100);
+        const topPairs = USDPairs.slice(0, 100);
         
         const formattedData: { [key: string]: CryptoData } = {};
         
         topPairs.forEach((item: any) => {
           const symbol = item.symbol;
-          const baseSymbol = symbol.replace("USDT", "");
+          const baseSymbol = symbol.replace("USD", "");
           const isPositive = !item.priceChangePercent.startsWith("-");
           const changePercent = Math.abs(Number(item.priceChangePercent)).toFixed(2);
           
@@ -72,7 +72,7 @@ const CoinListModal = ({ isOpen, onClose, onSelectCoin }) => {
           
           formattedData[symbol] = {
             symbol,
-            name: `${baseSymbol}/USDT`,
+            name: `${baseSymbol}/USD`,
             price: Number(item.lastPrice).toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: Number(item.lastPrice) < 1 ? 6 : 4,
@@ -177,7 +177,7 @@ const CoinListModal = ({ isOpen, onClose, onSelectCoin }) => {
           .sort((a, b) => Number(a.changePercent) - Number(b.changePercent));
       case "Favorites":
         return filtered.filter((crypto) =>
-          ["BTCUSDT", "ETHUSDT", "BNBUSDT"].includes(crypto.symbol)
+          ["BTCUSD", "ETHUSD", "BNBUSD"].includes(crypto.symbol)
         ).sort((a, b) => Number(b.volume) - Number(a.volume));
       default:
         return filtered.sort((a, b) => Number(b.volume) - Number(a.volume));

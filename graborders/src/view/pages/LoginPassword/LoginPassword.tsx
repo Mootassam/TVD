@@ -173,7 +173,6 @@ function LoginPassword() {
         .password-form {
           display: flex;
           flex-direction: column;
-          gap: 20px;
         }
 
         /* Form group wrapper */

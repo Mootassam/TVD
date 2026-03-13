@@ -231,7 +231,7 @@ common: {
 
     enumerators: {
       status: {
-        USDT: "USDT",
+        USD: "USD",
         ETH: "ETH",
         BTC: "BTC",
       },
@@ -530,7 +530,7 @@ common: {
       },
       recentTrades: {
         title: "Aktuelle Trades (Live)",
-        price: "Preis (USDT)",
+        price: "Preis (USD)",
         amount: "Betrag",
         time: "Zeit"
       },
@@ -542,7 +542,7 @@ common: {
         buy: "Kaufen",
         sell: "Verkaufen",
         quantity: "Menge",
-        price: "Preis (USDT)"
+        price: "Preis (USD)"
       },
       coinSelector: {
         title: "Handelspaar auswählen"
@@ -680,7 +680,7 @@ common: {
       limit: "LIMIT",
       market: "MARKT",
       orderType: "Order-Typ",
-      price: "Preis (USDT)",
+      price: "Preis (USD)",
       amount: "Betrag",
       available: "Verfügbar",
       placing: "Wird platziert...",
@@ -723,14 +723,14 @@ common: {
         invalidQuantity: "Bitte geben Sie eine gültige Menge ein.",
         invalidPrice: "Bitte geben Sie einen gültigen Preis ein.",
         invalidAmount: "Bitte geben Sie einen gültigen Betrag ein.",
-        insufficientUSDT: "Unzureichendes USDT-Guthaben. Verfügbar: {0} USDT",
+        insufficientUSD: "Unzureichendes USD-Guthaben. Verfügbar: {0} USD",
         insufficientCoin: "Unzureichendes {1}-Guthaben. Verfügbar: {0} {1}",
         failedOrder: "Order konnte nicht platziert werden. Bitte versuchen Sie es erneut.",
         createError: "Handels-Erstellungsfehler",
         placeOrderError: "Order-Platzierungsfehler"
       },
       orderBook: {
-        price: "Preis (USDT)",
+        price: "Preis (USD)",
         amount: "Betrag"
       },
       noData: "Keine {0} gefunden",
@@ -745,7 +745,7 @@ common: {
     },
 
     market: {
-      title: "USDT-MARKT",
+      title: "USD-MARKT",
       noResults: "Keine Kryptowährungen gefunden",
       volume: "Vol",
       search: {
@@ -936,9 +936,9 @@ common: {
         customerChatFunction: "System-Update - Echtzeit-Kunden-Chat-Funktion",
         ethNetworkUpgrade: "ETH-Netzwerk-Upgrade-Ankündigung",
         delistingCurrencies: "Ankündigung der Delistung von Währungen",
-        dotUsdtLaunch: "DOT/USDT Handelsstart-Ankündigung",
-        decUsdtLaunch: "DEC/USDT Handelsstart-Ankündigung",
-        usdtIntroduction: "USDT Einführung",
+        dotUSDLaunch: "DOT/USD Handelsstart-Ankündigung",
+        decUSDLaunch: "DEC/USD Handelsstart-Ankündigung",
+        USDIntroduction: "USD Einführung",
         ethereumNetworkMaintenance: "Ethereum-Netzwerk-Wartungsmitteilung",
         projectReviewStandards: "Binex Projektprüfstandards",
         liquidityMiningUpgrade: "Liquiditäts-Mining-Upgrade",
@@ -960,7 +960,7 @@ common: {
       currencies: {
         btc: "BTC (Bitcoin)",
         eth: "ETH (Ethereum)",
-        usdt: "USDT (Tether)",
+        USD: "USD (Tether)",
         sol: "SOL (Solana)",
         xrp: "XRP (Ripple)"
       },
@@ -986,7 +986,7 @@ common: {
       currencies: {
         btc: "BTC (Bitcoin)",
         eth: "ETH (Ethereum)",
-        usdt: "USDT (Tether)",
+        USD: "USD (Tether)",
         sol: "SOL (Solana)",
         xrp: "XRP (Ripple)"
       }
@@ -1753,7 +1753,7 @@ common: {
         confirmTransaction: "Transaktion bestätigen",
         cryptoInWallet: "Krypto erscheint in Ihrer Wallet",
         goToTradeMarkets: 'Gehen Sie zu "Handel/Märkte"',
-        pickTradingPair: "Wählen Sie ein Handelspaar (z.B. BTC/USDT)",
+        pickTradingPair: "Wählen Sie ein Handelspaar (z.B. BTC/USD)",
         placeOrders: "Platzieren Sie Market- oder Limit-Orders",
         receiveCrypto: "Gehen Sie zu Wallet > Empfangen → Adresse oder QR-Code kopieren",
         sendCrypto: "Gehen Sie zu Wallet > Senden → Adresse/Betrag eingeben → bestätigen",

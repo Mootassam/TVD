@@ -231,7 +231,7 @@ common: {
 
     enumerators: {
       status: {
-        USDT: "USDT",
+        USD: "USD",
         ETH: "ETH",
         BTC: "BTC",
       },
@@ -530,7 +530,7 @@ common: {
       },
       recentTrades: {
         title: "Transacciones Recientes (En Vivo)",
-        price: "Precio (USDT)",
+        price: "Precio (USD)",
         amount: "Cantidad",
         time: "Hora"
       },
@@ -542,7 +542,7 @@ common: {
         buy: "Comprar",
         sell: "Vender",
         quantity: "Cantidad",
-        price: "Precio (USDT)"
+        price: "Precio (USD)"
       },
       coinSelector: {
         title: "Seleccionar Par de Trading"
@@ -680,7 +680,7 @@ common: {
       limit: "LÍMITE",
       market: "MERCADO",
       orderType: "Tipo de Orden",
-      price: "Precio (USDT)",
+      price: "Precio (USD)",
       amount: "Cantidad",
       available: "Disponible",
       placing: "Colocando...",
@@ -723,14 +723,14 @@ common: {
         invalidQuantity: "Por favor ingrese una cantidad válida.",
         invalidPrice: "Por favor ingrese un precio válido.",
         invalidAmount: "Por favor ingrese un monto válido.",
-        insufficientUSDT: "Saldo USDT insuficiente. Disponible: {0} USDT",
+        insufficientUSD: "Saldo USD insuficiente. Disponible: {0} USD",
         insufficientCoin: "Saldo {1} insuficiente. Disponible: {0} {1}",
         failedOrder: "Error al colocar la orden. Por favor intente nuevamente.",
         createError: "Error al crear trade",
         placeOrderError: "Error al colocar orden"
       },
       orderBook: {
-        price: "Precio (USDT)",
+        price: "Precio (USD)",
         amount: "Cantidad"
       },
       noData: "No se encontró {0}",
@@ -745,7 +745,7 @@ common: {
     },
     
     market: {
-      title: "MERCADO USDT",
+      title: "MERCADO USD",
       noResults: "No se encontraron criptomonedas",
       volume: "Vol",
       search: {
@@ -936,9 +936,9 @@ common: {
         customerChatFunction: "Actualización del sistema - Función de chat con el cliente en tiempo real",
         ethNetworkUpgrade: "Anuncio de actualización de la red ETH",
         delistingCurrencies: "Anuncio de eliminación de monedas",
-        dotUsdtLaunch: "Anuncio de lanzamiento de trading DOT/USDT",
-        decUsdtLaunch: "Anuncio de lanzamiento de trading DEC/USDT",
-        usdtIntroduction: "Introducción a USDT",
+        dotUSDLaunch: "Anuncio de lanzamiento de trading DOT/USD",
+        decUSDLaunch: "Anuncio de lanzamiento de trading DEC/USD",
+        USDIntroduction: "Introducción a USD",
         ethereumNetworkMaintenance: "Aviso de mantenimiento de la red Ethereum",
         projectReviewStandards: "Estándares de revisión de proyectos de Icmarkets",
         liquidityMiningUpgrade: "Actualización de minería de liquidez",
@@ -960,7 +960,7 @@ common: {
       currencies: {
         btc: "BTC (Bitcoin)",
         eth: "ETH (Ethereum)",
-        usdt: "USDT (Tether)",
+        USD: "USD (Tether)",
         sol: "SOL (Solana)",
         xrp: "XRP (Ripple)"
       },
@@ -986,7 +986,7 @@ common: {
       currencies: {
         btc: "BTC (Bitcoin)",
         eth: "ETH (Ethereum)",
-        usdt: "USDT (Tether)",
+        USD: "USD (Tether)",
         sol: "SOL (Solana)",
         xrp: "XRP (Ripple)"
       }
@@ -1753,7 +1753,7 @@ common: {
         confirmTransaction: "Confirme la transacción",
         cryptoInWallet: "La criptomoneda aparecerá en su billetera",
         goToTradeMarkets: 'Vaya a "Trading/Mercados"',
-        pickTradingPair: "Elija un par de trading (ej. BTC/USDT)",
+        pickTradingPair: "Elija un par de trading (ej. BTC/USD)",
         placeOrders: "Coloque órdenes de mercado o límite",
         receiveCrypto: "Vaya a Billetera > Recibir → copie dirección o código QR",
         sendCrypto: "Vaya a Billetera > Enviar → ingrese dirección/monto → confirme",

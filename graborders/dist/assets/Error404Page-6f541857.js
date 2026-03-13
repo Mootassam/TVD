@@ -1,4 +1,4 @@
-import{k as e,L as t}from"./index-680400b2.js";function o(){return e.jsxs("div",{className:"error404-container",children:[e.jsx("div",{className:"header",children:e.jsx("div",{className:"nav-bar",children:e.jsx("div",{className:"page-title",children:"404 Error"})})}),e.jsx("div",{className:"content-card",children:e.jsxs("div",{className:"error404-content",children:[e.jsxs("div",{className:"crypto-animation",children:[e.jsx("div",{className:"crypto-icon btc-icon",children:e.jsx("i",{className:"fab fa-btc"})}),e.jsx("div",{className:"crypto-icon eth-icon",children:e.jsx("i",{className:"fab fa-ethereum"})}),e.jsx("div",{className:"crypto-icon usdt-icon",children:e.jsx("i",{className:"fas fa-dollar-sign"})})]}),e.jsx("div",{className:"error-icon",children:e.jsx("i",{className:"fas fa-exclamation-circle"})}),e.jsx("h1",{className:"error-code",children:"404"}),e.jsx("h2",{className:"error-title",children:"Page Not Found"}),e.jsx("p",{className:"error-message",children:"The page you're looking for doesn't exist. It might have been moved or you entered the wrong address."}),e.jsxs(t,{to:"/",className:"home-button",children:[e.jsx("i",{className:"fas fa-home"})," Go Back Home"]})]})}),e.jsx("style",{children:`
+import{k as e,L as t}from"./index-680400b2.js";function o(){return e.jsxs("div",{className:"error404-container",children:[e.jsx("div",{className:"header",children:e.jsx("div",{className:"nav-bar",children:e.jsx("div",{className:"page-title",children:"404 Error"})})}),e.jsx("div",{className:"content-card",children:e.jsxs("div",{className:"error404-content",children:[e.jsxs("div",{className:"crypto-animation",children:[e.jsx("div",{className:"crypto-icon btc-icon",children:e.jsx("i",{className:"fab fa-btc"})}),e.jsx("div",{className:"crypto-icon eth-icon",children:e.jsx("i",{className:"fab fa-ethereum"})}),e.jsx("div",{className:"crypto-icon USD-icon",children:e.jsx("i",{className:"fas fa-dollar-sign"})})]}),e.jsx("div",{className:"error-icon",children:e.jsx("i",{className:"fas fa-exclamation-circle"})}),e.jsx("h1",{className:"error-code",children:"404"}),e.jsx("h2",{className:"error-title",children:"Page Not Found"}),e.jsx("p",{className:"error-message",children:"The page you're looking for doesn't exist. It might have been moved or you entered the wrong address."}),e.jsxs(t,{to:"/",className:"home-button",children:[e.jsx("i",{className:"fas fa-home"})," Go Back Home"]})]})}),e.jsx("style",{children:`
         * {
           margin: 0;
           padding: 0;
@@ -111,7 +111,7 @@ import{k as e,L as t}from"./index-680400b2.js";function o(){return e.jsxs("div",
           animation-delay: 0.5s;
         }
 
-        .usdt-icon {
+        .USD-icon {
           background: linear-gradient(135deg, #26A17B 0%, #1C7B5F 100%);
           top: 10px;
           right: 30%;

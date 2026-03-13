@@ -1,30 +1,44 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 
-// Coin list interface
-export const defaultCoins = [
-    { symbol: "BTCUSDT", name: "BTC / USDT" },
-    { symbol: "ETHUSDT", name: "ETH / USDT" },
-    { symbol: "DOTUSDT", name: "DOT / USDT" },
-    { symbol: "XRPUSDT", name: "XRP / USDT" },
-    { symbol: "LINKUSDT", name: "LINK / USDT" },
-    { symbol: "BCHUSDT", name: "BCH / USDT" },
-    { symbol: "LTCUSDT", name: "LTC / USDT" },
-    { symbol: "ADAUSDT", name: "ADA / USDT" },
-    { symbol: "EOSUSDT", name: "EOS / USDT" },
-    { symbol: "TRXUSDT", name: "TRX / USDT" },
-    { symbol: "DASHUSDT", name: "DASH / USDT" },
-    { symbol: "FILUSDT", name: "FIL / USDT" },
-    { symbol: "YFIUSDT", name: "YFI / USDT" },
-    { symbol: "ZECUSDT", name: "ZEC / USDT" },
-    { symbol: "DOGEUSDT", name: "DOGE / USDT" }
+// Forex pairs list – matches the pairs used in Market and MarketDetail
+export const defaultPairs = [
+    { symbol: "EURUSD", name: "EUR / USD" },
+    { symbol: "GBPUSD", name: "GBP / USD" },
+    { symbol: "USDJPY", name: "USD / JPY" },
+    { symbol: "AUDUSD", name: "AUD / USD" },
+    { symbol: "USDCAD", name: "USD / CAD" },
+    { symbol: "USDCHF", name: "USD / CHF" },
+    { symbol: "NZDUSD", name: "NZD / USD" },
+    { symbol: "EURGBP", name: "EUR / GBP" },
+    { symbol: "EURJPY", name: "EUR / JPY" },
+    { symbol: "GBPJPY", name: "GBP / JPY" },
+    { symbol: "AUDJPY", name: "AUD / JPY" },
+    { symbol: "EURAUD", name: "EUR / AUD" },
+    { symbol: "GBPAUD", name: "GBP / AUD" },
+    { symbol: "USDMXN", name: "USD / MXN" },
+    { symbol: "USDRY", name: "USD / TRY" },
+    { symbol: "USDZAR", name: "USD / ZAR" },
+    { symbol: "USDSGD", name: "USD / SGD" },
+    { symbol: "USDHKD", name: "USD / HKD" },
+    { symbol: "USDKRW", name: "USD / KRW" },
+    { symbol: "USDINR", name: "USD / INR" }
 ];
 
-const CoinSelectorSidebar = ({
+interface CoinSelectorSidebarProps {
+    isOpen: boolean;
+    onClose: () => void;
+    selectedCoin: string;
+    onCoinSelect: (symbol: string) => void;
+    availableCoins?: Array<{ symbol: string; name: string }>;
+    title?: string;
+}
+
+const CoinSelectorSidebar: React.FC<CoinSelectorSidebarProps> = ({
     isOpen,
     onClose,
     selectedCoin,
     onCoinSelect,
-    availableCoins = defaultCoins,
+    availableCoins = defaultPairs,
     title = "Select Trading Pair"
 }) => {
     const [searchTerm, setSearchTerm] = useState("");
@@ -58,7 +72,7 @@ const CoinSelectorSidebar = ({
     }, [isOpen, onClose]);
 
     // Handle coin selection
-    const handleCoinSelect = (coinSymbol) => {
+    const handleCoinSelect = (coinSymbol: string) => {
         if (coinSymbol === selectedCoin) {
             onClose();
             return;
@@ -68,7 +82,7 @@ const CoinSelectorSidebar = ({
 
     // Handle escape key
     useEffect(() => {
-        const handleEscapeKey = (event) => {
+        const handleEscapeKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape' && isOpen) {
                 onClose();
             }
@@ -100,7 +114,7 @@ const CoinSelectorSidebar = ({
                     <i className="fas fa-search search-icon"></i>
                     <input
                         type="text"
-                        placeholder="Search coins..."
+                        placeholder="Search pairs..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="search-input"
@@ -116,220 +130,227 @@ const CoinSelectorSidebar = ({
                     )}
                 </div>
 
-                <div className="coins-list">
-                    {filteredCoins.map((coin) => (
+                <div className="pairs-list">
+                    {filteredCoins.map((pair) => (
                         <div
-                            key={coin.symbol}
-                            className={`coin-item ${selectedCoin === coin.symbol ? 'selected' : ''}`}
-                            onClick={() => handleCoinSelect(coin.symbol)}
+                            key={pair.symbol}
+                            className={`pair-item ${selectedCoin === pair.symbol ? 'selected' : ''}`}
+                            onClick={() => handleCoinSelect(pair.symbol)}
                         >
-                            <div className="coin-name">{coin.name}</div>
-                            <div className="coin-symbol">{coin.symbol}</div>
+                            <div className="pair-name">{pair.name}</div>
+                            <div className="pair-symbol">{pair.symbol}</div>
                         </div>
                     ))}
 
                     {filteredCoins.length === 0 && (
                         <div className="no-results">
                             <i className="fas fa-search"></i>
-                            <div>No coins found</div>
+                            <div>No pairs found</div>
                             <div className="no-results-sub">Try different search terms</div>
                         </div>
                     )}
                 </div>
 
                 <style>{`
-          .sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            animation: fadeIn 0.2s ease;
-          }
+                    .sidebar-overlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0, 0, 0, 0.7);
+                        z-index: 1000;
+                        animation: fadeIn 0.2s ease;
+                    }
 
-          .coin-selector-sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 90%;
-            max-width: 250px;
-            height: 100%;
-            background: white;
-            z-index: 1001;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: slideFromLeft 0.2s ease;
-            overflow: hidden;
-          }
+                    .coin-selector-sidebar {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 90%;
+                        max-width: 280px;
+                        height: 100%;
+                        background: #1c1c1c; /* dark background */
+                        z-index: 1001;
+                        display: flex;
+                        flex-direction: column;
+                        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                        animation: slideFromLeft 0.2s ease;
+                        overflow: hidden;
+                        border-right: 1px solid #2a2a2a;
+                    }
 
-          .sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            border-bottom: 1px solid #eef2f6;
-            background: white;
-          }
+                    .sidebar-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 20px;
+                        border-bottom: 1px solid #2a2a2a;
+                        background: #1c1c1c;
+                    }
 
-          .sidebar-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1a1a1a;
-          }
+                    .sidebar-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #ffffff;
+                    }
 
-          .close-sidebar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: #6c757d;
-          }
+                    .close-sidebar {
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 50%;
+                        background: #2a2a2a;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        color: #aaaaaa;
+                    }
 
-          .close-sidebar:hover {
-            background: #e9ecef;
-          }
+                    .close-sidebar:hover {
+                        background: #3a3a3a;
+                        color: #39FF14;
+                    }
 
-          .search-container {
-            position: relative;
-            padding: 16px 20px;
-            border-bottom: 1px solid #eef2f6;
-          }
+                    .search-container {
+                        position: relative;
+                        padding: 16px 20px;
+                        border-bottom: 1px solid #2a2a2a;
+                    }
 
-          .search-icon {
-            position: absolute;
-            left: 36px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-            font-size: 14px;
-          }
+                    .search-icon {
+                        position: absolute;
+                        left: 36px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        color: #777777;
+                        font-size: 14px;
+                    }
 
-          .search-input {
-            width: 100%;
-            padding: 12px 40px 12px 40px;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 14px;
-            background: #f8f9fa;
-            transition: all 0.2s ease;
-          }
+                    .search-input {
+                        width: 100%;
+                        padding: 12px 40px 12px 40px;
+                        border: 1px solid #2a2a2a;
+                        border-radius: 12px;
+                        font-size: 14px;
+                        background: #2a2a2a;
+                        color: #ffffff;
+                        transition: all 0.2s ease;
+                    }
 
-          .search-input:focus {
-            outline: none;
-            border-color: #106cf5;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(16, 108, 245, 0.1);
-          }
+                    .search-input:focus {
+                        outline: none;
+                        border-color: #39FF14;
+                        background: #1c1c1c;
+                        box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.1);
+                    }
 
-          .clear-search {
-            position: absolute;
-            right: 36px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #6c757d;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-          }
+                    .search-input::placeholder {
+                        color: #777777;
+                    }
 
-          .clear-search:hover {
-            background: #e9ecef;
-          }
+                    .clear-search {
+                        position: absolute;
+                        right: 36px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        background: none;
+                        border: none;
+                        color: #777777;
+                        cursor: pointer;
+                        padding: 4px;
+                        border-radius: 4px;
+                        transition: all 0.2s ease;
+                    }
 
-          .coins-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px 0;
-          }
+                    .clear-search:hover {
+                        background: #3a3a3a;
+                        color: #39FF14;
+                    }
 
-          .coin-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid #f8f9fa;
-          }
+                    .pairs-list {
+                        flex: 1;
+                        overflow-y: auto;
+                        padding: 8px 0;
+                    }
 
-          .coin-item:hover {
-            background: #f8fbff;
-          }
+                    .pair-item {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 16px 20px;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        border-bottom: 1px solid #2a2a2a;
+                    }
 
-          .coin-item.selected {
-            background: #106cf5;
-            color: white;
-          }
+                    .pair-item:hover {
+                        background: #2a2a2a;
+                    }
 
-          .coin-item.selected .coin-symbol {
-            color: rgba(255, 255, 255, 0.8);
-          }
+                    .pair-item.selected {
+                        background: #39FF14;
+                    }
 
-          .coin-name {
-            font-size: 14px;
-            font-weight: 500;
+                    .pair-item.selected .pair-name,
+                    .pair-item.selected .pair-symbol {
+                        color: #000000; /* black text on green */
+                    }
 
-            color:#000
-          }
+                    .pair-name {
+                        font-size: 14px;
+                        font-weight: 500;
+                        color: #ffffff;
+                    }
 
-          .coin-symbol {
-            font-size: 12px;
-            color: #6c757d;
-          }
+                    .pair-symbol {
+                        font-size: 12px;
+                        color: #aaaaaa;
+                    }
 
-          .no-results {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 20px;
-            color: #6c757d;
-            text-align: center;
-          }
+                    .no-results {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 60px 20px;
+                        color: #777777;
+                        text-align: center;
+                    }
 
-          .no-results i {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-          }
+                    .no-results i {
+                        font-size: 48px;
+                        margin-bottom: 16px;
+                        opacity: 0.5;
+                    }
 
-          .no-results-sub {
-            font-size: 12px;
-            margin-top: 8px;
-            opacity: 0.7;
-          }
+                    .no-results-sub {
+                        font-size: 12px;
+                        margin-top: 8px;
+                        opacity: 0.7;
+                    }
 
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
 
-          @keyframes slideFromLeft {
-            from {
-              transform: translateX(-100%);
-            }
-            to {
-              transform: translateX(0);
-            }
-          }
+                    @keyframes slideFromLeft {
+                        from {
+                            transform: translateX(-100%);
+                        }
+                        to {
+                            transform: translateX(0);
+                        }
+                    }
 
-          @media (max-width: 380px) {
-            .coin-selector-sidebar {
-              width: 85%;
-            }
-          }
-        `}</style>
+                    @media (max-width: 380px) {
+                        .coin-selector-sidebar {
+                            width: 85%;
+                        }
+                    }
+                `}</style>
             </div>
         </>
     );

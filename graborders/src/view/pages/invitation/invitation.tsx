@@ -56,7 +56,7 @@ function Invitation() {
   };
 
   const shareReferral = (platform: string) => {
-    const shareText = `Join lC Markets Globalusing my referral code: ${currentUser?.refcode}`;
+    const shareText = `Join Icmarkets using my referral code: ${currentUser?.refcode}`;
     const shareUrl = window.location.origin;
 
     switch (platform) {
@@ -68,7 +68,7 @@ function Invitation() {
         break;
       case "email":
         window.open(
-          `mailto:?subject=Join IC Markets Global&body=${encodeURIComponent(shareText)}`,
+          `mailto:?subject=Join Icmarkets&body=${encodeURIComponent(shareText)}`,
           "_blank"
         );
         break;
@@ -78,7 +78,7 @@ function Invitation() {
       case "more":
         if (navigator.share) {
           navigator.share({
-            title: "lC Markets GlobalReferral",
+            title: "Icmarkets Referral",
             text: shareText,
             url: shareUrl,
           });
@@ -191,7 +191,7 @@ function Invitation() {
         <div className="rewards-section">
           <div className="rewards-card">
             <div className="rewards-label">{i18n("pages.invitation.totalEarned")}</div>
-            <div className="rewards-amount">{totalReward.toFixed(0)} USDT</div>
+            <div className="rewards-amount">{totalReward.toFixed(0)} USD</div>
             <div className="rewards-subtitle">{i18n("pages.invitation.allTimeCommission")}</div>
           </div>
         </div>

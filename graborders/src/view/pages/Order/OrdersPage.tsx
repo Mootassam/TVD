@@ -17,7 +17,7 @@ function OrdersPage() {
   const orders = [
     {
       id: 1,
-      pair: "BTC/USDT",
+      pair: "BTC/USD",
       action: "BUY",
       date: "08/23",
       time: "02:20:08",
@@ -30,7 +30,7 @@ function OrdersPage() {
     },
     {
       id: 2,
-      pair: "ETH/USDT",
+      pair: "ETH/USD",
       action: "SELL",
       date: "08/24",
       time: "14:35:22",
@@ -43,7 +43,7 @@ function OrdersPage() {
     },
     {
       id: 3,
-      pair: "SOL/USDT",
+      pair: "SOL/USD",
       action: "BUY",
       date: "08/24",
       time: "09:15:47",
@@ -56,7 +56,7 @@ function OrdersPage() {
     },
     {
       id: 4,
-      pair: "XRP/USDT",
+      pair: "XRP/USD",
       action: "SELL",
       date: "08/22",
       time: "18:42:11",
@@ -69,7 +69,7 @@ function OrdersPage() {
     },
     {
       id: 5,
-      pair: "ADA/USDT",
+      pair: "ADA/USD",
       action: "BUY",
       date: "08/21",
       time: "11:23:34",
@@ -82,7 +82,7 @@ function OrdersPage() {
     },
     {
       id: 6,
-      pair: "BTC/USDT",
+      pair: "BTC/USD",
       action: "SELL",
       date: "08/20",
       time: "16:55:09",
@@ -254,7 +254,7 @@ function OrdersPage() {
           <div className="detail-row">
             <span className="label">Price</span>
             <span className="value">
-              {formatNumber(order.commissionPrice, 4)} USDT
+              {formatNumber(order.commissionPrice, 4)} USD
             </span>
           </div>
 
@@ -266,7 +266,7 @@ function OrdersPage() {
           <div className="detail-row">
             <span className="label">Total (Entrusted)</span>
             <span className="value total">
-              {formatNumber(order.entrustedValue)} USDT
+              {formatNumber(order.entrustedValue)} USD
             </span>
           </div>
 

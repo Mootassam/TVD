@@ -68,7 +68,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   // validate amount
   useEffect(() => {
     if (futuresAmount < 30) {
-      setAmountError("Minimum amount is 30 USDT");
+      setAmountError("Minimum amount is 30 USD");
     } else if (futuresAmount > availableBalance) {
       setAmountError("Insufficient balance");
     } else {
@@ -160,9 +160,9 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       const calculatedIsWin = false; // fallback: treat as loss
       setTradeResult(calculatedIsWin ? "win" : "loss");
       if (calculatedIsWin) {
-        setPnlDisplay(`+${calculateProfit(futuresAmount, selectedLeverage, selectvalue).toFixed(2)} USDT`);
+        setPnlDisplay(`+${calculateProfit(futuresAmount, selectedLeverage, selectvalue).toFixed(2)} USD`);
       } else {
-        setPnlDisplay(`-${futuresAmount.toFixed(2)} USDT`);
+        setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
       }
       setTradeStatus("completed");
       return;
@@ -176,7 +176,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       if (!trade) {
         // fallback: mark as loss
         setTradeResult("loss");
-        setPnlDisplay(`-${futuresAmount.toFixed(2)} USDT`);
+        setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
         setTradeStatus("completed");
         return;
       }
@@ -193,11 +193,11 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       if (trade.control === "profit") {
         setTradeResult("win");
         const pnl = Number(trade.profitAndLossAmount ?? calculateProfit(futuresAmount, selectedLeverage, selectvalue));
-        setPnlDisplay(`+${Number.isFinite(pnl) ? pnl.toFixed(2) : "0.00"} USDT`);
+        setPnlDisplay(`+${Number.isFinite(pnl) ? pnl.toFixed(2) : "0.00"} USD`);
       } else {
         setTradeResult("loss");
         const amt = Number(trade.futuresAmount ?? futuresAmount);
-        setPnlDisplay(`-${Number.isFinite(amt) ? amt.toFixed(2) : futuresAmount.toFixed(2)} USDT`);
+        setPnlDisplay(`-${Number.isFinite(amt) ? amt.toFixed(2) : futuresAmount.toFixed(2)} USD`);
       }
 
       setTradeStatus("completed");
@@ -209,7 +209,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       console.error("completeTrade error", err);
       // fallback to computed display
       setTradeResult("loss");
-      setPnlDisplay(`-${futuresAmount.toFixed(2)} USDT`);
+      setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
       setTradeStatus("completed");
     }
   };
@@ -232,7 +232,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       leverage: parseInt(selectedLeverage, 10),
       control: "loss", // default — worker/ admin may set later
       operate: "low",
-      futureCoin: selectedCoin.replace("USDT", "/USDT"),
+      futureCoin: selectedCoin.replace("USD", "/USD"),
       closePositionTime: '',
       closePositionPrice: '',
       openPositionTime: new Date().toISOString(),
@@ -320,13 +320,13 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
           <div className="pair-info">
             <div className="pair-icon">
               <img
-                src={`https://images.weserv.nl/?url=https://bin.bnbstatic.com/static/assets/logos/${selectedCoin.split("USDT")[0]}.png`}
+                src={`https://images.weserv.nl/?url=https://bin.bnbstatic.com/static/assets/logos/${selectedCoin.split("USD")[0]}.png`}
                 style={{ width: 30, height: 30 }}
                 alt={selectedCoin}
                 loading="lazy"
               />
             </div>
-            <div className="pair-name">{selectedCoin.replace("USDT", "/USDT")}</div>
+            <div className="pair-name">{selectedCoin.replace("USD", "/USD")}</div>
           </div>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
@@ -353,7 +353,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
               <div className="trade-details">
                 <div className="trade-details-row">
                   <span>Futures Amount:</span>
-                  <span>{tradeDetails.futuresAmount} USDT</span>
+                  <span>{tradeDetails.futuresAmount} USD</span>
                 </div>
                 <div className="trade-details-row">
                   <span>Contract Duration:</span>
@@ -367,11 +367,11 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                 </div>
                 <div className="trade-details-row">
                   <span>Open Position Price:</span>
-                  <span>{tradeDetails.openPositionPrice.toFixed(4)} USDT</span>
+                  <span>{tradeDetails.openPositionPrice.toFixed(4)} USD</span>
                 </div>
                 <div className="trade-details-row">
                   <span>Close Position Price:</span>
-                  <span>{tradeDetails.closePositionPrice ? tradeDetails.closePositionPrice.toFixed(4) : "-"} USDT</span>
+                  <span>{tradeDetails.closePositionPrice ? tradeDetails.closePositionPrice.toFixed(4) : "-"} USD</span>
                 </div>
                 <div className="trade-details-row">
                   <span>Leverage:</span>
@@ -461,7 +461,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
               {/* Futures Amount Section */}
               <div className="section">
                 <div className="section-title">
-                  <span>Futures Amount (USDT)</span>
+                  <span>Futures Amount (USD)</span>
                 </div>
                 <div className="amount-control">
                   <button
@@ -482,7 +482,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                     +
                   </button>
                 </div>
-                <div className="balance-info">Available: {availableBalance} USDT</div>
+                <div className="balance-info">Available: {availableBalance} USD</div>
                 {amountError && (
                   <div className="error-message" style={{ color: "#FF6838", fontSize: "12px", marginTop: "5px" }}>
                     {amountError}
@@ -492,7 +492,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
 
               {/* Projected Profit */}
               <div className="profit-info">
-                Projected Profit: {calculateProfit(futuresAmount, selectedLeverage, selectvalue).toFixed(2)} USDT
+                Projected Profit: {calculateProfit(futuresAmount, selectedLeverage, selectvalue).toFixed(2)} USD
               </div>
 
               {/* Confirm Button */}

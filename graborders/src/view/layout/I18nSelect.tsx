@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getLanguages, getLanguageCode, i18n } from '../../i18n';
 import actions from 'src/modules/layout/layoutActions';
 
@@ -20,7 +21,6 @@ const I18nSelect = ({ isInModal = false }) => {
   if (isInModal) {
     return (
       <div className="i18n-modal-content">
-   
         <div className="languages-list-modal">
           {getLanguages().map((language) => {
             const isActive = getLanguageCode() === language.id;
@@ -65,56 +65,30 @@ const I18nSelect = ({ isInModal = false }) => {
             height: 100%;
             display: flex;
             flex-direction: column;
-          }
-
-          .language-intro {
-            padding: 20px 20px 16px 20px;
-            border-bottom: 1px solid #eef2f7;
-            text-align: center;
-          }
-
-          .language-icon {
-            font-size: 24px;
-            color: #106cf5;
-            margin-bottom: 12px;
-          }
-
-          .language-intro h2 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #222;
-            margin-bottom: 6px;
-          }
-
-          .language-intro p {
-            font-size: 13px;
-            color: #666;
-            line-height: 1.4;
+            background-color: #1c1c1c;
+            color: #ffffff;
           }
 
           .languages-list-modal {
             flex: 1;
             overflow-y: auto;
-            padding: 0;
-            max-height: calc(85vh - 200px);
+            padding: 8px 0;
+            max-height: calc(85vh - 120px);
           }
 
           .languages-list-modal::-webkit-scrollbar {
             width: 4px;
           }
-
           .languages-list-modal::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: #2a2a2a;
             border-radius: 2px;
           }
-
           .languages-list-modal::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
+            background: #39FF14;
             border-radius: 2px;
           }
-
           .languages-list-modal::-webkit-scrollbar-thumb:hover {
-            background: #a1a1a1;
+            background: #2ecc10;
           }
 
           .language-item-modal {
@@ -123,21 +97,17 @@ const I18nSelect = ({ isInModal = false }) => {
             padding: 16px 20px;
             cursor: pointer;
             transition: all 0.2s ease;
-            border-bottom: 1px solid #f5f7fa;
+            border-bottom: 1px solid #2a2a2a;
           }
-
           .language-item-modal:last-child {
             border-bottom: none;
           }
-
           .language-item-modal:hover {
-            background-color: #f8fafd;
+            background-color: #2a2a2a;
           }
-
           .language-item-modal.active {
-            background-color: #f0f7ff;
+            background-color: rgba(57, 255, 20, 0.1);
           }
-
           .language-item-modal.loading {
             opacity: 0.7;
             cursor: not-allowed;
@@ -149,10 +119,9 @@ const I18nSelect = ({ isInModal = false }) => {
             margin-right: 16px;
             border-radius: 3px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
             flex-shrink: 0;
           }
-
           .language-flag-modal img {
             width: 100%;
             height: 100%;
@@ -162,30 +131,27 @@ const I18nSelect = ({ isInModal = false }) => {
           .language-info-modal {
             flex: 1;
           }
-
           .language-name-modal {
             font-size: 16px;
             font-weight: 600;
-            color: #222;
+            color: #ffffff;
             margin-bottom: 2px;
           }
-
           .language-native-modal {
             font-size: 13px;
-            color: #666;
+            color: #aaaaaa;
             font-weight: 400;
           }
 
           .selected-indicator-modal {
-            color: #106cf5;
+            color: #39FF14;
             font-size: 16px;
             margin-left: 10px;
             flex-shrink: 0;
             animation: fadeInScale 0.3s ease;
           }
-
           .loading-indicator-modal {
-            color: #106cf5;
+            color: #39FF14;
             font-size: 16px;
             margin-left: 10px;
             flex-shrink: 0;
@@ -193,22 +159,20 @@ const I18nSelect = ({ isInModal = false }) => {
 
           .language-help-modal {
             padding: 16px 20px;
-            border-top: 1px solid #eef2f7;
-            background-color: #f8fafd;
+            border-top: 1px solid #2a2a2a;
+            background-color: #1c1c1c;
             display: flex;
             align-items: center;
             gap: 10px;
           }
-
           .language-help-modal i {
-            color: #106cf5;
+            color: #39FF14;
             font-size: 14px;
             flex-shrink: 0;
           }
-
           .language-help-modal span {
             font-size: 13px;
-            color: #666;
+            color: #dddddd;
             line-height: 1.4;
           }
 
@@ -224,28 +188,17 @@ const I18nSelect = ({ isInModal = false }) => {
           }
 
           @media (max-width: 380px) {
-            .language-intro {
-              padding: 16px 16px 12px 16px;
-            }
-
-            .language-intro h2 {
-              font-size: 16px;
-            }
-
             .language-item-modal {
               padding: 14px 16px;
             }
-
             .language-flag-modal {
               width: 28px;
               height: 21px;
               margin-right: 12px;
             }
-
             .language-name-modal {
               font-size: 15px;
             }
-
             .language-help-modal {
               padding: 14px 16px;
             }
@@ -320,69 +273,56 @@ const I18nSelect = ({ isInModal = false }) => {
       </div>
 
       <style>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
-
-        body {
-          background-color: #f5f7fa;
-          color: #333;
-          line-height: 1.6;
-        }
-
+        /* I18n Container – matches login/profile containers */
         .i18n-container {
-          max-width: 400px;
+          max-width: 430px;
           margin: 0 auto;
-          position: relative;
           min-height: 100vh;
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
+          background-color: #000000;
+          border-top: 2px solid #39FF14;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          color: #ffffff;
         }
 
-        /* Header Section - Matching Profile Page */
+        /* Header / Navigation */
         .header {
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
-          min-height: 60px;
-          position: relative;
-          padding: 20px;
+          padding: 16px 20px;
+          border-bottom: 1px solid #2a2a2a;
         }
-
         .nav-bar {
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          gap: 16px;
+          position: relative;
         }
-
         .back-arrow {
-          color: white;
+          color: #ffffff;
           font-size: 20px;
-          font-weight: 300;
           text-decoration: none;
-          transition: opacity 0.3s ease;
         }
-
         .back-arrow:hover {
-          opacity: 0.8;
+          color: #39FF14;
         }
-
         .page-title {
-          color: white;
-          font-size: 17px;
-          font-weight: 600;
+          font-size: 18px;
+          font-weight: 500;
+          color: #ffffff;
           position: absolute;
           left: 50%;
           transform: translateX(-50%);
         }
 
-        /* Content Card - Matching Profile Page */
+        /* Content Card */
         .content-card {
-          background: white;
-          border-radius: 40px 40px 0 0;
-          padding: 20px;
-          box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
-          min-height: calc(100vh - 60px);
+          flex: 1;
+          background-color: #1c1c1c;
+          border-top-left-radius: 24px;
+          border-top-right-radius: 24px;
+          padding: 24px 20px;
+          margin-top: 20px;
+          border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
         }
@@ -392,23 +332,20 @@ const I18nSelect = ({ isInModal = false }) => {
           margin-bottom: 20px;
           padding: 20px 0;
         }
-
         .language-icon {
           font-size: 32px;
-          color: #106cf5;
+          color: #39FF14;
           margin-bottom: 16px;
         }
-
         .language-intro h2 {
           font-size: 20px;
           font-weight: 700;
-          color: #222;
+          color: #ffffff;
           margin-bottom: 8px;
         }
-
         .language-intro p {
           font-size: 14px;
-          color: #666;
+          color: #aaaaaa;
           line-height: 1.4;
         }
 
@@ -417,34 +354,43 @@ const I18nSelect = ({ isInModal = false }) => {
           overflow-y: auto;
           margin-bottom: 20px;
         }
+        .languages-list::-webkit-scrollbar {
+          width: 4px;
+        }
+        .languages-list::-webkit-scrollbar-track {
+          background: #2a2a2a;
+          border-radius: 2px;
+        }
+        .languages-list::-webkit-scrollbar-thumb {
+          background: #39FF14;
+          border-radius: 2px;
+        }
+        .languages-list::-webkit-scrollbar-thumb:hover {
+          background: #2ecc10;
+        }
 
         .language-item {
           display: flex;
           align-items: center;
           padding: 16px;
-          border: 1px solid #e7eaee;
+          border: 1px solid #2a2a2a;
           border-radius: 7px;
           margin-bottom: 12px;
           cursor: pointer;
-          transition: all 0.3s ease;
-          background: #fff;
+          transition: all 0.2s ease;
+          background-color: #1c1c1c;
         }
-
         .language-item:last-child {
           margin-bottom: 0;
         }
-
         .language-item:hover {
-          border-color: #106cf5;
-          box-shadow: 0 4px 12px rgba(16, 108, 245, 0.1);
-          transform: translateY(-2px);
+          border-color: #39FF14;
+          background-color: #2a2a2a;
         }
-
         .language-item.active {
-          background-color: #f0f7ff;
-          border-color: #106cf5;
+          background-color: rgba(57, 255, 20, 0.1);
+          border-color: #39FF14;
         }
-
         .language-item.loading {
           opacity: 0.7;
           cursor: not-allowed;
@@ -456,9 +402,8 @@ const I18nSelect = ({ isInModal = false }) => {
           margin-right: 16px;
           border-radius: 4px;
           overflow: hidden;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
-
         .language-flag img {
           width: 100%;
           height: 100%;
@@ -468,113 +413,87 @@ const I18nSelect = ({ isInModal = false }) => {
         .language-info {
           flex: 1;
         }
-
         .language-name {
           font-size: 16px;
           font-weight: 600;
-          color: #222;
+          color: #ffffff;
           margin-bottom: 4px;
         }
-
         .language-native {
           font-size: 14px;
-          color: #666;
+          color: #aaaaaa;
         }
 
         .selected-indicator {
-          color: #106cf5;
+          color: #39FF14;
           font-size: 18px;
         }
-
         .loading-indicator {
-          color: #106cf5;
+          color: #39FF14;
           font-size: 18px;
         }
 
         .language-help {
           padding: 16px;
-          background-color: #f8fafd;
+          background-color: #1c1c1c;
           border-radius: 7px;
-          border: 1px solid #eef2f7;
+          border: 1px solid #2a2a2a;
         }
-
         .language-help p {
           font-size: 14px;
-          color: #666;
+          color: #dddddd;
           display: flex;
           align-items: center;
           gap: 10px;
         }
-
         .language-help i {
-          color: #106cf5;
+          color: #39FF14;
           font-size: 16px;
         }
 
         /* Responsive adjustments */
         @media (max-width: 380px) {
-          .i18n-container {
-            padding: 0;
-          }
-
           .header {
             padding: 16px;
-            min-height: 50px;
           }
-
           .content-card {
-            padding: 16px;
+            padding: 20px 16px;
           }
-
           .language-intro {
             padding: 16px 0;
             margin-bottom: 16px;
           }
-
           .language-icon {
             font-size: 28px;
             margin-bottom: 12px;
           }
-
           .language-intro h2 {
             font-size: 18px;
           }
-
           .language-item {
             padding: 14px;
           }
-
           .language-flag {
             width: 36px;
             height: 27px;
             margin-right: 12px;
           }
-
           .language-name {
             font-size: 15px;
           }
-
           .language-native {
             font-size: 13px;
           }
-
           .language-help {
             padding: 14px;
           }
-
           .language-help p {
             font-size: 13px;
-          }
-        }
-
-        @media (min-width: 768px) {
-          .content-card {
-            border-radius: 30px 30px 0 0;
           }
         }
       `}</style>
     </div>
   );
-}
+};
 
 export default I18nSelect;

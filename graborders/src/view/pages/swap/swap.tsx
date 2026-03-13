@@ -30,8 +30,8 @@ function swap() {
                     {/* Token Selector */}
                     <div className="token-selector">
                         <div className="token-info">
-                            <div className="token-icon">USDT</div>
-                            <div className="token-name">USDT</div>
+                            <div className="token-icon">USD</div>
+                            <div className="token-name">USD</div>
                         </div>
                         <i className="fas fa-chevron-down selector-arrow" />
                     </div>
@@ -43,7 +43,7 @@ function swap() {
                             placeholder="Please enter the redemption quantity"
                         />
                         <div className="input-actions">
-                            <div className="token-symbol">USDT</div>
+                            <div className="token-symbol">USD</div>
                             <button className="max-button">All</button>
                         </div>
                     </div>
@@ -72,7 +72,7 @@ function swap() {
                         defaultValue={0.0}
                     />
                     {/* Exchange Rate */}
-                    <div className="exchange-rate">1 USDT ≈ 0.00034347618507 ETH</div>
+                    <div className="exchange-rate">1 USD ≈ 0.00034347618507 ETH</div>
                     {/* Confirm Button */}
                     <button className="confirm-button">Confirm exchange</button>
                 </div>

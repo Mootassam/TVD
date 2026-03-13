@@ -237,10 +237,10 @@ const validateStake = () => {
 
       // Fetch prices for each currency
       const pricePromises = currencies.map(async (currency) => {
-        if (currency === 'USDT') return { currency, price: 1 };
+        if (currency === 'USD') return { currency, price: 1 };
 
         try {
-          const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currency}USDT`);
+          const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currency}USD`);
           const data = await response.json();
           return { currency, price: parseFloat(data.price) };
         } catch (error) {

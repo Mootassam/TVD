@@ -55,6 +55,17 @@ export default [
     permissionRequired: permissions.userRead,
   },
 
+
+  {
+    id: 'category',
+    path: '/category',
+    exact: true,
+    icon: 'fas fa-headset',
+    label: i18n('dashboard.customersupport'),
+    className: 'menu-li side-menue sub-item',
+    permissionRequired: permissions.userRead,
+  },
+
   // Money Management Section
   {
     id: 'money-header',

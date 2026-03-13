@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import CoinListModal from "src/shared/modal/CoinListModal";
+import CoinSelectorSidebar from "src/view/shared/modals/CoinSelectorSidebar";
 import FuturesModal from "src/shared/modal/FuturesModal";
 import FuturesChart from "./FuturesChart";
 import futuresListAction from "src/modules/futures/list/futuresListActions";
@@ -10,21 +10,111 @@ import { useDispatch, useSelector } from "react-redux";
 import FutureList from "./FutureList";
 import { i18n } from '../../../i18n';
 
-// Interface for Binance ticker data
-interface BinanceTicker {
-  e: string;
-  E: number;
-  s: string;
-  c: string;
-  o: string;
-  h: string;
-  l: string;
-  v: string;
-  q: string;
-  P: string;
+// ----------------------------------------------------------------------
+// Types & Helpers
+// ----------------------------------------------------------------------
+interface ForexTicker {
+  symbol: string;
+  price: number;
+  changePercent: number;
+  high: number;
+  low: number;
+  volume: number;
+  quoteVolume: number;
 }
 
-// Interface for Order data
+// Base prices for forex pairs
+const basePrices: Record<string, number> = {
+  EURUSD: 1.0850,
+  GBPUSD: 1.2650,
+  USDJPY: 148.50,
+  AUDUSD: 0.6550,
+  USDCAD: 1.3550,
+  USDCHF: 0.8750,
+  NZDUSD: 0.6050,
+  EURGBP: 0.8570,
+  EURJPY: 161.20,
+  GBPJPY: 188.30,
+  AUDJPY: 97.20,
+  EURAUD: 1.6550,
+  GBPAUD: 1.9300,
+  USDMXN: 17.20,
+  USDRY: 30.50,
+  USDZAR: 18.90,
+  USDSGD: 1.3450,
+  USDHKD: 7.8200,
+  USDKRW: 1330.00,
+  USDINR: 83.20,
+};
+
+// Currency to country mapping for flags
+const currencyToCountry: Record<string, string> = {
+  EUR: 'eu', USD: 'us', GBP: 'gb', JPY: 'jp', AUD: 'au', CAD: 'ca',
+  CHF: 'ch', NZD: 'nz', MXN: 'mx', TRY: 'tr', ZAR: 'za', SGD: 'sg',
+  HKD: 'hk', KRW: 'kr', INR: 'in',
+};
+
+// Get decimal places for a symbol (forex convention)
+const getDecimalPlaces = (symbol: string): number => {
+  if (symbol.includes("JPY") && !symbol.startsWith("JPY")) return 3;
+  return 5;
+};
+
+// Random walk price change
+const randomChange = (current: number, volatility: number = 0.0005): number => {
+  const change = (Math.random() * 2 - 1) * volatility;
+  return current * (1 + change);
+};
+
+// Generate a simulated ticker update
+const generateTickerUpdate = (
+  symbol: string,
+  currentPrice: number
+): ForexTicker => {
+  const volatility = 0.001; // 0.1% per update
+  const newPrice = randomChange(currentPrice, volatility);
+  const changePercent = ((newPrice - currentPrice) / currentPrice) * 100;
+  const high = Math.max(currentPrice, newPrice) * 1.002;
+  const low = Math.min(currentPrice, newPrice) * 0.998;
+  const volume = 1000000 + Math.random() * 500000;
+  const quoteVolume = newPrice * volume;
+
+  return {
+    symbol,
+    price: newPrice,
+    changePercent,
+    high,
+    low,
+    volume,
+    quoteVolume,
+  };
+};
+
+// Forex pairs list (for sidebar)
+const forexPairs = [
+  { symbol: "EURUSD", name: "EUR / USD" },
+  { symbol: "GBPUSD", name: "GBP / USD" },
+  { symbol: "USDJPY", name: "USD / JPY" },
+  { symbol: "AUDUSD", name: "AUD / USD" },
+  { symbol: "USDCAD", name: "USD / CAD" },
+  { symbol: "USDCHF", name: "USD / CHF" },
+  { symbol: "NZDUSD", name: "NZD / USD" },
+  { symbol: "EURGBP", name: "EUR / GBP" },
+  { symbol: "EURJPY", name: "EUR / JPY" },
+  { symbol: "GBPJPY", name: "GBP / JPY" },
+  { symbol: "AUDJPY", name: "AUD / JPY" },
+  { symbol: "EURAUD", name: "EUR / AUD" },
+  { symbol: "GBPAUD", name: "GBP / AUD" },
+  { symbol: "USDMXN", name: "USD / MXN" },
+  { symbol: "USDRY", name: "USD / TRY" },
+  { symbol: "USDZAR", name: "USD / ZAR" },
+  { symbol: "USDSGD", name: "USD / SGD" },
+  { symbol: "USDHKD", name: "USD / HKD" },
+  { symbol: "USDKRW", name: "USD / KRW" },
+  { symbol: "USDINR", name: "USD / INR" },
+];
+
+// Interface for Order data (from Redux)
 interface Order {
   id: number;
   pair: string;
@@ -62,24 +152,27 @@ function Futures() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tradeDirection, setTradeDirection] = useState<string | null>(null);
   const [isCoinModalOpen, setIsCoinModalOpen] = useState(false);
-  const [selectedCoin, setSelectedCoin] = useState("BTCUSDT");
-  const [marketPrice, setMarketPrice] = useState("0");
-  const [priceChangePercent, setPriceChangePercent] = useState("0");
-  const [highPrice, setHighPrice] = useState("0");
-  const [lowPrice, setLowPrice] = useState("0");
-  const [volume, setVolume] = useState("0");
+  const [selectedCoin, setSelectedCoin] = useState("EURUSD");
+  const [ticker, setTicker] = useState<ForexTicker>({
+    symbol: "EURUSD",
+    price: basePrices.EURUSD,
+    changePercent: 0,
+    high: basePrices.EURUSD * 1.002,
+    low: basePrices.EURUSD * 0.998,
+    volume: 1000000,
+    quoteVolume: basePrices.EURUSD * 1000000,
+  });
   const [activeTab, setActiveTab] = useState<"openOrders" | "recentOrders">("openOrders");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isOrdersLoading, setIsOrdersLoading] = useState(true);
-  const [usdtBalance, setUsdtBalance] = useState<number>(0);
+  const [USDBalance, setUSDBalance] = useState<number>(0);
   const [openingOrders, setOpeningOrders] = useState<any[]>([]);
 
   // Refs
-  const tickerWs = useRef<WebSocket | null>(null);
+  const tickerInterval = useRef<NodeJS.Timeout | null>(null);
   const currentCoinRef = useRef(selectedCoin);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Memoized utility functions
   const safeToFixed = useCallback((value: any, decimals: number = 2): string => {
@@ -88,16 +181,17 @@ function Futures() {
     return isNaN(num) ? "0.00" : num.toFixed(decimals);
   }, []);
 
-  const formatNumber = useCallback((num: any, decimals: number = 2): string => {
+  const formatNumber = useCallback((num: any, decimals?: number): string => {
     if (num === null || num === undefined) return "0.00";
     const numValue = typeof num === "string" ? parseFloat(num) : num;
     if (isNaN(numValue)) return "0.00";
 
+    const dec = decimals ?? getDecimalPlaces(selectedCoin);
     return numValue.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
+      minimumFractionDigits: dec,
+      maximumFractionDigits: dec,
     });
-  }, []);
+  }, [selectedCoin]);
 
   const formatVolume = useCallback((vol: any): string => {
     if (vol === null || vol === undefined) return "0";
@@ -160,11 +254,11 @@ function Futures() {
     }
   }, []);
 
-  // Calculate and set balances
+  // Calculate USD balance from assets
   const calculateBalances = useCallback(() => {
     if (listAssets?.length > 0) {
-      const usdtAsset = listAssets.find((asset: any) => asset.symbol === 'USDT');
-      setUsdtBalance(usdtAsset?.amount || 0);
+      const USDAsset = listAssets.find((asset: any) => asset.symbol === 'USD');
+      setUSDBalance(USDAsset?.amount || 0);
     }
   }, [listAssets]);
 
@@ -185,110 +279,43 @@ function Futures() {
     }
   }, [activeTab, pendingCount, pendingLoading, pendingList, countFutures, futuretLoading, listFutures]);
 
-  // Fetch initial data via REST API
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchInitialData = async () => {
-      if (!selectedCoin) return;
-
-      try {
-        setIsLoading(true);
-        const response = await fetch(
-          `https://api.binance.com/api/v3/ticker/24hr?symbol=${selectedCoin}`
-        );
-
-        if (!response.ok) throw new Error("Failed to fetch ticker data");
-
-        const tickerData = await response.json();
-
-        if (isMounted) {
-          setMarketPrice(tickerData.lastPrice || "0");
-          setPriceChangePercent(tickerData.priceChangePercent || "0");
-          setHighPrice(tickerData.highPrice || "0");
-          setLowPrice(tickerData.lowPrice || "0");
-          setVolume(tickerData.volume || "0");
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error("Error fetching initial data:", error);
-        if (isMounted) setIsLoading(false);
-      }
-    };
-
-    fetchInitialData();
-
-    return () => {
-      isMounted = false;
-    };
+  // Flag icon for selected coin
+  const flagUrl = useMemo(() => {
+    const baseCurrency = selectedCoin.slice(0, 3);
+    const countryCode = currencyToCountry[baseCurrency] || baseCurrency.toLowerCase();
+    return `https://flagcdn.com/w40/${countryCode}.png`;
   }, [selectedCoin]);
 
-  // WebSocket connection with proper cleanup
+  // Simulate real‑time ticker updates
   useEffect(() => {
     if (!selectedCoin) return;
 
     let isMounted = true;
     currentCoinRef.current = selectedCoin;
 
-    const connectTickerWebSocket = () => {
-      // Cleanup previous connection
-      if (tickerWs.current) {
-        tickerWs.current.close();
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
+    // Initialize ticker with base price
+    const basePrice = basePrices[selectedCoin] || 1.0;
+    setTicker({
+      symbol: selectedCoin,
+      price: basePrice,
+      changePercent: 0,
+      high: basePrice * 1.002,
+      low: basePrice * 0.998,
+      volume: 1000000,
+      quoteVolume: basePrice * 1000000,
+    });
 
-      try {
-        tickerWs.current = new WebSocket(
-          `wss://stream.binance.com:9443/ws/${selectedCoin.toLowerCase()}@ticker`
-        );
+    if (tickerInterval.current) clearInterval(tickerInterval.current);
 
-        tickerWs.current.onopen = () => {
-        };
+    tickerInterval.current = setInterval(() => {
+      if (!isMounted || currentCoinRef.current !== selectedCoin) return;
 
-        tickerWs.current.onmessage = (event: MessageEvent) => {
-          if (!isMounted) return;
-
-          try {
-            const tickerData: BinanceTicker = JSON.parse(event.data);
-            if (tickerData.s === currentCoinRef.current && isMounted) {
-              setMarketPrice(tickerData.c || "0");
-              setPriceChangePercent(tickerData.P || "0");
-              setHighPrice(tickerData.h || "0");
-              setLowPrice(tickerData.l || "0");
-              setVolume(tickerData.v || "0");
-            }
-          } catch (error) {
-            console.error("Error parsing WebSocket message:", error);
-          }
-        };
-
-        tickerWs.current.onerror = (error: Event) => {
-          console.error("Ticker WebSocket error:", error);
-        };
-
-        tickerWs.current.onclose = (event: CloseEvent) => {
-
-          if (selectedCoin === currentCoinRef.current && isMounted) {
-            reconnectTimeoutRef.current = setTimeout(connectTickerWebSocket, 2000);
-          }
-        };
-      } catch (error) {
-        console.error("WebSocket connection error:", error);
-      }
-    };
-
-    connectTickerWebSocket();
+      setTicker(prev => generateTickerUpdate(selectedCoin, prev.price));
+    }, 3000);
 
     return () => {
       isMounted = false;
-      if (tickerWs.current) {
-        tickerWs.current.close();
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
+      if (tickerInterval.current) clearInterval(tickerInterval.current);
     };
   }, [selectedCoin]);
 
@@ -297,11 +324,10 @@ function Futures() {
     const timer = setTimeout(() => {
       setIsOrdersLoading(false);
     }, 1500);
-
     return () => clearTimeout(timer);
   }, []);
 
-  // Fetch data on component mount
+  // Fetch data on component mount (Redux)
   useEffect(() => {
     let isMounted = true;
 
@@ -312,9 +338,7 @@ function Futures() {
           dispatch(assetsListAction.doFetch())
         ]);
       } catch (error) {
-        if (isMounted) {
-          console.error("Error fetching data:", error);
-        }
+        if (isMounted) console.error("Error fetching data:", error);
       }
     };
 
@@ -341,14 +365,19 @@ function Futures() {
 
   const handleSelectCoin = useCallback((coin: string) => {
     setIsLoading(true);
-    // Reset market data
-    setMarketPrice("0");
-    setPriceChangePercent("0");
-    setHighPrice("0");
-    setLowPrice("0");
-    setVolume("0");
+    const basePrice = basePrices[coin] || 1.0;
+    setTicker({
+      symbol: coin,
+      price: basePrice,
+      changePercent: 0,
+      high: basePrice * 1.002,
+      low: basePrice * 0.998,
+      volume: 1000000,
+      quoteVolume: basePrice * 1000000,
+    });
     setSelectedCoin(coin);
     setIsCoinModalOpen(false);
+    setIsLoading(false);
   }, []);
 
   const handleOpenModal = useCallback((direction: string) => {
@@ -393,12 +422,6 @@ function Futures() {
     <div className="loading-placeholder" style={{ width, height }} />
   ), []);
 
-  // Coin icon URL
-  const coinIconUrl = useMemo(() => {
-    const coinSymbol = selectedCoin.split("USDT")[0];
-    return `https://images.weserv.nl/?url=https://bin.bnbstatic.com/static/assets/logos/${coinSymbol}.png`;
-  }, [selectedCoin]);
-
   return (
     <div className="container">
       {/* Header Section */}
@@ -407,10 +430,9 @@ function Futures() {
           <div className="market-info">
             <div className="market-icon">
               <img
-                src={coinIconUrl}
-                style={{ width: 30, height: 30 }}
+                src={flagUrl}
+                style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover' }}
                 alt={selectedCoin}
-                loading="lazy"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}
@@ -420,11 +442,11 @@ function Futures() {
             <div
               className="market-change"
               style={{
-                color: priceChangePercent?.startsWith("-") ? "#FF6838" : "#00C076",
+                color: ticker.changePercent < 0 ? "#FF6838" : "#00C076",
               }}
             >
-              {priceChangePercent !== "0" ? (
-                `${priceChangePercent}%`
+              {ticker ? (
+                `${ticker.changePercent > 0 ? '+' : ''}${ticker.changePercent.toFixed(2)}%`
               ) : (
                 <LoadingPlaceholder width="50px" height="16px" />
               )}
@@ -435,8 +457,8 @@ function Futures() {
           </div>
         </div>
         <div className="market-price">
-          {marketPrice !== "0" ? (
-            `$${formatNumber(marketPrice)}`
+          {ticker ? (
+            `$${formatNumber(ticker.price)}`
           ) : (
             <LoadingPlaceholder width="120px" height="28px" />
           )}
@@ -444,24 +466,24 @@ function Futures() {
         <div className="market-stats">
           <span>
             {i18n('pages.marketDetail.stats.high')}:{" "}
-            {highPrice !== "0" ? (
-              `$${formatNumber(highPrice)}`
+            {ticker ? (
+              `$${formatNumber(ticker.high)}`
             ) : (
               <LoadingPlaceholder width="80px" height="12px" />
             )}
           </span>
           <span>
             {i18n('pages.marketDetail.stats.volume')}:{" "}
-            {volume !== "0" ? (
-              `${formatVolume(volume)} ${selectedCoin.replace("USDT", "")}`
+            {ticker ? (
+              `${formatVolume(ticker.volume)} ${selectedCoin.slice(0,3)}`
             ) : (
               <LoadingPlaceholder width="80px" height="12px" />
             )}
           </span>
           <span>
             {i18n('pages.marketDetail.stats.low')}:{" "}
-            {lowPrice !== "0" ? (
-              `$${formatNumber(lowPrice)}`
+            {ticker ? (
+              `$${formatNumber(ticker.low)}`
             ) : (
               <LoadingPlaceholder width="80px" height="12px" />
             )}
@@ -524,7 +546,7 @@ function Futures() {
         />
       )}
 
-      {/* Futures Modal */}
+      {/* Futures Modal with coin icon */}
       <FuturesModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -532,17 +554,23 @@ function Futures() {
         dispatch={dispatch}
         listAssets={listAssets}
         selectedCoin={selectedCoin}
-        marketPrice={marketPrice}
-        availableBalance={usdtBalance}
+        marketPrice={ticker.price.toString()}
+        availableBalance={USDBalance}
         setOpeningOrders={setOpeningOrders}
+        coinIcon={flagUrl} // pass flag URL for the coin image
       />
 
-      <CoinListModal
+      {/* Coin Selector Sidebar (replaces CoinListModal) */}
+      <CoinSelectorSidebar
         isOpen={isCoinModalOpen}
         onClose={handleCloseCoinModal}
-        onSelectCoin={handleSelectCoin}
+        selectedCoin={selectedCoin}
+        onCoinSelect={handleSelectCoin}
+        availableCoins={forexPairs}
+        title={i18n('pages.marketDetail.coinSelector.title')}
       />
 
+      {/* Styles */}
       <style>{`
         * {
           margin: 0;
@@ -551,7 +579,6 @@ function Futures() {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Container – matches login/profile containers */
         .container {
           max-width: 430px;
           margin: 0 auto;
@@ -564,7 +591,6 @@ function Futures() {
           color: #ffffff;
         }
 
-        /* Header Section */
         .header {
           background-color: #000000;
           padding: 20px 15px 15px;
@@ -596,9 +622,13 @@ function Futures() {
           justify-content: center;
           align-items: center;
           border: 1px solid #2a2a2a;
+          overflow: hidden;
         }
         .market-icon img {
           border-radius: 50%;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
 
         .market-name {
@@ -642,61 +672,6 @@ function Futures() {
           color: #39FF14;
         }
 
-        /* Trading View Chart */
-        .chart-container {
-          height: 480px;
-          background-color: #1c1c1c;
-          margin: 15px;
-          border-radius: 12px;
-          position: relative;
-          overflow: hidden;
-          border: 1px solid #2a2a2a;
-        }
-
-        .chart-placeholder {
-          width: 100%;
-          height: 100%;
-        }
-
-        .chart-loading {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          background-color: rgba(0, 0, 0, 0.7);
-          z-index: 10;
-          color: #777;
-        }
-
-        .chart-controls {
-          position: absolute;
-          bottom: 10px;
-          right: 10px;
-          display: flex;
-          gap: 5px;
-          z-index: 5;
-        }
-
-        .chart-timeframe {
-          background-color: #2a2a2a;
-          color: #ffffff;
-          border: none;
-          border-radius: 4px;
-          padding: 4px 8px;
-          font-size: 12px;
-          cursor: pointer;
-        }
-        .chart-timeframe:hover {
-          background-color: #39FF14;
-          color: #000000;
-        }
-
-        /* Action Buttons – buy uses neon green, sell uses red */
         .future-action-buttons {
           display: flex;
           gap: 15px;
@@ -727,7 +702,6 @@ function Futures() {
           color: #ffffff;
         }
 
-        /* Section Tabs */
         .section-tabs {
           display: flex;
           margin: 15px 15px 0;
@@ -759,7 +733,6 @@ function Futures() {
           background-color: #39FF14;
         }
 
-        /* Orders Container */
         .orders-container {
           margin: 15px;
         }
@@ -859,7 +832,6 @@ function Futures() {
           color: #39FF14;
         }
 
-        /* Loading Placeholder */
         .loading-placeholder {
           animation: pulse 1.5s ease-in-out infinite;
           background-color: #2a2a2a;
@@ -872,7 +844,6 @@ function Futures() {
           100% { opacity: 1; }
         }
 
-        /* Modal Styles */
         .modal-overlays {
           position: fixed;
           top: 0;
@@ -1082,7 +1053,7 @@ const OrderDetailModal = ({
         </div>
 
         <div className="order-detail-section">
-          <OrderDetailRow label={i18n('pages.futures.orderDetails.futuresAmount')} value={`${selectedOrder.futuresAmount || selectedOrder.investment} USDT`} />
+          <OrderDetailRow label={i18n('pages.futures.orderDetails.futuresAmount')} value={`${selectedOrder.futuresAmount || selectedOrder.investment} USD`} />
 
           {selectedOrder.contractDuration && (
             <OrderDetailRow label={i18n('pages.futures.orderDetails.contractDuration')} value={`${selectedOrder.contractDuration} ${i18n('pages.futures.orderDetails.seconds')}`} />
@@ -1116,7 +1087,7 @@ const OrderDetailModal = ({
             label={i18n('pages.futures.orderDetails.profitLossAmount')}
             value={
               (selectedOrder.profitAndLossAmount || selectedOrder.pnl)
-                ? `${safeToFixed(selectedOrder.profitAndLossAmount || selectedOrder.pnl, 2)} USDT`
+                ? `${safeToFixed(selectedOrder.profitAndLossAmount || selectedOrder.pnl, 2)} USD`
                 : "__"
             }
             className={selectedOrder.control === "profit" ? "profit" : "loss"}
@@ -1134,7 +1105,6 @@ const OrderDetailModal = ({
   </div>
 );
 
-// Helper component for order detail rows
 const OrderDetailRow = ({ label, value, className = "" }: any) => (
   <div className="detail-row">
     <span className="detail-label">{label}</span>

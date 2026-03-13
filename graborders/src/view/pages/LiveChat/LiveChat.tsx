@@ -1,419 +1,317 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Link } from 'react-router-dom';
+import actions from "src/modules/category/list/categoryListActions";
+import selector from "src/modules/category/list/categoryListSelectors";
+import LoadingModal from "src/shared/LoadingModal";
+import SubHeader from "src/view/shared/Header/SubHeader";
+import { i18n } from "../../../i18n";
 
-function LiveChat() {
-  const contactOptions = [
-    {
-      id: 1,
-      platform: "Telegram",
-      description: "Get instant support via Telegram messenger",
-      icon: "fab fa-telegram",
-      link: "https://t.me/IC Markets Globaloffficial",
-      color: "#0088cc",
-      isExternal: true
-    },
-    {
-      id: 2,
-      platform: "Email",
-      description: "Send us an email and we'll respond within 24 hours",
-      icon: "fas fa-envelope",
-      link: "mailto:IC Markets Global.helpdesk01@gmail.com",
-      color: "#ea4335",
-      isExternal: true
-    }
-  ];
+function Online() {
+  const dispatch = useDispatch();
 
-  const handleContactClick = (option) => {
-    if (option.isExternal) {
-      window.open(option.link, '_blank', 'noopener,noreferrer');
-    } else {
-      // For internal links, you would use react-router navigation
-      // navigate(option.link);
-    }
+  const record = useSelector(selector.selectRows);
+  const loading = useSelector(selector.selectLoading);
+
+  useEffect(() => {
+    dispatch(actions.doFetch());
+    // eslint-disable-next-line
+  }, [dispatch]);
+
+  const handleLiveChatClick = () => {
+    // navigate("/LiveChat");
   };
 
   return (
-    <div className="livechat-container">
-      {/* Header Section - Matching Profile Page */}
+    <div className="customer-service-container">
+      {/* Header */}
       <div className="header">
         <div className="nav-bar">
           <Link to="/profile" className="back-arrow">
             <i className="fas fa-arrow-left" />
           </Link>
-          <div className="page-title">Live Support</div>
+          <div className="page-title">{i18n('pages.online.title')}</div>
         </div>
       </div>
 
-      {/* Content Card - Matching Profile Page */}
+      {/* Content Card */}
       <div className="content-card">
-        <div className="livechat-content">
-          {/* Hero Section */}
-          <div className="hero-section">
-            <div className="hero-icon">
-              <i className="fas fa-headset"></i>
-            </div>
-            <h1 className="hero-title">How Can We Help You?</h1>
-            <p className="hero-description">
-              Choose your preferred contact method to get in touch with our support team.
-              We're here to assist you with any questions or concerns.
+        {/* Service Description Card */}
+        <div className="service-description-card">
+          <div className="description-content">
+            <i className="fa-solid fa-comments description-icon"></i>
+            <p className="description-text">
+              {i18n('pages.online.description')}
             </p>
           </div>
+        </div>
 
-          {/* Contact Options */}
-          <div className="contact-options">
-            {contactOptions.map((option) => (
-              <div 
-                key={option.id}
-                className="contact-card"
-                onClick={() => handleContactClick(option)}
-                style={{ borderLeft: `4px solid ${option.color}` }}
-              >
-                <div className="contact-card-content">
-                  <div className="contact-icon" style={{ color: option.color }}>
-                    <i className={option.icon}></i>
-                  </div>
-                  <div className="contact-info">
-                    <h3 className="contact-platform">{option.platform}</h3>
-                    <p className="contact-description">{option.description}</p>
-                    <div className="contact-link">
-                      <span className="link-text">
-                        {option.platform === "Email" ? "IC Markets Global.helpdesk01@gmail.com" : "t.me/IC Markets Globaloffficial"}
-                      </span>
-                      <i className="fas fa-external-link-alt"></i>
-                    </div>
-                  </div>
-                  <div className="contact-arrow">
-                    <i className="fas fa-chevron-right"></i>
-                  </div>
+        {/* Support Agents List */}
+        <div className="support-agents-list">
+          {loading && <LoadingModal />}
+          {!loading && record && record.map((item, index) => (
+            <div className="support-agent-card" key={index}>
+              <div className="agent-header">
+                <h3 className="agent-title">{item?.name}</h3>
+                <div className={`platform-badge ${item.type}`}>
+                  {item.type === "whatsApp" ? (
+                    <i className="fa-brands fa-whatsapp"></i>
+                  ) : (
+                    <i className="fa-brands fa-telegram"></i>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
 
-          {/* Support Information */}
-          <div className="support-info">
-            <div className="info-card">
-              <div className="info-icon">
-                <i className="fas fa-clock"></i>
+              <div className="agent-profile">
+                <img
+                  src={item?.photo[0]?.downloadUrl}
+                  alt={`${item?.name}`}
+                  className="agent-photo"
+                />
+                <div className="status-indicator online"></div>
               </div>
-              <div className="info-content">
-                <h4>Response Time</h4>
-                <p>Telegram: Usually within minutes<br />Email: Within 24 hours</p>
+
+              <div className="agent-actions">
+                {item.type === "whatsApp" ? (
+                  <a
+                    href={`https://wa.me/${item.number}`}
+                    className="contact-button whatsapp-button"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <i className="fa-brands fa-whatsapp button-icon"></i>
+                    <span>{i18n('pages.online.contactWhatsApp')}</span>
+                  </a>
+                ) : (
+                  <a
+                    href={`https://t.me/${item.number}`}
+                    className="contact-button telegram-button"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <i className="fa-brands fa-telegram button-icon"></i>
+                    <span>{i18n('pages.online.contactTelegram')}</span>
+                    <i className="fa-solid fa-external-link action-arrow"></i>
+                  </a>
+                )}
               </div>
             </div>
-            <div className="info-card">
-              <div className="info-icon">
-                <i className="fas fa-info-circle"></i>
-              </div>
-              <div className="info-content">
-                <h4>What to Include</h4>
-                <p>Please provide your username and a detailed description of your issue for faster assistance.</p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
       <style>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
-
-        body {
-          background-color: #f5f7fa;
-          color: #333;
-          line-height: 1.6;
-          overflow-x: hidden;
-        }
-
-        .livechat-container {
-          max-width: 400px;
+        /* Customer Service Container – matches profile theme */
+        .customer-service-container {
+          max-width: 430px;
           margin: 0 auto;
-          position: relative;
           min-height: 100vh;
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
+          background-color: #000000;
+          border-top: 2px solid #39FF14;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          color: #ffffff;
         }
 
-        /* Header Section - Matching Profile Page */
+        /* Header */
         .header {
-          min-height: 60px;
-          position: relative;
-          padding: 20px;
+          padding: 16px 20px;
+          border-bottom: 1px solid #2a2a2a;
+        }
+        .nav-bar {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .back-arrow {
+          color: #ffffff;
+          font-size: 20px;
+          text-decoration: none;
+        }
+        .back-arrow:hover {
+          color: #39FF14;
+        }
+        .page-title {
+          font-size: 18px;
+          font-weight: 500;
+          color: #ffffff;
+          flex: 1;
         }
 
-        .nav-bar {
+        /* Content Card */
+        .content-card {
+          flex: 1;
+          background-color: #1c1c1c;
+          border-top-left-radius: 24px;
+          border-top-right-radius: 24px;
+          padding: 24px 20px;
+          border-top: 2px solid #39FF14;
+        }
+
+        /* Service Description Card */
+        .service-description-card {
+          background-color: #2a2a2a;
+          border-radius: 12px;
+          padding: 16px;
+          margin-bottom: 24px;
+          border: 1px solid #3a3a3a;
+        }
+        .description-content {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .description-icon {
+          font-size: 24px;
+          color: #39FF14;
+        }
+        .description-text {
+          font-size: 14px;
+          color: #cccccc;
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        /* Support Agents List */
+        .support-agents-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        /* Support Agent Card */
+        .support-agent-card {
+          background-color: #2a2a2a;
+          border-radius: 12px;
+          padding: 16px;
+          border: 1px solid #3a3a3a;
+          transition: all 0.2s ease;
+        }
+        .support-agent-card:hover {
+          border-color: #39FF14;
+        }
+
+        /* Agent Header */
+        .agent-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          margin-bottom: 12px;
         }
-
-        .back-arrow {
-          color: white;
-          font-size: 20px;
-          font-weight: 300;
-          text-decoration: none;
-          transition: opacity 0.3s ease;
-        }
-
-        .back-arrow:hover {
-          opacity: 0.8;
-        }
-
-        .page-title {
-          color: white;
-          font-size: 17px;
+        .agent-title {
+          font-size: 16px;
           font-weight: 600;
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
+          color: #ffffff;
+          margin: 0;
         }
-
-        /* Content Card - Matching Profile Page */
-        .content-card {
-          background: white;
-          border-radius: 40px 40px 0 0;
-          padding: 30px 20px 100px;
-          box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
-          min-height: calc(100vh - 60px);
-        }
-
-        .livechat-content {
-          width: 100%;
-        }
-
-        /* Hero Section */
-        .hero-section {
-          text-align: center;
-          margin-bottom: 40px;
-          padding: 0 10px;
-        }
-
-        .hero-icon {
-          width: 80px;
-          height: 80px;
-          margin: 0 auto 20px;
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
+        .platform-badge {
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-        }
-
-        .hero-icon i {
-          font-size: 36px;
-          color: white;
-        }
-
-        .hero-title {
-          font-size: 24px;
-          color: #222;
-          margin-bottom: 12px;
-          font-weight: 600;
-        }
-
-        .hero-description {
-          font-size: 14px;
-          color: #666;
-          line-height: 1.6;
-          max-width: 320px;
-          margin: 0 auto;
-        }
-
-        /* Contact Options */
-        .contact-options {
-          margin-bottom: 40px;
-        }
-
-        .contact-card {
-          background: white;
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 16px;
-          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-          cursor: pointer;
-          transition: all 0.3s ease;
-          border: 1px solid #e7eaee;
-        }
-
-        .contact-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-          border-color: #106cf5;
-        }
-
-        .contact-card-content {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .contact-icon {
-          width: 50px;
-          height: 50px;
-          background-color: rgba(16, 108, 245, 0.1);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .contact-icon i {
-          font-size: 24px;
-        }
-
-        .contact-info {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .contact-platform {
-          font-size: 16px;
-          font-weight: 600;
-          color: #222;
-          margin-bottom: 4px;
-        }
-
-        .contact-description {
-          font-size: 13px;
-          color: #666;
-          margin-bottom: 8px;
-          line-height: 1.4;
-        }
-
-        .contact-link {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .link-text {
-          font-size: 13px;
-          color: #106cf5;
-          font-weight: 500;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .contact-link i {
-          font-size: 12px;
-          color: #106cf5;
-        }
-
-        .contact-arrow {
-          color: #888f99;
-          font-size: 14px;
-        }
-
-        /* Support Information */
-        .support-info {
-          background: #f8f9fa;
-          border-radius: 16px;
-          padding: 24px;
-          border: 1px solid #e7eaee;
-        }
-
-        .info-card {
-          display: flex;
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-
-        .info-card:last-child {
-          margin-bottom: 0;
-        }
-
-        .info-icon {
-          width: 40px;
-          height: 40px;
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .info-icon i {
           font-size: 18px;
-          color: white;
+        }
+        .platform-badge.whatsApp {
+          background-color: rgba(37, 211, 102, 0.2);
+          color: #25D366;
+        }
+        .platform-badge.telegram {
+          background-color: rgba(0, 136, 204, 0.2);
+          color: #0088cc;
         }
 
-        .info-content h4 {
-          font-size: 15px;
-          font-weight: 600;
-          color: #222;
-          margin-bottom: 6px;
+        /* Agent Profile */
+        .agent-profile {
+          position: relative;
+          width: 80px;
+          height: 80px;
+          margin: 0 auto 12px;
+        }
+        .agent-photo {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid #39FF14;
+        }
+        .status-indicator {
+          position: absolute;
+          bottom: 4px;
+          right: 4px;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          border: 2px solid #1c1c1c;
+        }
+        .status-indicator.online {
+          background-color: #39FF14;
+        }
+        .status-indicator.offline {
+          background-color: #777777;
         }
 
-        .info-content p {
-          font-size: 13px;
-          color: #666;
-          line-height: 1.5;
+        /* Agent Actions */
+        .agent-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .contact-button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 12px;
+          border-radius: 8px;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 500;
+          transition: all 0.2s;
+          border: 1px solid transparent;
+        }
+        .whatsapp-button {
+          background-color: rgba(37, 211, 102, 0.1);
+          color: #25D366;
+          border-color: #25D366;
+        }
+        .whatsapp-button:hover {
+          background-color: #25D366;
+          color: #000000;
+        }
+        .telegram-button {
+          background-color: rgba(0, 136, 204, 0.1);
+          color: #0088cc;
+          border-color: #0088cc;
+        }
+        .telegram-button:hover {
+          background-color: #0088cc;
+          color: #000000;
+        }
+        .button-icon {
+          font-size: 18px;
+        }
+        .action-arrow {
+          margin-left: auto;
+          font-size: 12px;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 380px) {
-          .livechat-container {
-            padding: 0;
-          }
+        /* Loading Modal (adjust if needed) */
+        .loading-modal {
+          background-color: #1c1c1c;
+          color: #39FF14;
+        }
 
-          .header {
-            padding: 16px;
-            min-height: 50px;
-          }
-
+        /* Responsive */
+        @media (max-width: 360px) {
           .content-card {
-            padding: 25px 16px 100px;
+            padding: 20px 16px;
           }
-
-          .hero-title {
-            font-size: 22px;
-          }
-
-          .hero-icon {
+          .agent-profile {
             width: 70px;
             height: 70px;
-          }
-
-          .hero-icon i {
-            font-size: 32px;
-          }
-
-          .contact-card {
-            padding: 16px;
-          }
-
-          .contact-icon {
-            width: 45px;
-            height: 45px;
-          }
-
-          .contact-icon i {
-            font-size: 20px;
-          }
-
-          .support-info {
-            padding: 20px;
-          }
-        }
-
-        @media (min-width: 768px) {
-          .content-card {
-            border-radius: 30px 30px 0 0;
-          }
-
-          .livechat-content {
-            max-width: 600px;
-            margin: 0 auto;
-          }
-
-          .hero-section {
-            padding: 0;
           }
         }
       `}</style>
@@ -421,4 +319,4 @@ function LiveChat() {
   );
 }
 
-export default LiveChat;
+export default Online;

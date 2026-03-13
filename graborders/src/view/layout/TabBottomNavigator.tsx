@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { i18n } from "../../i18n";
 
 interface TabItem {
-  icon: string;
+  icon: string;      // Font Awesome class, e.g., "fas fa-home"
   path: string;
   name: string;
 }
@@ -15,27 +15,28 @@ function TabBottomNavigator() {
 
   const tabs: TabItem[] = [
     {
-      icon: "./icons/home.png",
+      icon: "fas fa-home",
       path: "/",
       name: i18n("components.bottomNav.home"),
     },
     {
-      icon: "./icons/quotes.png",
+      icon: "fas fa-chart-line",
       path: "/market",
       name: i18n("components.bottomNav.market"),
     },
+  
     {
-      icon: "./icons/trade.png",
-      path: "/trade",
+      icon: "fas fa-chart-bar",
+      path: "/futures",
       name: i18n("components.bottomNav.trade"),
     },
-        {
-      icon: "./icons/trade.png",
-      path: "/futures",
-      name: i18n("components.bottomNav.futures"),
+      {
+      icon: "fas fa-history",
+      path: "/history",
+      name: i18n("components.bottomNav.history"),
     },
     {
-      icon: "./icons/assets.png",
+      icon: "fas fa-wallet",
       path: "/wallets",
       name: i18n("components.bottomNav.wallets"),
     },
@@ -49,7 +50,7 @@ function TabBottomNavigator() {
           to={item.path}
           className={`nav-item ${isActive(item.path) ? "active" : ""}`}
         >
-          <img src={item.icon} alt={item.name} className="nav-icon" />
+          <i className={item.icon}></i>
           <span className="nav-label">{item.name}</span>
         </Link>
       ))}
@@ -67,9 +68,9 @@ function TabBottomNavigator() {
           display: flex;
           justify-content: space-around;
           align-items: center;
-          padding: 8px 0 12px;
-          box-sizing: border-box;
-          z-index: 1000;
+          padding: 6px 0 8px;
+          box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+          z-index: 100;
         }
 
         .nav-item {
@@ -77,39 +78,39 @@ function TabBottomNavigator() {
           flex-direction: column;
           align-items: center;
           text-decoration: none;
-          color: #ffffff;
-          font-size: 12px;
-          gap: 4px;
+          color: #777777;
+          font-size: 11px;
           transition: color 0.2s;
+          padding: 4px 8px;
+          border-radius: 8px;
+        }
+
+        .nav-item i {
+          font-size: 20px;
+          margin-bottom: 2px;
         }
 
         .nav-item.active {
           color: #39FF14;
         }
 
-        .nav-icon {
-          height: 24px;
-          width: 24px;
-          object-fit: contain;
-          filter: brightness(0) invert(1); /* makes image white */
-          transition: filter 0.2s;
-        }
-
-        .nav-item.active .nav-icon {
-          filter: brightness(0) saturate(100%) invert(76%) sepia(96%) saturate(1080%) hue-rotate(44deg) brightness(105%) contrast(101%);
-          /* This filter turns the icon neon green (#39FF14) */
+        .nav-item.active i {
+          color: #39FF14;
         }
 
         .nav-label {
           font-weight: 500;
+          line-height: 1.2;
         }
 
-        /* Optional hover effect */
-        .nav-item:hover {
-          color: #39FF14;
+        /* Optional: add a subtle indicator for active tab */
+        .nav-item.active {
+          background-color: rgba(57, 255, 20, 0.05);
         }
-        .nav-item:hover .nav-icon {
-          filter: brightness(0) saturate(100%) invert(76%) sepia(96%) saturate(1080%) hue-rotate(44deg) brightness(105%) contrast(101%);
+
+        /* Ensure container doesn't hide content behind it */
+        body {
+          padding-bottom: 60px;
         }
       `}</style>
     </nav>

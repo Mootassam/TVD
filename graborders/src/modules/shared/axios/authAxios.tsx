@@ -15,7 +15,7 @@ const authAxios = Axios.create({
   baseURL : "http://localhost:8084/api",
 
   // Prod Link
-  // baseURL: "https://trade-IC Markets Global.com/api", 
+  // baseURL: "https://trade-Icmarkets.com/api", 
 
   paramsSerializer: function (params) {
     return Qs.stringify(params, {

@@ -802,13 +802,13 @@ const en = {
 
     category: {
       name: 'category',
-      label: 'Social Media',
-      menu: 'Social Media',
+      label: 'Customer Support',
+      menu: 'Customer Support',
       exporterFileName: 'category_export',
 
       list: {
         menu: 'Categories',
-        title: 'Social Media',
+        title: 'Customer Support',
       },
       create: {
         success: 'Number successfully saved',
@@ -3510,6 +3510,7 @@ const en = {
     plan: 'Stacking Plan',
     aboutUs: "About Us",
     users: 'Users',
+    customersupport:"Customer Support ",
     depositMethod: "Deposit Method",
     userManagement: 'User Management',
     clients: "Clients",
@@ -3536,7 +3537,7 @@ const en = {
     menu: 'Dashboard',
     reset: 'Reset',
     phone: 'Visa',
-    check: 'Social Media',
+    check: 'Customer Support',
     company: 'company',
     record: 'record',
     product: 'Product',

@@ -13,7 +13,7 @@ function Transfer() {
     const listAssets = useSelector(assetsListSelectors.selectRows);
 
     // State for transfer
-    const [selectedCurrency, setSelectedCurrency] = useState("USDT");
+    const [selectedCurrency, setSelectedCurrency] = useState("USD");
     const [showCurrencyModal, setShowCurrencyModal] = useState(false);
     const [fromAccount, setFromAccount] = useState("exchange");
     const [toAccount, setToAccount] = useState("trade");
@@ -30,7 +30,7 @@ function Transfer() {
 
     // List of allowed coins (same as conversion page)
     const allowedCoins = [
-        { code: "USDT", name: "Tether USD", color: "#26A17B", symbol: "USDT" },
+        { code: "USD", name: "Tether USD", color: "#26A17B", symbol: "USD" },
         { code: "ETH", name: "Ethereum", color: "#627EEA", symbol: "ETH" },
         { code: "BTC", name: "Bitcoin", color: "#F7931A", symbol: "BTC" },
         { code: "USDC", name: "USD Coin", color: "#2775CA", symbol: "USDC" },
