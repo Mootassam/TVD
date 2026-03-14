@@ -1,1 +1,0 @@
-import{n as s}from"./index-3c390b80.js";const e=o=>o.assets.form,t=s([e],o=>o.record),c=s([e],o=>!!o.initLoading),n=s([e],o=>!!o.saveLoading),a=s([e],o=>!!o.showModal),r={selectInitLoading:c,selectSaveLoading:n,selectRecord:t,selectModal:a,selectRaw:e};export{r as c};
