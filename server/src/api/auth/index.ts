@@ -46,6 +46,7 @@ export default (app) => {
   app.post(`/auth/sign-up`, signUpRateLimiter, require("./authSignUp").default);
 
   app.put(`/auth/profile`, require("./authUpdateProfile").default);
+    app.put(`/auth/profile/mobile`, require('./authUpdateProfileMobile').default);
 
   app.put(`/auth/change-password`, require("./authPasswordChange").default);
 

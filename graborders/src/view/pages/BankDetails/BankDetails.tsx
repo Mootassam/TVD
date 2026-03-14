@@ -42,7 +42,7 @@ function BankDetails() {
       ifscCode,
     };
     // Uncomment when action is ready
-    // await dispatch(actions.doUpdateBank(values));
+    await dispatch(actions.doUpdateBank(values));
     await refreshItems();
   };
 

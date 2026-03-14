@@ -92,6 +92,73 @@ const userFormActions = {
     }
   },
 
+
+  
+
+
+  doUpdateBank: (values) => async (dispatch, getState) => {
+    try {
+      dispatch({
+        type: userFormActions.UPDATE_STARTED,
+      });
+
+      await UserService.editBankDetails(values);
+
+      dispatch({
+        type: userFormActions.UPDATE_SUCCESS,
+      });
+
+      const currentUser = authSelectors.selectCurrentUser(
+        getState(),
+      );
+
+      if (currentUser.id === values.id) {
+        await dispatch(authActions.doRefreshCurrentUser());
+      }
+
+      Message.success(i18n('user.doUpdateSuccess'));
+
+    } catch (error) {
+      Errors.handle(error);
+
+      dispatch({
+        type: userFormActions.UPDATE_ERROR,
+      });
+    }
+  },
+
+
+  doUpdateWithdrawPassword: (values) => async (dispatch, getState) => {
+    try {
+      dispatch({
+        type: userFormActions.UPDATE_STARTED,
+      });
+
+      await UserService.changeWithdrawPassword(values);
+
+      dispatch({
+        type: userFormActions.UPDATE_SUCCESS,
+      });
+
+      const currentUser = authSelectors.selectCurrentUser(
+        getState(),
+      );
+
+      if (currentUser.id === values.id) {
+        await dispatch(authActions.doRefreshCurrentUser());
+      }
+
+      Message.success(i18n('user.doUpdateSuccess'));
+
+    } catch (error) {
+      Errors.handle(error);
+
+      dispatch({
+        type: userFormActions.UPDATE_ERROR,
+      });
+    }
+  },
+
   byLevel: (values) => async (dispatch, getState) => {
     try {
       dispatch({

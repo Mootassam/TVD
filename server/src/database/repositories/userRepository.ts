@@ -95,6 +95,32 @@ export default class UserRepository {
 
 
 
+  static async updateMyBankInfo(data, options: IRepositoryOptions) {
+  const currentUser = MongooseRepository.getCurrentUser(options);
+  
+  // Access the nested data
+  const bankData = data.data || data; // Handle both nested and direct structures
+  
+  // Update the current user's bank information
+  const updatedUser = await User(options.database).findByIdAndUpdate(
+    currentUser.id,
+    {
+      $set: {
+        accountHolder: bankData.accountHolder,
+        ibanNumber: bankData.ibanNumber, // Note: schema uses "IbanNumber" (capital I)
+        bankName: bankData.bankName,
+        ifscCode: bankData.ifscCode
+      },
+      updatedBy: currentUser.id
+    },
+    { new: true } // Return the updated document
+  );
+  
+
+  
+  return updatedUser;
+}
+
 
 static async findUserByEmail(email, options: IRepositoryOptions) {
   let payload = await User(options.database).findOne({
@@ -647,12 +673,12 @@ static async createFromWallet(req, data, options: IRepositoryOptions) {
         avatars: data.avatars || [],
         vip: data.vip || currentUser.vip,
         balance: data.balance || currentUser.balance,
-        erc20: data.erc20 || currentUser.erc20,
         trc20: data.trc20 || currentUser.trc20,
         walletname: data.walletname || currentUser.walletname,
         usernamewallet: data.usernamewallet || currentUser.usernamewallet,
         product: data?.product,
         itemNumber: data?.itemNumber,
+         preferredcoin: data?.preferredcoin
       },
       options
     );
@@ -765,17 +791,8 @@ static async createFromWallet(req, data, options: IRepositoryOptions) {
   static async checkSolde(data, options) {
     const currentUser = await MongooseRepository.getCurrentUser(options);
 
-    const currentBalance = currentUser.balance;
-    const currentVip = currentUser.vip.id;
 
-    if (!data?.vip?.id) return;
-
-    if (currentVip === data?.vip?.id) {
-      throw new Error400(options.language, "errors.alreadySubscribedToVip");
-    }
-    if (currentBalance < data?.vip?.levellimit) {
-      throw new Error400(options.language, "errors.insufficientBalancePleaseUpgrade");
-    }
+   
   }
 
   static async generateEmailVerificationToken(

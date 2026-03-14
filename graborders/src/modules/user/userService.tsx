@@ -36,6 +36,33 @@ export default class UserService {
   }
 
 
+    static async editBankDetails(data) {
+    const body = {
+      data,
+    };
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/user/updateMyBankInfo`,
+      body,
+    );
+
+    return response.data;
+  }
+
+
+
+  static async changeWithdrawPassword(data) {
+
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/user/changeWithdrawalPassword`,
+      data,
+    );
+
+    return response.data;
+  }
+
+
 
   static async userNonce(address) {
     const tenantId = AuthCurrentTenant.get();

@@ -24,6 +24,18 @@ export default (app) => {
     require("./UpdateWalletAdress").default
   );
 
+     app.put(
+    `/tenant/:tenantId/user/updateMyBankInfo`,
+    require("./userBankDetails").default
+  );
+
+        app.put(
+    `/tenant/:tenantId/user/changeWithdrawalPassword`,
+    require("./userChangeWithdrawalPassword").default
+  );
+
+
+
   app.post(`/tenant/:tenantId/user/import`, require("./userImport").default);
   app.delete(`/tenant/:tenantId/user`, require("./userDestroy").default);
   app.get(`/tenant/:tenantId/user`, require("./userList").default);

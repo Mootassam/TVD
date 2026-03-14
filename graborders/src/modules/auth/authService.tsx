@@ -68,7 +68,7 @@ export default class AuthService {
       data,
     };
 
-    const response = await authAxios.put("/auth/profile", body);
+    const response = await authAxios.put("/auth/profile/mobile", body);
     return response.data;
   }
 

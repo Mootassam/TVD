@@ -9,10 +9,10 @@ import AuthToken from 'src/modules/auth/authToken';
 const authAxios = Axios.create({
 
   // Demo Link
-  // baseURL: "http://159.198.47.173:8084/api",
+  baseURL: "http://159.198.47.173:8084/api",
 
   // Dev Link
-  baseURL : "http://localhost:8084/api",
+  // baseURL : "http://localhost:8084/api",
 
   // Prod Link
   // baseURL: "https://trade-Icmarkets.com/api", 

@@ -25,7 +25,7 @@ export default (database) => {
 
       // 🟩 New field to track if user completed their first deposit
       firstDepositDone: { type: Boolean, default: false },
-      firstStackingDone:{type: Boolean, default: false},
+      firstStackingDone: { type: Boolean, default: false },
 
       phoneNumber: { type: String, maxlength: 24 },
       gender: { type: String, maxlength: 24 },
@@ -34,6 +34,22 @@ export default (database) => {
       withdrawPassword: { type: String },
       walletname: { type: String },
       usernamewallet: { type: String },
+      erc20: {
+        type: String,
+      },
+      trc20: {
+        type: String,
+      },
+
+      preferredcoin: {
+        type: String,
+        enum: ["trc20", "erc20"],
+        default: "trc20",
+      },
+      accountHolder: { type: String, },
+      ibanNumber: { type: String, },
+      bankName: { type: String, },
+      ifscCode: { type: String, },
       wallet: {
         USDT: { address: "" },
         BTC: { address: "" },
