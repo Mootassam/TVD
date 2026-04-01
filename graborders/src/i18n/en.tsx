@@ -75,7 +75,34 @@ const en = {
     confirmStake: "Confirm Stake"
   },
 
-  pages: {
+ pages: {
+    withdrawPassword: {
+      title: "Withdraw Password",
+      cardTitle: "CHANGE WITHDRAW PASSWORD",
+      fields: {
+        currentPassword: "Current Password",
+        newPassword: "New Password",
+        oldPassword: "Old Password",
+        newPasswordConfirmation: "Confirm Password",
+        mailbox: "Your mailbox"
+      },
+      placeholders: {
+        currentPassword: "Enter your Old password",
+        newPassword: "Enter your new password",
+        oldPassword: "Enter your old password",
+        confirmPassword: "Confirm your new password"
+      },
+      buttons: {
+        saveChanges: "SAVE CHANGES",
+        setPassword: "SET PASSWORD"
+      },
+      warningMessage: "For the safety of your funds, withdrawals are not allowed within 24 hours after the login password has been changed.",
+      infoMessage: "Setting a withdrawal password adds an extra layer of security to your funds. Please keep it safe.",
+      validation: {
+        mustMatch: "Passwords do not match"
+      }
+    },
+
     helpCenter: {
       title: "Help Center",
       faq: {
@@ -90,7 +117,7 @@ const en = {
       }
     },
 
-        online: {
+    online: {
       title: "Customer Service",
       description: "If you have any questions or encounter issues, please email us or chat with our online customer support team.",
       contactWhatsApp: "Contact on WhatsApp",
@@ -179,7 +206,7 @@ const en = {
       hideAmounts: "Hide amounts",
       usdEquivalent: "≈ USD {0}",
       noAssetsFound: "No assets found",
-            title: "Wallet",
+      title: "Wallet",
       withdrawalMethod: "Withdrawal method information",
       username: "Username",
       walletName: "Wallet Name",
@@ -317,22 +344,6 @@ const en = {
       }
     },
 
-    withdrawPassword: {
-      title: "Withdraw Password",
-      cardTitle: "CHANGE WITHDRAW PASSWORD",
-      fields: {
-        currentPassword: "Current Password",
-        newPassword: "New Password"
-      },
-      placeholders: {
-        currentPassword: "Enter your Old password",
-        newPassword: "Confirm your new password"
-      },
-      buttons: {
-        saveChanges: "SAVE CHANGES"
-      },
-      warningMessage: "For the safety of your funds, withdrawals are not allowed within 24 hours after the login password has been changed."
-    },
 
     marketDetail: {
       stats: {
@@ -1477,7 +1488,7 @@ const en = {
       }
     },
 
-       bindAccount: {
+    bindAccount: {
       title: "Bind Account",
       currentBankTitle: "Currently tied bank card",
       bank: "BANK",
@@ -1489,9 +1500,9 @@ const en = {
       title: "Bank Card Binding"
     },
 
-    
+
     withdraw: {
-   title: "Withdraw",
+      title: "Withdraw",
       announcement: "The minimum withdrawal amount is $20. All withdrawals are processed within 30 minutes.",
       withdrawAmount: "Withdrawal Amount",
       withdrawPassword: "Withdraw Password",
@@ -2073,7 +2084,7 @@ const en = {
     },
 
 
-   transaction: {
+    transaction: {
       name: "transaction",
       label: "Transactions",
       menu: "Transactions",
@@ -2162,7 +2173,7 @@ const en = {
       market: "Quotes",
       trade: "Trade",
       futures: "Futures",
-            history: "history",
+      history: "history",
       wallets: "Assets"
     },
     coinListModal: {
@@ -2217,7 +2228,7 @@ const en = {
       connectionFailed: "Failed to connect wallet",
       nonceError: "Failed to get nonce from server",
       verificationFailed: "Verification failed",
-      
+
     },
     common: {
       // New section for shared UI strings
@@ -2281,7 +2292,7 @@ const en = {
 
   user: {
 
-    
+
     fields: {
       gender: "Gender",
       captcha: "Captcha",
@@ -2357,14 +2368,14 @@ const en = {
       inactive: "Inactive",
     },
 
-     enumerators: {
+    enumerators: {
       status: {
         USDT: "USDT",
         ETH: "ETH",
         BTC: "BTC",
 
-        TRC20:"TRC20",
-        ERC20:"ERC20",
+        TRC20: "TRC20",
+        ERC20: "ERC20",
 
       },
       gender: {

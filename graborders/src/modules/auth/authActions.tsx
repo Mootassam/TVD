@@ -312,6 +312,7 @@ const authActions = {
       });
     }
   },
+  
 
   doVerifyEmail: (token) => async (dispatch, getState) => {
     try {

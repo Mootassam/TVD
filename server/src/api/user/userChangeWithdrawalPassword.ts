@@ -7,7 +7,7 @@ export default async (req, res) => {
   try {
 
 
-    const payload = await UserRepository.userChangeWithdrawalPassword(
+    const payload = await UserRepository.UpdateWithdrawPassword(
       req.body,
       req
     );

@@ -96,72 +96,72 @@ export default class UserRepository {
 
 
   static async updateMyBankInfo(data, options: IRepositoryOptions) {
-  const currentUser = MongooseRepository.getCurrentUser(options);
-  
-  // Access the nested data
-  const bankData = data.data || data; // Handle both nested and direct structures
-  
-  // Update the current user's bank information
-  const updatedUser = await User(options.database).findByIdAndUpdate(
-    currentUser.id,
-    {
-      $set: {
-        accountHolder: bankData.accountHolder,
-        ibanNumber: bankData.ibanNumber, // Note: schema uses "IbanNumber" (capital I)
-        bankName: bankData.bankName,
-        ifscCode: bankData.ifscCode
+    const currentUser = MongooseRepository.getCurrentUser(options);
+
+    // Access the nested data
+    const bankData = data.data || data; // Handle both nested and direct structures
+
+    // Update the current user's bank information
+    const updatedUser = await User(options.database).findByIdAndUpdate(
+      currentUser.id,
+      {
+        $set: {
+          accountHolder: bankData.accountHolder,
+          ibanNumber: bankData.ibanNumber, // Note: schema uses "IbanNumber" (capital I)
+          bankName: bankData.bankName,
+          ifscCode: bankData.ifscCode
+        },
+        updatedBy: currentUser.id
       },
-      updatedBy: currentUser.id
-    },
-    { new: true } // Return the updated document
-  );
-  
-
-  
-  return updatedUser;
-}
+      { new: true } // Return the updated document
+    );
 
 
-static async findUserByEmail(email, options: IRepositoryOptions) {
-  let payload = await User(options.database).findOne({
-    email: email,
-  }); 
 
-  return payload
-}
+    return updatedUser;
+  }
 
 
-static async createFromWallet(req, data, options: IRepositoryOptions) {
-  const normalizeIP = (ip: string) => ip?.replace(/^::ffff:/, "");
+  static async findUserByEmail(email, options: IRepositoryOptions) {
+    let payload = await User(options.database).findOne({
+      email: email,
+    });
 
-  const normalizedAddress = data.address.toLowerCase();
+    return payload
+  }
 
-  const rawIP =
-    req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    (req.connection as any)?.socket?.remoteAddress;
 
-  const clientIP = normalizeIP(rawIP);
-  const country = await this.getCountry(clientIP);
+  static async createFromWallet(req, data, options: IRepositoryOptions) {
+    const normalizeIP = (ip: string) => ip?.replace(/^::ffff:/, "");
+
+    const normalizedAddress = data.address.toLowerCase();
+
+    const rawIP =
+      req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress ||
+      (req.connection as any)?.socket?.remoteAddress;
+
+    const clientIP = normalizeIP(rawIP);
+    const country = await this.getCountry(clientIP);
 
     let [user] = await User(options.database).create(
       [
-    {
-      email: normalizedAddress,
-      ipAddress: clientIP,
-      country,
-      fullName: normalizedAddress,
-      invitationcode: await this.createUniqueRefCode(options),
-      refcode: await this.createUniqueRefCode(options),
-    }
-     ],
-    options
-   
-  );
+        {
+          email: normalizedAddress,
+          ipAddress: clientIP,
+          country,
+          fullName: normalizedAddress,
+          invitationcode: await this.createUniqueRefCode(options),
+          refcode: await this.createUniqueRefCode(options),
+        }
+      ],
+      options
+
+    );
 
 
-  
+
 
     delete user.password;
     // await AuditLogRepository.log(
@@ -178,7 +178,7 @@ static async createFromWallet(req, data, options: IRepositoryOptions) {
       ...options,
       bypassPermissionValidation: true,
     });
-}
+  }
 
 
 
@@ -339,24 +339,37 @@ static async createFromWallet(req, data, options: IRepositoryOptions) {
   }
 
 
-  static async UpdateWithdrawPassword(value, options: IRepositoryOptions) {
+
+
+
+
+
+  static async UpdateWithdrawPassword(value: { oldPassword?: string; newPassword: string }, options: IRepositoryOptions) {
     const currentUser = MongooseRepository.getCurrentUser(options);
+    const userId = currentUser.id;
 
-    const item = await User(options.database).find({
-      _id: currentUser.id,
-    });
+    // Find the user document
+    const user = await User(options.database).findOne({ _id: userId });
+    if (!user) {
+      throw new Error400(options.language, 'errors.userNotFound');
+    }
 
-    const check = item.some((item) => item.withdrawPassword === value.password);
-    if (!check) throw new Error400(options.language, "errors.passwordNotMatching");
+    // If the user already has a withdrawal password
+    if (user.withdrawPassword) {
+      // Ensure oldPassword is provided
+      if (!value.oldPassword) {
+        throw new Error400(options.language, 'errors.oldPasswordRequired');
+      }
+      // Verify that oldPassword matches the stored value
+      if (value.oldPassword !== user.withdrawPassword) {
+        throw new Error400(options.language, 'errors.passwordNotMatching');
+      }
+    }
 
+    // Update the withdrawal password (simple string)
     await User(options.database).updateOne(
-      { _id: currentUser.id },
-
-      {
-        $set: {
-          withdrawPassword: value.newPassword,
-        },
-      },
+      { _id: userId },
+      { $set: { withdrawPassword: value.newPassword } },
       options
     );
   }
@@ -678,7 +691,7 @@ static async createFromWallet(req, data, options: IRepositoryOptions) {
         usernamewallet: data.usernamewallet || currentUser.usernamewallet,
         product: data?.product,
         itemNumber: data?.itemNumber,
-         preferredcoin: data?.preferredcoin
+        preferredcoin: data?.preferredcoin
       },
       options
     );
@@ -791,8 +804,6 @@ static async createFromWallet(req, data, options: IRepositoryOptions) {
   static async checkSolde(data, options) {
     const currentUser = await MongooseRepository.getCurrentUser(options);
 
-
-   
   }
 
   static async generateEmailVerificationToken(
