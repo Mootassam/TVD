@@ -9,7 +9,7 @@ import authSelectors from "src/modules/auth/authSelectors";
 import { useForm, FormProvider } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import actions from "src/modules/auth/authActions";
-import FieldFormItem from "src/shared/form/fieldFormItem";
+import FieldFormItem from "src/shared/form/FieldFormItem";
 
 const schema = yup.object().shape({
   oldPassword: yupFormSchemas.string(i18n("pages.loginPassword.fields.oldPassword"), {

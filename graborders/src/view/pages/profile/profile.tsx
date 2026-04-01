@@ -20,7 +20,7 @@ const MENU_ITEMS = [
   },
   {
     icon: "fas fa-shield-alt",
-    path: "/loginpassword",
+    path: "/typepassword",
     name: i18n("pages.profile.menu.password"),
   },
   {

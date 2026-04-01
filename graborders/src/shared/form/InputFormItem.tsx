@@ -98,7 +98,7 @@ export function InputFormItem(props) {
             style={{
               position: "absolute",
               right: "12px",
-              top: "50%",
+              top: "38%",
               transform: "translateY(-50%)",
               cursor: "pointer",
               color: "#888",

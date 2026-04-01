@@ -84,10 +84,31 @@ export function FieldFormItem(props) {
         />
 
 
-        
 
-      
+
+      {type === "password" && (
+        <div
+          className="toggle-password"
+          onClick={togglePasswordVisibility}
+          style={{
+            position: "absolute",
+            right: "12px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            cursor: "pointer",
+            color: "#888",
+            zIndex: 2,
+            background: "transparent",
+            border: "none",
+            padding: "8px"
+          }}
+        >
+          <i className={showPassword ? "far fa-eye-slash" : "far fa-eye"} />
+        </div>
+      )}
+
       </div>
+
       {endAdornment && (
         <div className="input-group-append">
           <span className="input-group-text">{endAdornment}</span>

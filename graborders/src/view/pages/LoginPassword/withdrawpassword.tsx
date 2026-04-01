@@ -121,217 +121,149 @@ function WithdrawPassword() {
       </div>
 
       <style>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
-
-        body {
-          background-color: #f5f7fa;
-          color: #333;
-          line-height: 1.6;
-          overflow-x: hidden;
-        }
-
+        /* Main container – matches login/profile/proof containers */
         .withdrawpassword-container {
-          max-width: 400px;
+          max-width: 430px;
           margin: 0 auto;
-          position: relative;
           min-height: 100vh;
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
+          background-color: #000000;
+          border-top: 2px solid #39FF14;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          color: #ffffff;
         }
 
-        /* Header Section - Matching Profile Page */
+        /* Header / Navigation */
         .header {
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
-          min-height: 60px;
-          position: relative;
-          padding: 20px;
+          padding: 16px 20px;
+          border-bottom: 1px solid #2a2a2a;
         }
-
         .nav-bar {
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          gap: 16px;
         }
-
         .back-arrow {
-          color: white;
+          color: #ffffff;
           font-size: 20px;
-          font-weight: 300;
           text-decoration: none;
-          transition: opacity 0.3s ease;
         }
-
         .back-arrow:hover {
-          opacity: 0.8;
+          color: #39FF14;
         }
-
         .page-title {
-          color: white;
-          font-size: 17px;
-          font-weight: 600;
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
-        }
-
-        /* Content Card - Matching Profile Page */
-        .content-card {
-          background: white;
-          border-radius: 40px 40px 0 0;
-          padding: 30px 20px 100px;
-          box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
-          min-height: calc(100vh - 60px);
-        }
-
-        .password-form {
-          width: 100%;
-          margin: 0 auto;
-        }
-
-        .form-group {
-          margin-bottom: 16px;
-          width: 100%;
-        }
-
-        .form-group-inner {
-          width: 100%;
-        }
-
-        .form-label {
-          display: block;
-          font-size: 12px;
-          color: #666;
-          margin-bottom: 6px;
+          font-size: 18px;
           font-weight: 500;
+          color: #ffffff;
         }
 
+        /* Content Card */
+        .content-card {
+          flex: 1;
+          background-color: #1c1c1c;
+          border-top-left-radius: 24px;
+          border-top-right-radius: 24px;
+          padding: 24px 20px;
+          margin-top: 20px;
+          border-top: 2px solid #39FF14;
+        }
+
+        /* Password form container */
+        .password-form {
+          display: flex;
+          flex-direction: column;
+        }
+
+        /* Form group wrapper */
+        .form-group {
+          width: 100%;
+        }
+
+        /* Inner container for each field (className1) */
+        .form-group-inner {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        /* Label style (className2) */
+        .form-label {
+          font-size: 14px;
+          color: #ffffff;
+          margin-bottom: 4px;
+        }
+
+        /* Password input container (className3) – can be used for positioning, but we'll focus on the input */
         .password-input-container {
           width: 100%;
-          position: relative;
         }
 
+        /* Input field (className) */
         .form-input {
+          background-color: #1c1c1c;
+          border: 1px solid #2a2a2a;
+          border-radius: 6px;
+          height: 48px;
           width: 100%;
-          padding: 8px 12px;
-          font-size: 12px;
-          border: 1px solid #e7eaee;
-          border-radius: 8px;
-          background: #fff;
-          transition: all 0.3s ease;
+          padding: 0 16px;
+          color: #ffffff;
+          font-size: 16px;
           outline: none;
-          color: #333;
-          height: 40px;
+          box-sizing: border-box;
         }
-
         .form-input:focus {
-          border-color: #106cf5;
-          box-shadow: 0 0 0 2px rgba(16, 108, 245, 0.1);
+          border-color: #39FF14;
         }
-
         .form-input::placeholder {
-          color: #aaa;
-          font-size: 12px;
+          color: #777777;
         }
 
+        /* Error message styling (if FieldFormItem displays errors) */
+        .form-group .error-message {
+          color: #ff6b6b;
+          font-size: 12px;
+          margin-top: 4px;
+        }
+
+        /* Save button – matches login button */
         .save-button {
+          background-color: #39FF14;
+          color: #000000;
+          font-weight: bold;
+          height: 50px;
           width: 100%;
-          padding: 12px;
-          background: #106cf5;
-          color: white;
           border: none;
+          border-radius: 6px;
+          font-size: 16px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          margin-top: 8px;
+        }
+        .save-button:hover {
+          background-color: #2ecc10;
+        }
+        .save-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        /* Warning message */
+        .warning-message {
+          background-color: #2a2a2a;
+          border-left: 4px solid #ffaa00;
+          padding: 12px 16px;
           border-radius: 8px;
           font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          margin-top: 20px;
-          margin-bottom: 16px;
-        }
-
-        .save-button:hover {
-          background: #0a4fc4;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(16, 108, 245, 0.2);
-        }
-
-        .save-button:active {
-          transform: translateY(0);
-        }
-
-        .warning-message {
+          color: #ffffff;
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 12px;
-          background: #fef3e9;
-          border: 1px solid #ffd8b5;
-          border-radius: 8px;
-          font-size: 12px;
-          color: #ff7a00;
-          line-height: 1.4;
+          gap: 10px;
+          margin-top: 16px;
         }
-
         .warning-message i {
-          font-size: 14px;
-          flex-shrink: 0;
-        }
-
-        /* Error styling for form inputs */
-        .form-input.error {
-          border-color: #f44336;
-        }
-
-        .form-input.error:focus {
-          box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.1);
-        }
-
-        .error-message {
-          font-size: 11px;
-          color: #f44336;
-          margin-top: 4px;
-          display: block;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 380px) {
-          .withdrawpassword-container {
-            padding: 0;
-          }
-
-          .header {
-            padding: 16px;
-            min-height: 50px;
-          }
-
-          .content-card {
-            padding: 25px 16px 100px;
-          }
-
-          .form-input {
-            padding: 6px 10px;
-            height: 38px;
-            font-size: 11px;
-          }
-
-          .save-button {
-            padding: 10px;
-            font-size: 13px;
-          }
-
-          .warning-message {
-            font-size: 11px;
-            padding: 10px;
-          }
-        }
-
-        @media (min-width: 768px) {
-          .content-card {
-            border-radius: 30px 30px 0 0;
-          }
+          color: #ffaa00;
+          font-size: 18px;
         }
       `}</style>
     </div>
