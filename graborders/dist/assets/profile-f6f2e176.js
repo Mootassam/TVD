@@ -4,7 +4,7 @@ import{j as i,q as T,u as p,t as V,aq as N,i as n,ar as A,O as j,k as e,L as y}f
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -65,7 +65,7 @@ import{j as i,q as T,u as p,t as V,aq as N,i as n,ar as A,O as j,k as e,L as y}f
           align-items: center;
           justify-content: center;
           position: relative;
-          border: 2px solid #000000;
+          border: 2px solid #0f0f0f;
         }
         .avatar-initial {
           font-size: 32px;
@@ -83,9 +83,9 @@ import{j as i,q as T,u as p,t as V,aq as N,i as n,ar as A,O as j,k as e,L as y}f
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #000000;
+          color: #0f0f0f;
           font-size: 12px;
-          border: 2px solid #000000;
+          border: 2px solid #0f0f0f;
         }
         .username {
           font-size: 20px;
@@ -136,7 +136,7 @@ import{j as i,q as T,u as p,t as V,aq as N,i as n,ar as A,O as j,k as e,L as y}f
 
         .verify-button {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
           font-weight: bold;
           padding: 8px 20px;
           border: none;
@@ -260,7 +260,7 @@ import{j as i,q as T,u as p,t as V,aq as N,i as n,ar as A,O as j,k as e,L as y}f
         }
         input:checked + .slider:before {
           transform: translateX(26px);
-          background-color: #000000;
+          background-color: #0f0f0f;
         }
 
         /* Sign Out Button */
@@ -287,7 +287,7 @@ import{j as i,q as T,u as p,t as V,aq as N,i as n,ar as A,O as j,k as e,L as y}f
         }
         .signout-button:hover {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
         .signout-button i {
           font-size: 18px;
@@ -375,7 +375,7 @@ import{j as i,q as T,u as p,t as V,aq as N,i as n,ar as A,O as j,k as e,L as y}f
 
         .modal-close-btn-bottom:hover {
           background: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
 
         .modal-content-bottom {

@@ -13,8 +13,9 @@ function Home() {
   ];
 
   const announcements = [
-    i18n("pages.home.announcements.maintenanceNotice"),
-   
+    i18n("pages.home.maintenanceNotice"),
+    i18n("pages.home.newSpreads"),
+    i18n("pages.home.weekendSupport")
   ];
 
   // Auto slide
@@ -38,21 +39,21 @@ function Home() {
     return text.substring(0, maxLength) + '...';
   };
 
-  // Sample market data
+  // Market data – like IC Markets live rates
   const marketPairs = [
-    { pair: 'EUR/USD', price: '1.0923', change: '+0.12%', up: true },
-    { pair: 'GBP/USD', price: '1.2654', change: '-0.05%', up: false },
-    { pair: 'USD/JPY', price: '148.32', change: '+0.23%', up: true },
-    { pair: 'AUD/USD', price: '0.6587', change: '+0.08%', up: true },
-    { pair: 'USD/CAD', price: '1.3521', change: '-0.03%', up: false },
-    { pair: 'BTC/USD', price: '43,215', change: '+2.34%', up: true },
+    { pair: 'EUR/USD', price: '1.09234', change: '+0.12%', up: true, spread: '0.1' },
+    { pair: 'GBP/USD', price: '1.26542', change: '-0.05%', up: false, spread: '0.2' },
+    { pair: 'USD/JPY', price: '148.327', change: '+0.23%', up: true, spread: '0.3' },
+    { pair: 'AUD/USD', price: '0.65871', change: '+0.08%', up: true, spread: '0.4' },
+    { pair: 'USD/CAD', price: '1.35219', change: '-0.03%', up: false, spread: '0.3' },
+    { pair: 'BTC/USD', price: '43,215', change: '+2.34%', up: true, spread: '15.0' },
   ];
 
   const features = [
-    { icon: 'fas fa-bolt', title: 'Lightning Fast', desc: 'Execute trades in milliseconds' },
-    { icon: 'fas fa-shield-alt', title: 'Secure', desc: 'Bank-grade security' },
-    { icon: 'fas fa-chart-line', title: 'Advanced Charts', desc: 'Professional tools' },
-    { icon: 'fas fa-headset', title: '24/7 Support', desc: 'Dedicated help' },
+    { icon: 'fas fa-bolt', title: i18n("pages.home.execution"), desc: i18n("pages.home.executionDesc") },
+    { icon: 'fas fa-shield-alt', title: i18n("pages.home.secure"), desc: i18n("pages.home.secureDesc") },
+    { icon: 'fas fa-chart-line', title: i18n("pages.home.spreads"), desc: i18n("pages.home.spreadsDesc") },
+    { icon: 'fas fa-headset', title: i18n("pages.home.support"), desc: i18n("pages.home.supportDesc") },
   ];
 
   return (
@@ -66,26 +67,43 @@ function Home() {
           <Link to="/notification" className="icon-circle">
             <i className="far fa-envelope" />
           </Link>
-          <Link to="/profile" className="icon-circle">
-            <i className="far fa-user" />
-          </Link>
         </div>
       </div>
 
       {/* Hero Section */}
       <div className="hero-section">
-        <div className="crypto-illustration">
-    
-        </div>
-        <div className="slogan">{i18n("pages.home.slogan")}</div>
+   
       </div>
 
+      {/* Slideshow */}
+      <div className="slideshow-section">
+        <div className="section-title">{i18n("pages.home.promoTitle")}</div>
+        <div className="slideshow-container">
+          {slides.map((slide, index) => (
+            <div
+              key={index}
+              className={`slide ${index === currentSlide ? 'active' : ''}`}
+            >
+              <img src={slide} alt={`Slide ${index + 1}`} />
+            </div>
+          ))}
+          <div className="slide-dots">
+            {slides.map((_, index) => (
+              <span
+                key={index}
+                className={`dot ${index === currentSlide ? 'active' : ''}`}
+                onClick={() => setCurrentSlide(index)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Announcements Ticker */}
       <div className="announcements-section">
         <div className="announcement-header">
           <i className="fas fa-bullhorn"></i>
-          <span>Announcements</span>
+          <span>{i18n("pages.home.title")}</span>
         </div>
         <div className="announcement-ticker">
           <p className="ticker-text">{truncateText(announcements[currentAnnouncementIndex])}</p>
@@ -94,25 +112,68 @@ function Home() {
 
       {/* Market Overview */}
       <div className="market-section">
-        <div className="section-title">Forex Market</div>
-  
-        <Link to="/market" className="view-all-link">View All Markets <i className="fas fa-chevron-right" /></Link>
+        <div className="section-header">
+          <div className="section-title">{i18n("pages.home.marketTitle")}</div>
+          <Link to="/market" className="view-all-link">
+            {i18n("pages.home.viewAll")} <i className="fas fa-chevron-right" />
+          </Link>
+        </div>
+        <div className="market-grid">
+          {marketPairs.map((item, idx) => (
+            <div key={idx} className="market-card">
+              <div className="market-pair">{item.pair}</div>
+              <div className="market-price">{item.price}</div>
+              <div className="market-details">
+                <span className={`market-change ${item.up ? 'positive' : 'negative'}`}>
+                  {item.change}
+                </span>
+                <span className="market-spread">{i18n("pages.home.spread")}: {item.spread}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
+      {/* Features */}
+      <div className="features-section">
+        <div className="section-title">{i18n("pages.home.featuresTitle")}</div>
+        <div className="features-grid">
+          {features.map((feat, idx) => (
+            <div key={idx} className="feature-card">
+              <div className="feature-icon">
+                <i className={feat.icon}></i>
+              </div>
+              <div className="feature-title">{feat.title}</div>
+              <div className="feature-desc">{feat.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
 
+      {/* CTA */}
+      <div className="cta-section">
+        <div className="cta-content">
+          <h3>{i18n("pages.home.ctaTitle")}</h3>
+          <p>{i18n("pages.home.ctaDesc")}</p>
+          <Link to="/register" className="cta-button">{i18n("pages.home.ctaButton")}</Link>
+        </div>
+      </div>
+
+      {/* Footer */}
+    
 
       <style>{`
-        /* Home Container – matches other pages */
         .home-container {
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
           color: #ffffff;
           box-sizing: border-box;
+          font-family: 'Inter', sans-serif;
         }
 
         /* Header */
@@ -123,13 +184,8 @@ function Home() {
           padding: 16px 20px;
           border-bottom: 1px solid #2a2a2a;
         }
-        .logo img {
-          height: 24px;
-        }
-        .header-icons {
-          display: flex;
-          gap: 12px;
-        }
+        .logo img { height: 24px; }
+        .header-icons { display: flex; gap: 12px; }
         .icon-circle {
           width: 36px;
           height: 36px;
@@ -142,29 +198,27 @@ function Home() {
           text-decoration: none;
           transition: all 0.2s;
         }
-        .icon-circle:hover {
-          background-color: #39FF14;
-          color: #000000;
-        }
+        .icon-circle:hover { background-color: #39FF14; color: #0f0f0f; }
 
-        /* Hero Section */
+        /* Hero */
         .hero-section {
-          padding: 20px;
+          padding: 10px 20px 16px;
           text-align: center;
         }
-        .crypto-illustration {
-          margin-bottom: 16px;
-        }
         .slogan {
-          font-size: 18px;
-          font-weight: 500;
+          font-size: 22px;
+          font-weight: 700;
           color: #39FF14;
+          margin-bottom: 8px;
+        }
+        .hero-sub {
+          font-size: 14px;
+          color: #aaaaaa;
+          margin: 0;
         }
 
         /* Slideshow */
-        .slideshow-section {
-          padding: 0 20px 20px;
-        }
+        .slideshow-section { padding: 0 20px 20px; }
         .section-title {
           font-size: 18px;
           font-weight: 600;
@@ -190,9 +244,7 @@ function Home() {
           opacity: 0;
           transition: opacity 0.5s ease;
         }
-        .slide.active {
-          opacity: 1;
-        }
+        .slide.active { opacity: 1; }
         .slide img {
           width: 100%;
           height: 100%;
@@ -214,9 +266,7 @@ function Home() {
           cursor: pointer;
           transition: background-color 0.3s;
         }
-        .dot.active {
-          background-color: #39FF14;
-        }
+        .dot.active { background-color: #39FF14; }
 
         /* Announcements */
         .announcements-section {
@@ -237,10 +287,7 @@ function Home() {
           font-weight: 600;
           font-size: 14px;
         }
-        .announcement-ticker {
-          flex: 1;
-          overflow: hidden;
-        }
+        .announcement-ticker { flex: 1; overflow: hidden; }
         .ticker-text {
           font-size: 13px;
           color: #ffffff;
@@ -253,14 +300,17 @@ function Home() {
         }
 
         /* Market Section */
-        .market-section {
-          padding: 0 20px 20px;
+        .market-section { padding: 0 20px 20px; }
+        .section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
         }
         .market-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
           gap: 12px;
-          margin-bottom: 12px;
         }
         .market-card {
           background-color: #2a2a2a;
@@ -269,9 +319,7 @@ function Home() {
           border: 1px solid #3a3a3a;
           transition: all 0.2s;
         }
-        .market-card:hover {
-          border-color: #39FF14;
-        }
+        .market-card:hover { border-color: #39FF14; }
         .market-pair {
           font-size: 14px;
           font-weight: 600;
@@ -279,38 +327,29 @@ function Home() {
           margin-bottom: 4px;
         }
         .market-price {
-          font-size: 16px;
+          font-size: 18px;
           font-weight: 700;
           color: #39FF14;
           margin-bottom: 4px;
         }
-        .market-change {
+        .market-details {
+          display: flex;
+          justify-content: space-between;
           font-size: 12px;
-          font-weight: 500;
         }
-        .market-change.positive {
-          color: #39FF14;
-        }
-        .market-change.negative {
-          color: #ff6b6b;
-        }
+        .market-change.positive { color: #39FF14; }
+        .market-change.negative { color: #ff6b6b; }
+        .market-spread { color: #aaaaaa; }
         .view-all-link {
-          display: inline-block;
           color: #39FF14;
           text-decoration: none;
           font-size: 14px;
           font-weight: 500;
-          margin-top: 8px;
         }
-        .view-all-link i {
-          font-size: 12px;
-          margin-left: 4px;
-        }
+        .view-all-link i { font-size: 12px; margin-left: 4px; }
 
         /* Features */
-        .features-section {
-          padding: 0 20px 20px;
-        }
+        .features-section { padding: 0 20px 20px; }
         .features-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
@@ -371,16 +410,14 @@ function Home() {
         .cta-button {
           display: inline-block;
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
           font-weight: 700;
           padding: 12px 32px;
           border-radius: 30px;
           text-decoration: none;
           transition: background-color 0.2s;
         }
-        .cta-button:hover {
-          background-color: #2ecc10;
-        }
+        .cta-button:hover { background-color: #2ecc10; }
 
         /* Footer */
         .footer {
@@ -400,25 +437,16 @@ function Home() {
           text-decoration: none;
           font-size: 13px;
         }
-        .footer-links a:hover {
-          color: #39FF14;
-        }
+        .footer-links a:hover { color: #39FF14; }
         .copyright {
           font-size: 12px;
           color: #777777;
         }
 
-        /* Responsive */
         @media (max-width: 360px) {
-          .market-grid {
-            gap: 8px;
-          }
-          .features-grid {
-            gap: 10px;
-          }
-          .feature-card {
-            padding: 12px 8px;
-          }
+          .market-grid { gap: 8px; }
+          .features-grid { gap: 10px; }
+          .feature-card { padding: 12px 8px; }
         }
       `}</style>
     </div>

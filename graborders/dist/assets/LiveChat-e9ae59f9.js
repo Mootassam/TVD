@@ -4,7 +4,7 @@ import{u as i,aF as c,i as d,aG as p,k as a,L as x,j as o}from"./index-1743411d.
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -177,7 +177,7 @@ import{u as i,aF as c,i as d,aG as p,k as a,L as x,j as o}from"./index-1743411d.
         }
         .whatsapp-button:hover {
           background-color: #25D366;
-          color: #000000;
+          color: #0f0f0f;
         }
         .telegram-button {
           background-color: rgba(0, 136, 204, 0.1);
@@ -186,7 +186,7 @@ import{u as i,aF as c,i as d,aG as p,k as a,L as x,j as o}from"./index-1743411d.
         }
         .telegram-button:hover {
           background-color: #0088cc;
-          color: #000000;
+          color: #0f0f0f;
         }
         .button-icon {
           font-size: 18px;

@@ -331,7 +331,7 @@ function OrdersPage() {
 
       <style>{`
         .orders-page {
-          background-color: #000000;
+          background-color: #0f0f0f;
           color: #FFFFFF;
           min-height: 100vh;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;

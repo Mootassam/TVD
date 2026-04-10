@@ -201,15 +201,7 @@ function UserTable() {
                     </td>
                     <td className="actions-cell">
                       <div className="actions-container">
-                        <button
-                          className="btn-action view"
-                          onClick={() => oneClick(row.id)}
-                        >
-                          <i className="fas fa-eye"></i>
-                          <span>
-                            {i18n('common.onclicklogin')}
-                          </span>
-                        </button>
+                  
 
                         <Link
                           className="btn btn-link"
@@ -224,6 +216,7 @@ function UserTable() {
                             to={`/user/${row.id}/edit`}
                           >
                             <i className="fas fa-edit"></i>
+                            
                           </Link>
                         )}
 

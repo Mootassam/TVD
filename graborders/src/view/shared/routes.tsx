@@ -13,6 +13,20 @@ const privateRoutes = [
   },
 
   {
+    path: "/history",
+    loader: () => import("src/view/pages/History/History"),
+    permissionRequired: permissions.categoryRead,
+  },
+
+
+  {
+    path: "/profile",
+    loader: () => import("src/view/pages/profile/profile"),
+    permissionRequired: permissions.categoryRead,
+    exact: true,
+  },
+
+  {
     path: "/news",
     loader: () => import("src/view/pages/News/News"),
     permissionRequired: permissions.categoryRead,
@@ -77,7 +91,7 @@ const screenRoutes = [
     permissionRequired: permissions.categoryRead,
   },
 
-    {
+  {
     path: "/walletSettings",
     loader: () => import("src/view/pages/wallet/withdrawWallet"),
     permissionRequired: permissions.categoryRead,
@@ -89,7 +103,7 @@ const screenRoutes = [
     loader: () => import("src/view/pages/bindAccount/BindAccount"),
     permissionRequired: permissions.categoryRead,
   },
-  
+
   {
     path: "/wallet",
     loader: () => import("src/view/pages/wallet/withdrawWallet"),
@@ -101,7 +115,7 @@ const screenRoutes = [
     path: "/bank_details",
     loader: () => import("src/view/pages/BankDetails/BankDetails"),
     permissionRequired: permissions.categoryRead,
-   
+
   },
 
   {
@@ -189,11 +203,6 @@ const screenRoutes = [
     exact: true,
   },
 
-  {
-    path: "/history",
-    loader: () => import("src/view/pages/History/History"),
-    permissionRequired: permissions.categoryRead,
-  },
 
   {
     path: "/withdrawaddress",
@@ -265,13 +274,6 @@ const screenRoutes = [
   {
     path: "/typepassword",
     loader: () => import("src/view/pages/profile/typepassword"),
-    permissionRequired: permissions.categoryRead,
-    exact: true,
-  },
-
-  {
-    path: "/profile",
-    loader: () => import("src/view/pages/profile/profile"),
     permissionRequired: permissions.categoryRead,
     exact: true,
   },

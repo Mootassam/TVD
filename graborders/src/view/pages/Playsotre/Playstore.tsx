@@ -260,12 +260,12 @@ function Playstore() {
         }
 
         .ios-btn {
-          background: linear-gradient(135deg, #000000 0%, #333333 100%);
+          background: linear-gradient(135deg, #0f0f0f 0%, #333333 100%);
           color: white;
         }
 
         .ios-btn:hover {
-          background: linear-gradient(135deg, #333333 0%, #000000 100%);
+          background: linear-gradient(135deg, #333333 0%, #0f0f0f 100%);
           transform: translateY(-3px);
           box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
         }

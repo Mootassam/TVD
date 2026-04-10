@@ -18,7 +18,7 @@ function DepositPage() {
             {/* Header Section - Matching Profile/Wallet */}
             <div className="header">
                 <div className="nav-bar">
-                    <Link to="/wallets" className="back-arrow">
+                    <Link to="/profile" className="back-arrow">
                         <i className="fas fa-arrow-left" />
                     </Link>
                     <div className="page-title">Deposit</div>
@@ -79,7 +79,7 @@ function DepositPage() {
                     max-width: 430px;
                     margin: 0 auto;
                     min-height: 100vh;
-                    background-color: #000000;
+                    background-color: #0f0f0f;
                     border-top: 2px solid #39FF14;
                     display: flex;
                     flex-direction: column;
@@ -166,7 +166,7 @@ function DepositPage() {
                 }
                 .crypto-item:hover {
                     background-color: #39FF14;
-                    color: #000000;
+                    color: #0f0f0f;
                     border-color: #39FF14;
                 }
                 .crypto-icon {
@@ -211,7 +211,7 @@ function DepositPage() {
                 }
                 .otc-item:hover {
                     background-color: #39FF14;
-                    color: #000000;
+                    color: #0f0f0f;
                     border-color: #39FF14;
                 }
                 .otc-icon {
@@ -226,7 +226,7 @@ function DepositPage() {
                     color: #39FF14;
                 }
                 .otc-item:hover .otc-icon {
-                    color: #000000;
+                    color: #0f0f0f;
                 }
                 .otc-name {
                     flex: 1;
@@ -238,7 +238,7 @@ function DepositPage() {
                     font-size: 14px;
                 }
                 .otc-item:hover .otc-arrow {
-                    color: #000000;
+                    color: #0f0f0f;
                 }
 
                 /* Loading / placeholder (optional) – not used but could be added */

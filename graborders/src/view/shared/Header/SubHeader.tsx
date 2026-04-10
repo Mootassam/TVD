@@ -50,7 +50,7 @@ function SubHeader(props) {
       </div>
       <style>{` /* Header Section */
   .header {
-      background-color: #000000;
+      background-color: #0f0f0f;
       padding: 15px 10px;
       position: sticky;
       top: 0;

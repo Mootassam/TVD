@@ -21,7 +21,7 @@ function EmptyPermissionsPage() {
     <div className="empty__page">
       <style>{`
         .empty__page {
-          background-color: #000000;
+          background-color: #0f0f0f;
           color: #FFFFFF;
           min-height: 100vh;
           display: flex;
@@ -75,7 +75,7 @@ function EmptyPermissionsPage() {
         
         .support-button {
           background-color: #F3BA2F;
-          color: #000000;
+          color: #0f0f0f;
           border: none;
           border-radius: 8px;
           padding: 12px 24px;

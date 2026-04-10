@@ -4,7 +4,7 @@ import{j as t,q as h,u as c,v as l,i as r,o as u,k as i,L as y,al as b}from"./in
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;

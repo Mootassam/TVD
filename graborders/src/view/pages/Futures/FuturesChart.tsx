@@ -355,7 +355,7 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "EURUSD" }) => {
   };
 
   return (
-    <div style={{ width: "100%", height: "100%", background: "#000000", color: "#ffffff" }}>
+    <div style={{ width: "100%", height: "100%", background: "#0f0f0f", color: "#ffffff" }}>
       {/* toolbar */}
       <div style={{ 
         display: "flex", 
@@ -373,7 +373,7 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "EURUSD" }) => {
               style={{
                 padding: "6px 12px",
                 background: activeTf === tf ? "#39FF14" : "transparent",
-                color: activeTf === tf ? "#000000" : "#aaaaaa",
+                color: activeTf === tf ? "#0f0f0f" : "#aaaaaa",
                 borderRadius: 6,
                 border: activeTf === tf ? "1px solid #39FF14" : "1px solid #2a2a2a",
                 cursor: "pointer",
@@ -429,7 +429,7 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "EURUSD" }) => {
               padding: "6px 12px",
               borderRadius: 6,
               background: activeIndicators[ind] ? "#39FF14" : "transparent",
-              color: activeIndicators[ind] ? "#000000" : "#aaaaaa",
+              color: activeIndicators[ind] ? "#0f0f0f" : "#aaaaaa",
               border: activeIndicators[ind] ? "1px solid #39FF14" : "1px solid #2a2a2a",
               cursor: "pointer",
               fontSize: "12px",

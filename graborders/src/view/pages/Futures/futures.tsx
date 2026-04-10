@@ -583,7 +583,7 @@ function Futures() {
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -592,7 +592,7 @@ function Futures() {
         }
 
         .header {
-          background-color: #000000;
+          background-color: #0f0f0f;
           padding: 20px 15px 15px;
           position: sticky;
           top: 0;
@@ -694,7 +694,7 @@ function Futures() {
 
         .buy-button {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
 
         .sell-button {
@@ -917,7 +917,7 @@ function Futures() {
         }
         .modal-button:hover {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
 
         .close-order-button {

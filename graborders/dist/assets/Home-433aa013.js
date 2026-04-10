@@ -4,7 +4,7 @@ import{i as a,j as i,k as e,L as r}from"./index-1743411d.js";function f(){const[
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -41,7 +41,7 @@ import{i as a,j as i,k as e,L as r}from"./index-1743411d.js";function f(){const[
         }
         .icon-circle:hover {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
 
         /* Hero Section */
@@ -268,7 +268,7 @@ import{i as a,j as i,k as e,L as r}from"./index-1743411d.js";function f(){const[
         .cta-button {
           display: inline-block;
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
           font-weight: 700;
           padding: 12px 32px;
           border-radius: 30px;

@@ -5,16 +5,16 @@ import authActions from "src/modules/auth/authActions";
 import authSelectors from "src/modules/auth/authSelectors";
 import kycSelectors from "src/modules/kyc/list/kycListSelectors";
 import actions from "src/modules/kyc/list/kycListActions";
+import assetsActions from "src/modules/assets/list/assetsListActions";
+import assetsListSelectors from "src/modules/assets/list/assetsListSelectors";
 import { i18n } from "../../../i18n";
-import I18nSelect from "src/view/layout/I18nSelect"; // Import language selector
+import I18nSelect from "src/view/layout/I18nSelect";
 
 // Constants for menu items
 const MENU_ITEMS = [
-
-  // New Language menu item (opens modal)
   {
     icon: "fas fa-language",
-    name: i18n("pages.settings.language"),   // reuse existing translation key
+    name: i18n("pages.settings.language"),
     type: "modal",
     modal: "language",
   },
@@ -55,7 +55,7 @@ const MENU_ITEMS = [
   },
 ];
 
-// Status constants for better maintainability
+// Status constants
 const VERIFICATION_STATUS = {
   PENDING: "pending",
   SUCCESS: "success",
@@ -65,13 +65,23 @@ const VERIFICATION_STATUS = {
 function Profile() {
   const dispatch = useDispatch();
   const history = useHistory();
+
+  // User & KYC
   const currentUser = useSelector(authSelectors.selectCurrentUser);
   const selectRows = useSelector(kycSelectors.selectRows);
-  const loading = useSelector(kycSelectors.selectLoading);
-  const [simulatedTradingEnabled, setSimulatedTradingEnabled] = useState(false);
-  // State for language modal
-  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+  const loadingKyc = useSelector(kycSelectors.selectLoading);
 
+  // Asset data
+  const listAssets = useSelector(assetsListSelectors.selectRows);
+  const selectTotalFiat = useSelector(assetsListSelectors.selectTotalFiat);
+  const loadingAssets = useSelector(assetsListSelectors.selectLoading);
+
+  // State
+  const [simulatedTradingEnabled, setSimulatedTradingEnabled] = useState(false);
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+  const [hideAmounts, setHideAmounts] = useState(false);
+
+  // KYC status
   const kycStatus = useMemo(() => {
     if (selectRows[0]?.status === VERIFICATION_STATUS.PENDING) {
       return VERIFICATION_STATUS.PENDING;
@@ -81,13 +91,34 @@ function Profile() {
       : VERIFICATION_STATUS.UNVERIFIED;
   }, [selectRows, currentUser?.kyc]);
 
-  // Memoized user data to prevent unnecessary re-renders
+  // Memoized user data for KYC fetch
   const userData = useMemo(() => ({ user: currentUser }), [currentUser]);
 
+  // Fetch KYC data
   useEffect(() => {
     dispatch(actions.doFetch(userData, userData));
   }, [dispatch, userData]);
 
+  // Fetch assets
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAssets = async () => {
+      if (!isMounted) return;
+      try {
+        await dispatch(assetsActions.doFetch(null, "USD"));
+      } catch (error) {
+        if (isMounted) {
+          console.error(i18n("pages.wallet.errors.fetchAssets"), error);
+        }
+      }
+    };
+    fetchAssets();
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch]);
+
+  // Handlers
   const handleSignout = useCallback(() => {
     dispatch(authActions.doSignout());
   }, [dispatch]);
@@ -99,10 +130,18 @@ function Profile() {
 
   const toggleSimulatedTrading = useCallback(() => {
     setSimulatedTradingEnabled(!simulatedTradingEnabled);
-    console.log(i18n("pages.profile.simulatedTrading.toggle", !simulatedTradingEnabled ? i18n("common.enabled") : i18n("common.disabled")));
+    console.log(
+      i18n(
+        "pages.profile.simulatedTrading.toggle",
+        !simulatedTradingEnabled ? i18n("common.enabled") : i18n("common.disabled")
+      )
+    );
   }, [simulatedTradingEnabled]);
 
-  // Modal handlers
+  const toggleHideAmounts = useCallback(() => {
+    setHideAmounts((prev) => !prev);
+  }, []);
+
   const openLanguageModal = useCallback(() => {
     setIsLanguageModalOpen(true);
   }, []);
@@ -121,28 +160,16 @@ function Profile() {
   );
 
   const handleVerifyNow = useCallback(() => {
-    console.log(i18n("pages.profile.verification.kycStatus"), kycStatus);
-    
     if (kycStatus === VERIFICATION_STATUS.UNVERIFIED) {
-      console.log(i18n("pages.profile.verification.redirecting"));
-      history.push('/proof');
+      history.push("/proof");
     } else if (kycStatus === VERIFICATION_STATUS.PENDING) {
-      console.log(i18n("pages.profile.verification.pendingReview"));
       alert(i18n("pages.profile.verification.pendingAlert"));
     } else {
-      console.log(i18n("pages.profile.verification.alreadyVerified"));
+      // already verified – do nothing or show message
     }
   }, [kycStatus, history]);
 
-  const getUserInitial = () => {
-    if (currentUser?.fullName) {
-      return currentUser.fullName.charAt(0).toUpperCase();
-    } else if (currentUser?.email) {
-      return currentUser.email.charAt(0).toUpperCase();
-    }
-    return i18n("pages.profile.userInitial");
-  };
-
+  // KYC display helpers
   const getVerificationText = () => {
     switch (kycStatus) {
       case VERIFICATION_STATUS.SUCCESS:
@@ -177,60 +204,102 @@ function Profile() {
   };
 
   const isVerificationButtonDisabled = () => {
-    return kycStatus === VERIFICATION_STATUS.SUCCESS || kycStatus === VERIFICATION_STATUS.PENDING;
+    return (
+      kycStatus === VERIFICATION_STATUS.SUCCESS ||
+      kycStatus === VERIFICATION_STATUS.PENDING
+    );
   };
 
   const shouldPulseBadge = () => {
     return kycStatus === VERIFICATION_STATUS.UNVERIFIED;
   };
 
-  // Memoized render function for menu items
-  const renderMenuItem = useCallback((item, index) => {
-    // Special handling for toggle items
-    if (item.type === "toggle") {
-      return (
-        <li className="menu-item" key={index}>
-          <div className="icon-container icon-green">
-            <i className={item.icon} />
-          </div>
-          <div className="menu-text">{item.name}</div>
-          <div className="menu-action">
-            <label className="toggle-switch">
-              <input 
-                type="checkbox" 
-                checked={simulatedTradingEnabled}
-                onChange={toggleSimulatedTrading}
-              />
-              <span className="slider"></span>
-            </label>
-          </div>
-        </li>
-      );
-    }
+  // Render menu items (includes standard items plus the special KYC item)
+  const renderMenuItem = useCallback(
+    (item, index) => {
+      // Toggle item (currently unused)
+      if (item.type === "toggle") {
+        return (
+          <li className="menu-item" key={index}>
+            <div className="icon-container icon-green">
+              <i className={item.icon} />
+            </div>
+            <div className="menu-text">{item.name}</div>
+            <div className="menu-action">
+              <label className="toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={simulatedTradingEnabled}
+                  onChange={toggleSimulatedTrading}
+                />
+                <span className="slider"></span>
+              </label>
+            </div>
+          </li>
+        );
+      }
 
-    // Action items (e.g., clear cache)
-    if (item.type === "action") {
-      return (
-        <li className="menu-item" key={index} onClick={handleClearCache}>
-          <div className="icon-container icon-gray">
-            <i className={item.icon} />
-          </div>
-          <div className="menu-text">{item.name}</div>
-        </li>
-      );
-    }
+      // Action items (clear cache)
+      if (item.type === "action") {
+        return (
+          <li className="menu-item" key={index} onClick={handleClearCache}>
+            <div className="icon-container icon-gray">
+              <i className={item.icon} />
+            </div>
+            <div className="menu-text">{item.name}</div>
+          </li>
+        );
+      }
 
-    // Modal items (e.g., language selector)
-    if (item.type === "modal") {
-      return (
-        <li
-          className={`menu-item ${item.disabled ? 'disabled' : ''}`}
-          key={index}
-          onClick={item.modal === "language" ? openLanguageModal : null}
-        >
-          <div className={`icon-container ${
-            item.icon.includes('language') ? 'icon-green' : 'icon-gray'
-          }`}>
+      // Modal items (language)
+      if (item.type === "modal") {
+        return (
+          <li
+            className={`menu-item ${item.disabled ? "disabled" : ""}`}
+            key={index}
+            onClick={item.modal === "language" ? openLanguageModal : null}
+          >
+            <div
+              className={`icon-container ${
+                item.icon.includes("language") ? "icon-green" : "icon-gray"
+              }`}
+            >
+              <i className={item.icon} />
+            </div>
+            <div className="menu-text">{item.name}</div>
+            <div className="menu-action">
+              {!item.disabled && <i className="fas fa-chevron-right chevron" />}
+            </div>
+          </li>
+        );
+      }
+
+      // Regular link items
+      const menuItemContent = (
+        <li className={`menu-item ${item.disabled ? "disabled" : ""}`}>
+          <div
+            className={`icon-container ${
+              item.icon.includes("exchange-alt")
+                ? "icon-green"
+                : item.icon.includes("cog")
+                ? "icon-gray"
+                : item.icon.includes("shield-alt")
+                ? "icon-blue"
+                : item.icon.includes("file-alt")
+                ? "icon-green"
+                : item.icon.includes("gift")
+                ? "icon-green"
+                : item.icon.includes("comment-dots")
+                ? "icon-blue"
+                : item.icon.includes("building")
+                ? "icon-green"
+                : item.icon.includes("question-circle")
+                ? "icon-gray"
+                : item.icon.includes("download")
+                ? "icon-green"
+                : "icon-gray"
+            }`}
+          >
             <i className={item.icon} />
           </div>
           <div className="menu-text">{item.name}</div>
@@ -239,45 +308,31 @@ function Profile() {
           </div>
         </li>
       );
-    }
 
-    // Regular link items
-    const menuItemContent = (
-      <li className={`menu-item ${item.disabled ? 'disabled' : ''}`}>
-        <div className={`icon-container ${
-          item.icon.includes('exchange-alt') ? 'icon-green' :
-          item.icon.includes('cog') ? 'icon-gray' :
-          item.icon.includes('shield-alt') ? 'icon-blue' :
-          item.icon.includes('file-alt') ? 'icon-green' :
-          item.icon.includes('gift') ? 'icon-green' :
-          item.icon.includes('comment-dots') ? 'icon-blue' :
-          item.icon.includes('building') ? 'icon-green' :
-          item.icon.includes('question-circle') ? 'icon-gray' :
-          item.icon.includes('download') ? 'icon-green' : 'icon-gray'
-        }`}>
-          <i className={item.icon} />
+      return item.disabled ? (
+        <div key={item.name} className="menu-link-wrapper">
+          {menuItemContent}
         </div>
-        <div className="menu-text">{item.name}</div>
-        <div className="menu-action">
-          {!item.disabled && <i className="fas fa-chevron-right chevron" />}
-        </div>
-      </li>
-    );
-
-    return item.disabled ? (
-      <div key={item.name} className="menu-link-wrapper">
-        {menuItemContent}
-      </div>
-    ) : (
-      <Link to={item.path} key={item.name} className="menu-link-wrapper">
-        {menuItemContent}
-      </Link>
-    );
-  }, [simulatedTradingEnabled, toggleSimulatedTrading, handleClearCache, openLanguageModal]);
+      ) : (
+        <Link to={item.path} key={item.name} className="menu-link-wrapper">
+          {menuItemContent}
+        </Link>
+      );
+    },
+    [
+      simulatedTradingEnabled,
+      toggleSimulatedTrading,
+      handleClearCache,
+      openLanguageModal,
+    ]
+  );
 
   const handleSignOut = () => {
     dispatch(authActions.doSignout());
   };
+
+  // Username display
+  const displayName = currentUser?.fullName || currentUser?.email || i18n("pages.profile.user");
 
   return (
     <div className="profile-container">
@@ -290,41 +345,94 @@ function Profile() {
           <div className="page-title">{i18n("pages.profile.title")}</div>
         </div>
 
-        <div className="profile-section">
-          <div className="avatar-container">
-            <div className="avatar-ring">
-              <div className="avatar">
-                <div className="avatar-initial">{getUserInitial()}</div>
-                <div className="sunglasses">
-                  <i className="fas fa-sunglasses" />
-                </div>
+        {/* Asset Section – replaces old profile-section */}
+        <div className="asset-section">
+          {/* User name */}
+          <div className="user-name">{displayName}</div>
+
+          {/* Valuation Card */}
+          <div className="valuation-card">
+            <div className="valuation-header">
+              <div className="valuation-label">
+                <i
+                  className={`fas ${hideAmounts ? "fa-eye" : "fa-eye-slash"}`}
+                  onClick={toggleHideAmounts}
+                  aria-label={
+                    hideAmounts
+                      ? i18n("pages.wallet.showAmounts")
+                      : i18n("pages.wallet.hideAmounts")
+                  }
+                ></i>
+                {i18n("pages.wallet.assetValuation")}
               </div>
+            </div>
+            <div className="balance-amount">
+              {loadingAssets ? (
+                <div className="balance-placeholder placeholder-text"></div>
+              ) : hideAmounts ? (
+                i18n("common.hidden")
+              ) : (
+                `$${selectTotalFiat}`
+              )}
+            </div>
+            <div className="usd-equivalent">
+              {loadingAssets ? (
+                <div className="equivalent-placeholder placeholder-text"></div>
+              ) : hideAmounts ? (
+                i18n("common.hidden")
+              ) : (
+                i18n("pages.wallet.totalUsdValue")
+              )}
             </div>
           </div>
 
-          <div className="username">{currentUser?.fullName || currentUser?.email || i18n("pages.profile.user")}</div>
-          <div className="user-id">{i18n("pages.profile.userId")}: {currentUser?.id || i18n("common.na")}</div>
-
-          {/* Certification Status Section */}
-          <div className="certification-status">
-            <div className={`status-badge ${shouldPulseBadge() ? 'pulse' : ''}`}>
-              <i className={`${getVerificationIcon()} status-icon`} />
-              {getVerificationText()}
+          {/* Quick Actions - Deposit / Withdraw */}
+          <div className="actions-section">
+            <div className="actions-grid">
+              <Link to="/deposit" className="action-item remove_blue">
+                <div className="action-icon">
+                  <i className="fas fa-arrow-down" />
+                </div>
+                <span className="action-label">
+                  {i18n("pages.wallet.quickActions.deposit")}
+                </span>
+              </Link>
+              <Link to="/withdraw" className="action-item remove_blue">
+                <div className="action-icon">
+                  <i className="fas fa-arrow-up" />
+                </div>
+                <span className="action-label">
+                  {i18n("pages.wallet.quickActions.withdraw")}
+                </span>
+              </Link>
             </div>
-            <button
-              className="verify-button"
-              onClick={handleVerifyNow}
-              disabled={isVerificationButtonDisabled()}
-            >
-              {getVerificationButtonText()}
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Content Section */}
+      {/* Content Card */}
       <div className="content-card">
         <ul className="menu-list">
+          {/* KYC Status Item – appears at the top of the menu */}
+          <li className="menu-item kyc-status-item">
+            <div className="icon-container icon-gray">
+              <i className={getVerificationIcon()} />
+            </div>
+            <div className="menu-text">
+              <div className="kyc-badge-text">{getVerificationText()}</div>
+            </div>
+            <div className="menu-action">
+              <button
+                className={`verify-button-small ${shouldPulseBadge() ? "pulse" : ""}`}
+                onClick={handleVerifyNow}
+                disabled={isVerificationButtonDisabled()}
+              >
+                {getVerificationButtonText()}
+              </button>
+            </div>
+          </li>
+
+          {/* Other menu items */}
           {menuItems.map((item, index) => renderMenuItem(item, index))}
         </ul>
 
@@ -339,19 +447,24 @@ function Profile() {
       {/* Language Selection Modal */}
       {isLanguageModalOpen && (
         <div className="modal-overlay" onClick={closeLanguageModal}>
-          <div className="modal-container-bottom" onClick={(e) => e.stopPropagation()}>
-            {/* Modal Header */}
+          <div
+            className="modal-container-bottom"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header-bottom">
               <div className="modal-drag-handle"></div>
               <div className="modal-title-wrapper">
-                <div className="modal-title">{i18n("pages.settings.modals.language.title")}</div>
-                <button className="modal-close-btn-bottom" onClick={closeLanguageModal}>
+                <div className="modal-title">
+                  {i18n("pages.settings.modals.language.title")}
+                </div>
+                <button
+                  className="modal-close-btn-bottom"
+                  onClick={closeLanguageModal}
+                >
                   <i className="fas fa-times" />
                 </button>
               </div>
             </div>
-
-            {/* Modal Content */}
             <div className="modal-content-bottom">
               <I18nSelect isInModal={true} />
             </div>
@@ -359,14 +472,13 @@ function Profile() {
         </div>
       )}
 
-      {/* Styles (existing + new modal styles) */}
       <style>{`
-        /* Profile Container – matches login container */
+        /* Profile Container */
         .profile-container {
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -374,7 +486,7 @@ function Profile() {
           color: #ffffff;
         }
 
-        /* Header / Navigation */
+        /* Header */
         .header {
           padding: 16px 20px;
           border-bottom: 1px solid #2a2a2a;
@@ -399,122 +511,90 @@ function Profile() {
           color: #ffffff;
         }
 
-        /* Profile Section */
-        .profile-section {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
+        /* Asset Section */
+        .asset-section {
+          margin-top: 8px;
+        }
+        .user-name {
+          font-size: 24px;
+          font-weight: 600;
+          margin-bottom: 20px;
+          color: #ffffff;
           text-align: center;
         }
-        .avatar-container {
-          margin-bottom: 12px;
-        }
-        .avatar-ring {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #39FF14, #2ecc10);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .avatar {
-          width: 74px;
-          height: 74px;
-          border-radius: 50%;
-          background-color: #1c1c1c;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          border: 2px solid #000000;
-        }
-        .avatar-initial {
-          font-size: 32px;
-          font-weight: bold;
-          color: #39FF14;
-        }
-        .sunglasses {
-          position: absolute;
-          bottom: -4px;
-          right: -4px;
-          background: #39FF14;
-          border-radius: 50%;
-          width: 24px;
-          height: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #000000;
-          font-size: 12px;
-          border: 2px solid #000000;
-        }
-        .username {
-          font-size: 20px;
-          font-weight: 600;
-          margin-bottom: 4px;
-          color: #ffffff;
-        }
-        .user-id {
-          font-size: 14px;
-          color: #777777;
+        .valuation-card {
+          background-color: #0f0f0f;
+          border: 1px solid #2a2a2a;
+          border-radius: 12px;
+          padding: 16px;
           margin-bottom: 16px;
         }
+        .valuation-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+        .valuation-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          color: #aaaaaa;
+        }
+        .valuation-label i {
+          cursor: pointer;
+          font-size: 16px;
+          color: #39FF14;
+          transition: color 0.2s;
+        }
+        .valuation-label i:hover {
+          color: #2ecc10;
+        }
+        .balance-amount {
+          font-size: 32px;
+          font-weight: bold;
+          color: #ffffff;
+          margin-bottom: 4px;
+        }
+        .usd-equivalent {
+          font-size: 14px;
+          color: #777777;
+        }
 
-        /* Certification Status */
-        .certification-status {
+        .actions-section {
+          margin-bottom: 24px;
+        }
+        .actions-grid {
+          display: flex;
+          gap: 16px;
+        }
+        .action-item {
+          flex: 1;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 12px;
-          margin-top: 8px;
-          flex-wrap: wrap;
-        }
-        .status-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          background-color: #1c1c1c;
-          border: 1px solid #2a2a2a;
-          border-radius: 20px;
-          font-size: 14px;
-          color: #ffffff;
-        }
-        .status-badge.pulse {
-          animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-          0% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0.7); }
-          70% { box-shadow: 0 0 0 10px rgba(57, 255, 20, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0); }
-        }
-        .status-icon {
-          color: #39FF14;
-        }
-        .status-badge .fa-check-circle { color: #39FF14; }
-        .status-badge .fa-clock { color: #ffaa00; }
-        .status-badge .fa-exclamation-circle { color: #ff6b6b; }
-
-        .verify-button {
-          background-color: #39FF14;
-          color: #000000;
-          font-weight: bold;
-          padding: 8px 20px;
-          border: none;
-          border-radius: 20px;
-          font-size: 14px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        .verify-button:hover:not(:disabled) {
-          background-color: #2ecc10;
-        }
-        .verify-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
+          gap: 8px;
           background-color: #2a2a2a;
-          color: #777777;
+          padding: 12px;
+          border-radius: 8px;
+          text-decoration: none;
+          color: #ffffff;
+          transition: all 0.2s;
+        }
+        .action-item:hover {
+          background-color: #39FF14;
+          color: #0f0f0f;
+        }
+        .action-icon {
+          font-size: 18px;
+        }
+        .action-label {
+          font-size: 14px;
+          font-weight: 500;
+        }
+        .remove_blue {
+          -webkit-tap-highlight-color: transparent;
         }
 
         /* Content Card */
@@ -536,7 +616,7 @@ function Profile() {
         .menu-item {
           display: flex;
           align-items: center;
-          padding: 9px 0;
+          padding: 12px 0;
           border-bottom: 1px solid #2a2a2a;
           cursor: pointer;
           transition: color 0.2s;
@@ -548,6 +628,47 @@ function Profile() {
           opacity: 0.5;
           cursor: not-allowed;
         }
+
+        /* KYC Status Item */
+        .kyc-status-item {
+          border-bottom: 2px solid #39FF14;
+          margin-bottom: 8px;
+        }
+        .kyc-badge-text {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .verify-button-small {
+          background-color: #39FF14;
+          color: #0f0f0f;
+          font-weight: bold;
+          padding: 6px 12px;
+          border: none;
+          border-radius: 20px;
+          font-size: 12px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+        .verify-button-small:hover:not(:disabled) {
+          background-color: #2ecc10;
+        }
+        .verify-button-small:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          background-color: #2a2a2a;
+          color: #777777;
+        }
+        /* Pulse animation for the verify button when unverified */
+        .verify-button-small.pulse {
+          animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0.7); }
+          70% { box-shadow: 0 0 0 10px rgba(57, 255, 20, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0); }
+        }
+
         .icon-container {
           width: 40px;
           height: 40px;
@@ -583,7 +704,7 @@ function Profile() {
           color: #39FF14;
         }
 
-        /* Toggle Switch (for simulated trading) */
+        /* Toggle Switch */
         .toggle-switch {
           position: relative;
           display: inline-block;
@@ -622,7 +743,7 @@ function Profile() {
         }
         input:checked + .slider:before {
           transform: translateX(26px);
-          background-color: #000000;
+          background-color: #0f0f0f;
         }
 
         /* Sign Out Button */
@@ -649,20 +770,39 @@ function Profile() {
         }
         .signout-button:hover {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
         .signout-button i {
           font-size: 18px;
         }
 
-        /* Link wrapper – remove default underline */
         .menu-link-wrapper {
           text-decoration: none;
           color: inherit;
           display: block;
         }
 
-        /* Modal Styles (dark theme) */
+        /* Placeholder styles */
+        .placeholder-text {
+          background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+          background-size: 200% 100%;
+          animation: loading 1.5s infinite;
+          border-radius: 4px;
+        }
+        @keyframes loading {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        .balance-placeholder {
+          width: 120px;
+          height: 32px;
+        }
+        .equivalent-placeholder {
+          width: 80px;
+          height: 14px;
+        }
+
+        /* Modal Styles */
         .modal-overlay {
           position: fixed;
           top: 0;
@@ -677,7 +817,6 @@ function Profile() {
           z-index: 1000;
           animation: fadeIn 0.3s ease;
         }
-
         .modal-container-bottom {
           background-color: #1c1c1c;
           border-top: 2px solid #39FF14;
@@ -692,13 +831,11 @@ function Profile() {
           flex-direction: column;
           margin: 0 auto;
         }
-
         .modal-header-bottom {
           padding: 16px 20px 8px 20px;
           border-bottom: 1px solid #2a2a2a;
           position: relative;
         }
-
         .modal-drag-handle {
           width: 40px;
           height: 4px;
@@ -706,19 +843,16 @@ function Profile() {
           border-radius: 2px;
           margin: 0 auto 12px auto;
         }
-
         .modal-title-wrapper {
           display: flex;
           justify-content: space-between;
           align-items: center;
         }
-
         .modal-title {
           font-size: 18px;
           font-weight: 600;
           color: #ffffff;
         }
-
         .modal-close-btn-bottom {
           background: #2a2a2a;
           border: none;
@@ -734,12 +868,10 @@ function Profile() {
           justify-content: center;
           transition: all 0.2s ease;
         }
-
         .modal-close-btn-bottom:hover {
           background: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
-
         .modal-content-bottom {
           flex: 1;
           overflow-y: hidden;
@@ -747,12 +879,10 @@ function Profile() {
           max-height: calc(85vh - 100px);
           background-color: #1c1c1c;
         }
-
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-
         @keyframes slideUpFromBottom {
           from {
             opacity: 0;

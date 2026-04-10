@@ -3,7 +3,7 @@ import{i,k as r,L as b}from"./index-1743411d.js";const R={EUR:"eu",USD:"us",GBP:
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;

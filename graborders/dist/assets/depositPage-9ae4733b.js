@@ -4,7 +4,7 @@ import{u as c,ah as s,i as l,ai as d,k as e,L as i}from"./index-1743411d.js";imp
                     max-width: 430px;
                     margin: 0 auto;
                     min-height: 100vh;
-                    background-color: #000000;
+                    background-color: #0f0f0f;
                     border-top: 2px solid #39FF14;
                     display: flex;
                     flex-direction: column;
@@ -91,7 +91,7 @@ import{u as c,ah as s,i as l,ai as d,k as e,L as i}from"./index-1743411d.js";imp
                 }
                 .crypto-item:hover {
                     background-color: #39FF14;
-                    color: #000000;
+                    color: #0f0f0f;
                     border-color: #39FF14;
                 }
                 .crypto-icon {
@@ -136,7 +136,7 @@ import{u as c,ah as s,i as l,ai as d,k as e,L as i}from"./index-1743411d.js";imp
                 }
                 .otc-item:hover {
                     background-color: #39FF14;
-                    color: #000000;
+                    color: #0f0f0f;
                     border-color: #39FF14;
                 }
                 .otc-icon {
@@ -151,7 +151,7 @@ import{u as c,ah as s,i as l,ai as d,k as e,L as i}from"./index-1743411d.js";imp
                     color: #39FF14;
                 }
                 .otc-item:hover .otc-icon {
-                    color: #000000;
+                    color: #0f0f0f;
                 }
                 .otc-name {
                     flex: 1;
@@ -163,7 +163,7 @@ import{u as c,ah as s,i as l,ai as d,k as e,L as i}from"./index-1743411d.js";imp
                     font-size: 14px;
                 }
                 .otc-item:hover .otc-arrow {
-                    color: #000000;
+                    color: #0f0f0f;
                 }
 
                 /* Loading / placeholder (optional) – not used but could be added */

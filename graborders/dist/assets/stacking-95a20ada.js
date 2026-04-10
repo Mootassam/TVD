@@ -2,7 +2,7 @@ import{n as g,N as pa,j as s,i as m,u as j,t as ma,az as xa,A as ka,aA as ua,aB 
         .stacking-container {
           max-width: 400px;
           margin: 0 auto;
-          background-color: #000000;
+          background-color: #0f0f0f;
           color: #ffffff;
           min-height: 100vh;
           padding-bottom: 80px;
@@ -14,7 +14,7 @@ import{n as g,N as pa,j as s,i as m,u as j,t as ma,az as xa,A as ka,aA as ua,aB 
           justify-content: space-between;
           align-items: center;
           padding: 20px 15px;
-          background-color: #000000;
+          background-color: #0f0f0f;
           position: sticky;
           top: 0;
           z-index: 100;
@@ -229,7 +229,7 @@ import{n as g,N as pa,j as s,i as m,u as j,t as ma,az as xa,A as ka,aA as ua,aB 
 
         .stacking-stake-button {
           background-color: #f3ba2f;
-          color: #000000;
+          color: #0f0f0f;
           text-align: center;
           padding: 12px;
           border-radius: 8px;
@@ -448,7 +448,7 @@ import{n as g,N as pa,j as s,i as m,u as j,t as ma,az as xa,A as ka,aA as ua,aB 
 
         .start-staking-button {
           background-color: #f3ba2f;
-          color: #000000;
+          color: #0f0f0f;
           border: none;
           border-radius: 12px;
           padding: 12px 24px;
@@ -550,7 +550,7 @@ import{n as g,N as pa,j as s,i as m,u as j,t as ma,az as xa,A as ka,aA as ua,aB 
 
         .stacking-modal-button {
           background-color: #f3ba2f;
-          color: #000000;
+          color: #0f0f0f;
           text-align: center;
           padding: 16px;
           border-radius: 12px;

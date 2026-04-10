@@ -75,7 +75,7 @@ const en = {
     confirmStake: "Confirm Stake"
   },
 
- pages: {
+  pages: {
     withdrawPassword: {
       title: "Withdraw Password",
       cardTitle: "CHANGE WITHDRAW PASSWORD",
@@ -632,6 +632,32 @@ const en = {
       headerAlt: "Crypto Trading Platform",
       slogan: "Profit With Confidence",
       promoAlt: "Promo banner {0}",
+
+      heroSub: "Spreads from 0.0 pips · Regulated Broker",
+      promoTitle: "Special Offers",
+      title: "Announcements",
+      maintenanceNotice: "Weekend maintenance: Saturday 02:00-06:00 GMT",
+      newSpreads: "New record low spreads on EUR/USD",
+      weekendSupport: "24/7 support now available",
+      marketTitle: "Forex Market",
+      viewAll: "View All Markets",
+      spread: "Spread",
+      featuresTitle: "Why Trade With Us",
+      execution: "Lightning Execution",
+      executionDesc: "Orders filled in milliseconds",
+      secure: "Secure & Regulated",
+      secureDesc: "ASIC, CySEC, FSA oversight",
+      spreads: "Raw Spreads",
+      spreadsDesc: "From 0.0 pips on majors",
+      support: "24/7 Support",
+      supportDesc: "Dedicated multilingual team",
+      ctaTitle: "Start Trading Today",
+      ctaDesc: "Open an account in minutes and access 60+ currency pairs.",
+      ctaButton: "Open Live Account",
+      about: "About Us",
+      legal: "Legal Documents",
+      contact: "Contact",
+      copyright: "© 2025 IC Markets. All rights reserved.",
 
       quickTrade: {
         highlight: "Quick",

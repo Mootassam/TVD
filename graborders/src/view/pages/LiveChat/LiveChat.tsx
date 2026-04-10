@@ -106,7 +106,7 @@ function Online() {
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -279,7 +279,7 @@ function Online() {
         }
         .whatsapp-button:hover {
           background-color: #25D366;
-          color: #000000;
+          color: #0f0f0f;
         }
         .telegram-button {
           background-color: rgba(0, 136, 204, 0.1);
@@ -288,7 +288,7 @@ function Online() {
         }
         .telegram-button:hover {
           background-color: #0088cc;
-          color: #000000;
+          color: #0f0f0f;
         }
         .button-icon {
           font-size: 18px;

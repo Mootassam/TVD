@@ -199,7 +199,7 @@ function Withdraw() {
       {/* Header Section – matches Profile */}
       <div className="header">
         <div className="nav-bar">
-          <Link to="/wallets" className="back-arrow">
+          <Link to="/profile" className="back-arrow">
             <i className="fas fa-arrow-left" />
           </Link>
           <div className="page-title">{i18n('pages.withdraw.title')}</div>
@@ -401,7 +401,7 @@ function Withdraw() {
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -601,7 +601,7 @@ function Withdraw() {
         /* Submit button */
         .withdraw-button {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
           font-weight: bold;
           height: 48px;
           width: 100%;
@@ -717,7 +717,7 @@ function Withdraw() {
           width: 100%;
           background-color: #39FF14;
           border: none;
-          color: #000000;
+          color: #0f0f0f;
           padding: 10px;
           border-radius: 6px;
           font-size: 14px;

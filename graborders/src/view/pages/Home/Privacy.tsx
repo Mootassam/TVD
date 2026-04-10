@@ -247,7 +247,7 @@ function Privacy() {
         
         /* Header Section */
         .header {
-            background-color: #000000;
+            background-color: #0f0f0f;
             padding: 0px 0;
             position: sticky;
             top: 0;
@@ -592,7 +592,7 @@ function Privacy() {
             left: 50%;
             transform: translateX(-50%);
             background-color: #00C076;
-            color: #000000;
+            color: #0f0f0f;
             padding: 12px 20px;
             border-radius: 8px;
             font-weight: 600;

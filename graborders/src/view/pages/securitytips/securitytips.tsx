@@ -234,7 +234,7 @@ function SecurityTips() {
       <style>{`
         /* Header Section */
         .header {
-            background-color: #000000;
+            background-color: #0f0f0f;
             position: sticky;
             top: 0;
             z-index: 100;

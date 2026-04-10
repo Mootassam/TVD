@@ -4,7 +4,7 @@ import{u as d,ab as r,i as l,k as a,L as p,ac as m}from"./index-1743411d.js";imp
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;

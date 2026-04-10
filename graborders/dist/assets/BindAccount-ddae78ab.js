@@ -4,7 +4,7 @@ import{k as a,L as r,j as e}from"./index-1743411d.js";function c(){return a.jsxs
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -115,7 +115,7 @@ import{k as a,L as r,j as e}from"./index-1743411d.js";function c(){return a.jsxs
         /* Popular Badge */
         .popular-badge {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
           font-size: 11px;
           font-weight: 600;
           padding: 4px 8px;

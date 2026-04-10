@@ -180,7 +180,7 @@ import{g as Xe,j as b,as as Ke,at as Je,af as Qe,R as oe,au as ze,av as et,i as 
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -403,7 +403,7 @@ import{g as Xe,j as b,as as Ke,at as Je,af as Qe,R as oe,au as ze,av as et,i as 
         /* Submit button – matches login button */
         .submit-button {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
           font-weight: bold;
           height: 50px;
           width: 100%;

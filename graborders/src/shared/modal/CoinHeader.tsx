@@ -239,14 +239,14 @@ function CoinHeader() {
           max-width: 400px;
           margin: 0 auto;
           padding-bottom: 70px;
-          background-color: #000000;
+          background-color: #0f0f0f;
           color: #FFFFFF;
           min-height: 100vh;
         }
         
         /* Header Section */
         .header {
-          background-color: #000000;
+          background-color: #0f0f0f;
           padding: 20px 15px 15px;
           position: sticky;
           top: 0;

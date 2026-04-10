@@ -95,7 +95,7 @@ function members() {
         
         /* Header Section */
         .members-header {
-            background-color: #000000;
+            background-color: #0f0f0f;
             padding: 15px 0;
             position: sticky;
             top: 0;

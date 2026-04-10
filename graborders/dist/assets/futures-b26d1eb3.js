@@ -420,7 +420,7 @@ import{i as a,F as O,J as ue,k as e,K as pe,E as me,j as r,u as T,A as ce,C as E
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -429,7 +429,7 @@ import{i as a,F as O,J as ue,k as e,K as pe,E as me,j as r,u as T,A as ce,C as E
         }
 
         .header {
-          background-color: #000000;
+          background-color: #0f0f0f;
           padding: 20px 15px 15px;
           position: sticky;
           top: 0;
@@ -531,7 +531,7 @@ import{i as a,F as O,J as ue,k as e,K as pe,E as me,j as r,u as T,A as ce,C as E
 
         .buy-button {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
 
         .sell-button {
@@ -754,7 +754,7 @@ import{i as a,F as O,J as ue,k as e,K as pe,E as me,j as r,u as T,A as ce,C as E
         }
         .modal-button:hover {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
 
         .close-order-button {

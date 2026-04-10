@@ -35,7 +35,7 @@ export class Error500Page extends Component {
   </div>
   <style>{`       
         body {
-            background-color: #000000;
+            background-color: #0f0f0f;
             color: #FFFFFF;
             padding: 0;
             margin: 0;
@@ -92,7 +92,7 @@ export class Error500Page extends Component {
         
         .home-button {
             background-color: #F3BA2F;
-            color: #000000;
+            color: #0f0f0f;
             border: none;
             padding: 16px 30px;
             border-radius: 12px;

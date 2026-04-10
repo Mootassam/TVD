@@ -7,7 +7,7 @@ const en = {
      unfreeze: "Unfreeze",
     or: 'Or',
     cancel: 'Cancel',
-    reset: 'Reset',
+    reset: 'Change Password',
     save: 'Save',
     search: 'Search',
     edit: 'Edit',

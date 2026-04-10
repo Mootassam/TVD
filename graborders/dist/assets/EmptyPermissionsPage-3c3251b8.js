@@ -1,6 +1,6 @@
 import{k as t,L as n,j as a,O as r}from"./index-1743411d.js";import{u as i}from"./useDispatch-b6333f32.js";function l(){const o=i(),e=()=>{o(r.doSignout())};return t.jsxs("div",{className:"empty__page",children:[t.jsx("style",{children:`
         .empty__page {
-          background-color: #000000;
+          background-color: #0f0f0f;
           color: #FFFFFF;
           min-height: 100vh;
           display: flex;
@@ -54,7 +54,7 @@ import{k as t,L as n,j as a,O as r}from"./index-1743411d.js";import{u as i}from"
         
         .support-button {
           background-color: #F3BA2F;
-          color: #000000;
+          color: #0f0f0f;
           border: none;
           border-radius: 8px;
           padding: 12px 24px;

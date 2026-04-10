@@ -4,7 +4,7 @@ import{i as o,k as e,L as r}from"./index-1743411d.js";class t extends o.Componen
                         max-width: 430px;
                         margin: 0 auto;
                         min-height: 100vh;
-                        background-color: #000000;
+                        background-color: #0f0f0f;
                         border-top: 2px solid #39FF14;
                         display: flex;
                         flex-direction: column;
@@ -129,7 +129,7 @@ import{i as o,k as e,L as r}from"./index-1743411d.js";class t extends o.Componen
                     }
                     .home-button:hover {
                         background-color: #39FF14;
-                        color: #000000;
+                        color: #0f0f0f;
                     }
                     .home-icon {
                         font-size: 18px;

@@ -1347,7 +1347,7 @@ function Trade() {
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -1565,7 +1565,7 @@ function Trade() {
         }
         .buy-tab.active {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
         .sell-tab {
           background-color: #2a2a2a;
@@ -1647,7 +1647,7 @@ function Trade() {
         }
         .buy-button {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
         .sell-button {
           background-color: #f56c6c;
@@ -1764,7 +1764,7 @@ function Trade() {
           flex-shrink: 0;
         }
         .transaction-icon i {
-          color: #000000;
+          color: #0f0f0f;
           font-size: 14px;
         }
         .transaction-details {

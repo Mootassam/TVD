@@ -459,13 +459,13 @@ const Faq: React.FC = () => {
   margin: 0 auto;
   padding: 20px;
   padding-bottom: 80px;
-  background-color: #000000;
+  background-color: #0f0f0f;
   min-height: 100vh;
 }
 
 /* Header Section */
 .headerq {
-  background-color: #000000;
+  background-color: #0f0f0f;
   padding: 15px 0;
   position: sticky;
   top: 0;
@@ -747,7 +747,7 @@ const Faq: React.FC = () => {
   left: 50%;
   transform: translateX(-50%);
   background-color: #00C076;
-  color: #000000;
+  color: #0f0f0f;
   padding: 12px 20px;
   border-radius: 8px;
   font-weight: 600;

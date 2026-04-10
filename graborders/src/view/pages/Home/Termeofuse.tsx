@@ -327,7 +327,7 @@ function Termeofuse() {
         
         /* Header Section */
         .header {
-            background-color: #000000;
+            background-color: #0f0f0f;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -523,7 +523,7 @@ function Termeofuse() {
             left: 50%;
             transform: translateX(-50%);
             background-color: #00C076;
-            color: #000000;
+            color: #0f0f0f;
             padding: 12px 20px;
             border-radius: 8px;
             font-weight: 600;
@@ -545,7 +545,7 @@ function Termeofuse() {
             width: 40px;
             height: 40px;
             background-color: #F3BA2F;
-            color: #000000;
+            color: #0f0f0f;
             border-radius: 50%;
             display: flex;
             align-items: center;

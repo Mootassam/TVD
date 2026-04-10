@@ -37,7 +37,7 @@ function TabBottomNavigator() {
     },
     {
       icon: "fas fa-wallet",
-      path: "/wallets",
+      path: "/profile",
       name: i18n("components.bottomNav.wallets"),
     },
   ];

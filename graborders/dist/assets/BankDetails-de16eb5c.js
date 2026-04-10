@@ -4,7 +4,7 @@ import{N as f,j as a,u as x,t as h,i as g,O as N,k as e,L as k,M as j}from"./ind
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -89,7 +89,7 @@ import{N as f,j as a,u as x,t as h,i as g,O as N,k as e,L as k,M as j}from"./ind
         /* Submit Button */
         .bank-button {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
           font-weight: bold;
           height: 48px;
           width: 100%;

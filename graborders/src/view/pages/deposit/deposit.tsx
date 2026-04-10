@@ -383,7 +383,7 @@ function Deposit() {
       {/* Header */}
       <div className="header">
         <div className="nav-bar">
-          <Link to="/deposit" className="back-arrow" aria-label="Back to deposits">
+          <Link to="/profile" className="back-arrow" aria-label="Back to deposits">
             <i className="fas fa-arrow-left" />
           </Link>
           <div className="page-title">Deposit {symbol || "..."}</div>
@@ -470,7 +470,7 @@ function Deposit() {
                     value={currentAddress}
                     size={180}
                     bgColor="#ffffff"
-                    fgColor="#000000"
+                    fgColor="#0f0f0f"
                     level="H"
                     includeMargin={true}
                   />
@@ -638,7 +638,7 @@ function Deposit() {
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -886,7 +886,7 @@ function Deposit() {
         }
         .action-btn:hover {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
         .action-btn i {
           font-size: 14px;
@@ -942,7 +942,7 @@ function Deposit() {
         .submit-btn {
           width: 100%;
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
           border: none;
           border-radius: 6px;
           padding: 14px;
@@ -1030,7 +1030,7 @@ function Deposit() {
           left: 50%;
           transform: translateX(-50%) translateY(100px);
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
           padding: 12px 24px;
           border-radius: 30px;
           font-size: 14px;
@@ -1117,7 +1117,7 @@ function Deposit() {
         }
         .modal-close:hover {
           background: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
         }
         .modal-body {
           padding: 24px 20px;
@@ -1147,7 +1147,7 @@ function Deposit() {
         }
         .modal-btn {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
           border: none;
           border-radius: 6px;
           padding: 12px 30px;

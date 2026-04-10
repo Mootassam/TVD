@@ -71,7 +71,7 @@ import{N as C,j as o,S as M,u as S,t as P,i as l,O as q,k as a,L as x,ak as I}fr
           max-width: 430px;
           margin: 0 auto;
           min-height: 100vh;
-          background-color: #000000;
+          background-color: #0f0f0f;
           border-top: 2px solid #39FF14;
           display: flex;
           flex-direction: column;
@@ -271,7 +271,7 @@ import{N as C,j as o,S as M,u as S,t as P,i as l,O as q,k as a,L as x,ak as I}fr
         /* Submit button */
         .withdraw-button {
           background-color: #39FF14;
-          color: #000000;
+          color: #0f0f0f;
           font-weight: bold;
           height: 48px;
           width: 100%;
@@ -387,7 +387,7 @@ import{N as C,j as o,S as M,u as S,t as P,i as l,O as q,k as a,L as x,ak as I}fr
           width: 100%;
           background-color: #39FF14;
           border: none;
-          color: #000000;
+          color: #0f0f0f;
           padding: 10px;
           border-radius: 6px;
           font-size: 14px;

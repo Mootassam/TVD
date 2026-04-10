@@ -112,7 +112,7 @@ function TermsofServicePage() {
 
                 .modal-button {
                     background: linear-gradient(45deg, #F3BA2F, #FFD700);
-                    color: #000000;
+                    color: #0f0f0f;
                     border: none;
                     border-radius: 12px;
                     padding: 16px 32px;
@@ -405,14 +405,14 @@ function TermsofServicePage() {
                     margin: 0 auto;
                     padding: 0px 20px;
                     padding-bottom: 80px;
-                    background-color: #000000;
+                    background-color: #0f0f0f;
                     color: #FFFFFF;
                     min-height: 100vh;
                 }
                 
                 /* Header Section */
                 .headera {
-                    background-color: #000000;
+                    background-color: #0f0f0f;
                     padding: 15px 0;
                     position: sticky;
                     top: 0;
@@ -540,7 +540,7 @@ function TermsofServicePage() {
                 
                 .accept-button {
                     background-color: #F3BA2F;
-                    color: #000000;
+                    color: #0f0f0f;
                     margin-bottom: 15px;
                 }
                 

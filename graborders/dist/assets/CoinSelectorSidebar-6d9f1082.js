@@ -142,7 +142,7 @@ import{i as t,k as e}from"./index-1743411d.js";const u=[{symbol:"EURUSD",name:"E
 
                     .pair-item.selected .pair-name,
                     .pair-item.selected .pair-symbol {
-                        color: #000000; /* black text on green */
+                        color: #0f0f0f; /* black text on green */
                     }
 
                     .pair-name {
