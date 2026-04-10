@@ -633,6 +633,7 @@ const en = {
       slogan: "Profit With Confidence",
       promoAlt: "Promo banner {0}",
 
+
       heroSub: "Spreads from 0.0 pips · Regulated Broker",
       promoTitle: "Special Offers",
       title: "Announcements",
@@ -1471,6 +1472,8 @@ const en = {
       },
       status: {
         completed: "Completed",
+        success: "Completed",
+
         pending: "Pending",
         canceled: "Canceled"
       },
