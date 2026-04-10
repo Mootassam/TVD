@@ -3,6 +3,7 @@ import { useHistory, useParams } from "react-router-dom";
 import FuturesChart from "../Futures/FuturesChart";
 import { i18n } from "../../../i18n";
 import CoinSelectorSidebar from "src/view/shared/modals/CoinSelectorSidebar";
+import { fetchAllCryptoPrices, cryptoCoinIds, MarketProvider } from "./MarketContext";
 
 // ----------------------------------------------------------------------
 // Types
@@ -75,11 +76,28 @@ function MarketDetail() {
   const updateInterval = useRef<NodeJS.Timeout | null>(null);
   const currentCoinRef = useRef<string>(selectedCoin);
   const isComponentMounted = useRef(true);
+  const cryptoCache = useRef<{ [key: string]: { price: number; change: number; timestamp: number } }>({});
+
+  // Crypto coin IDs for CoinGecko API
+  const cryptoCoinIds: Record<string, string> = {
+    BTCUSD: "bitcoin", ETHUSD: "ethereum", XRPUSD: "ripple", SOLUSD: "solana",
+    ADAUSD: "cardano", DOGEUSD: "dogecoin", DOTUSD: "polkadot", AVAXUSD: "avalanche-2",
+    LINKUSD: "chainlink", MATICUSD: "matic-network", UNIUSD: "uniswap", ATOMUSD: "cosmos",
+    LTCUSD: "litecoin", BCHUSD: "bitcoin-cash", NEARUSD: "near-protocol", ALGOUSD: "algorand",
+    VETUSD: "vechain", FILUSD: "filecoin", THETAUSD: "theta-token", AXSUSD: "axie-infinity",
+    SANDUSD: "the-sandbox", MANAUSD: "decentraland", ENJUSD: "enjincoin", CHZUSD: "chiliz", APEUSD: "apecoin",
+  };
+
+  // Use shared crypto prices from MarketContext
+  const fetchCryptoPrices = useCallback(async () => {
+    await fetchAllCryptoPrices();
+  }, []);
 
   // ----------------------------------------------------------------------
-  // Available forex pairs (same as before)
+  // All available pairs (Forex, Metal, Oil, CFD, Crypto)
   // ----------------------------------------------------------------------
   const availableCoins: Coin[] = [
+    // Forex
     { symbol: "EURUSD", name: "EUR / USD", baseCurrency: "EUR", quoteCurrency: "USD" },
     { symbol: "GBPUSD", name: "GBP / USD", baseCurrency: "GBP", quoteCurrency: "USD" },
     { symbol: "USDJPY", name: "USD / JPY", baseCurrency: "USD", quoteCurrency: "JPY" },
@@ -94,34 +112,123 @@ function MarketDetail() {
     { symbol: "EURAUD", name: "EUR / AUD", baseCurrency: "EUR", quoteCurrency: "AUD" },
     { symbol: "GBPAUD", name: "GBP / AUD", baseCurrency: "GBP", quoteCurrency: "AUD" },
     { symbol: "USDMXN", name: "USD / MXN", baseCurrency: "USD", quoteCurrency: "MXN" },
-    { symbol: "USDRY", name: "USD / TRY", baseCurrency: "USD", quoteCurrency: "TRY" },
+    { symbol: "USDTRY", name: "USD / TRY", baseCurrency: "USD", quoteCurrency: "TRY" },
     { symbol: "USDZAR", name: "USD / ZAR", baseCurrency: "USD", quoteCurrency: "ZAR" },
     { symbol: "USDSGD", name: "USD / SGD", baseCurrency: "USD", quoteCurrency: "SGD" },
     { symbol: "USDHKD", name: "USD / HKD", baseCurrency: "USD", quoteCurrency: "HKD" },
     { symbol: "USDKRW", name: "USD / KRW", baseCurrency: "USD", quoteCurrency: "KRW" },
     { symbol: "USDINR", name: "USD / INR", baseCurrency: "USD", quoteCurrency: "INR" },
+    { symbol: "EURCHF", name: "EUR / CHF", baseCurrency: "EUR", quoteCurrency: "CHF" },
+    { symbol: "EURNZD", name: "EUR / NZD", baseCurrency: "EUR", quoteCurrency: "NZD" },
+    { symbol: "GBPEUR", name: "GBP / EUR", baseCurrency: "GBP", quoteCurrency: "EUR" },
+    { symbol: "AUDNZD", name: "AUD / NZD", baseCurrency: "AUD", quoteCurrency: "NZD" },
+    { symbol: "CADJPY", name: "CAD / JPY", baseCurrency: "CAD", quoteCurrency: "JPY" },
+    { symbol: "CHFJPY", name: "CHF / JPY", baseCurrency: "CHF", quoteCurrency: "JPY" },
+    { symbol: "NZDJPY", name: "NZD / JPY", baseCurrency: "NZD", quoteCurrency: "JPY" },
+    { symbol: "SGDJPY", name: "SGD / JPY", baseCurrency: "SGD", quoteCurrency: "JPY" },
+    { symbol: "HKDJPY", name: "HKD / JPY", baseCurrency: "HKD", quoteCurrency: "JPY" },
+    { symbol: "ZARJPY", name: "ZAR / JPY", baseCurrency: "ZAR", quoteCurrency: "JPY" },
+    // Metals
+    { symbol: "XAUUSD", name: "Gold", baseCurrency: "XAU", quoteCurrency: "USD" },
+    { symbol: "XAGUSD", name: "Silver", baseCurrency: "XAG", quoteCurrency: "USD" },
+    { symbol: "XPTUSD", name: "Platinum", baseCurrency: "XPT", quoteCurrency: "USD" },
+    { symbol: "XPDUSD", name: "Palladium", baseCurrency: "XPD", quoteCurrency: "USD" },
+    { symbol: "XAUEUR", name: "Gold / EUR", baseCurrency: "XAU", quoteCurrency: "EUR" },
+    { symbol: "XAGEUR", name: "Silver / EUR", baseCurrency: "XAG", quoteCurrency: "EUR" },
+    { symbol: "XPTEUR", name: "Platinum / EUR", baseCurrency: "XPT", quoteCurrency: "EUR" },
+    { symbol: "XAUGBP", name: "Gold / GBP", baseCurrency: "XAU", quoteCurrency: "GBP" },
+    { symbol: "XAGGBP", name: "Silver / GBP", baseCurrency: "XAG", quoteCurrency: "GBP" },
+    // Oil
+    { symbol: "USOIL", name: "US Oil", baseCurrency: "USOIL", quoteCurrency: "USD" },
+    { symbol: "UKOIL", name: "UK Oil", baseCurrency: "UKOIL", quoteCurrency: "USD" },
+    { symbol: "BRENT", name: "Brent", baseCurrency: "BRENT", quoteCurrency: "USD" },
+    { symbol: "WTI", name: "WTI", baseCurrency: "WTI", quoteCurrency: "USD" },
+    { symbol: "CRUDE", name: "Crude", baseCurrency: "CRUDE", quoteCurrency: "USD" },
+    { symbol: "NGAS", name: "Natural Gas", baseCurrency: "NGAS", quoteCurrency: "USD" },
+    { symbol: "HEAT", name: "Heating Oil", baseCurrency: "HEAT", quoteCurrency: "USD" },
+    { symbol: "GAS", name: "Gasoline", baseCurrency: "GAS", quoteCurrency: "USD" },
+    // CFD
+    { symbol: "US30", name: "Dow 30", baseCurrency: "US30", quoteCurrency: "USD" },
+    { symbol: "US500", name: "S&P 500", baseCurrency: "US500", quoteCurrency: "USD" },
+    { symbol: "NAS100", name: "Nasdaq 100", baseCurrency: "NAS100", quoteCurrency: "USD" },
+    { symbol: "US2000", name: "Russell 2000", baseCurrency: "US2000", quoteCurrency: "USD" },
+    { symbol: "GER40", name: "DAX", baseCurrency: "GER40", quoteCurrency: "EUR" },
+    { symbol: "UK100", name: "FTSE 100", baseCurrency: "UK100", quoteCurrency: "GBP" },
+    { symbol: "FRA40", name: "CAC 40", baseCurrency: "FRA40", quoteCurrency: "EUR" },
+    { symbol: "EU50", name: "Euro Stoxx 50", baseCurrency: "EU50", quoteCurrency: "EUR" },
+    { symbol: "JP225", name: "Nikkei 225", baseCurrency: "JP225", quoteCurrency: "JPY" },
+    { symbol: "HK50", name: "Hang Seng", baseCurrency: "HK50", quoteCurrency: "HKD" },
+    { symbol: "AUS200", name: "ASX 200", baseCurrency: "AUS200", quoteCurrency: "AUD" },
+    { symbol: "TWII", name: "Taiwan", baseCurrency: "TWII", quoteCurrency: "TWD" },
+    { symbol: "KR100", name: "KOSPI", baseCurrency: "KR100", quoteCurrency: "KRW" },
+    { symbol: "IN50", name: "Nifty 50", baseCurrency: "IN50", quoteCurrency: "INR" },
+    { symbol: "TECH100", name: "Tech 100", baseCurrency: "TECH100", quoteCurrency: "USD" },
+    // Crypto
+    { symbol: "BTCUSD", name: "Bitcoin", baseCurrency: "BTC", quoteCurrency: "USD" },
+    { symbol: "ETHUSD", name: "Ethereum", baseCurrency: "ETH", quoteCurrency: "USD" },
+    { symbol: "XRPUSD", name: "Ripple", baseCurrency: "XRP", quoteCurrency: "USD" },
+    { symbol: "SOLUSD", name: "Solana", baseCurrency: "SOL", quoteCurrency: "USD" },
+    { symbol: "ADAUSD", name: "Cardano", baseCurrency: "ADA", quoteCurrency: "USD" },
+    { symbol: "DOGEUSD", name: "Dogecoin", baseCurrency: "DOGE", quoteCurrency: "USD" },
+    { symbol: "DOTUSD", name: "Polkadot", baseCurrency: "DOT", quoteCurrency: "USD" },
+    { symbol: "AVAXUSD", name: "Avalanche", baseCurrency: "AVAX", quoteCurrency: "USD" },
+    { symbol: "LINKUSD", name: "Chainlink", baseCurrency: "LINK", quoteCurrency: "USD" },
+    { symbol: "MATICUSD", name: "Polygon", baseCurrency: "MATIC", quoteCurrency: "USD" },
+    { symbol: "UNIUSD", name: "Uniswap", baseCurrency: "UNI", quoteCurrency: "USD" },
+    { symbol: "ATOMUSD", name: "Cosmos", baseCurrency: "ATOM", quoteCurrency: "USD" },
+    { symbol: "LTCUSD", name: "Litecoin", baseCurrency: "LTC", quoteCurrency: "USD" },
+    { symbol: "BCHUSD", name: "Bitcoin Cash", baseCurrency: "BCH", quoteCurrency: "USD" },
+    { symbol: "NEARUSD", name: "Near", baseCurrency: "NEAR", quoteCurrency: "USD" },
+    { symbol: "ALGOUSD", name: "Algorand", baseCurrency: "ALGO", quoteCurrency: "USD" },
+    { symbol: "VETUSD", name: "VeChain", baseCurrency: "VET", quoteCurrency: "USD" },
+    { symbol: "FILUSD", name: "Filecoin", baseCurrency: "FIL", quoteCurrency: "USD" },
+    { symbol: "THETAUSD", name: "Theta", baseCurrency: "THETA", quoteCurrency: "USD" },
+    { symbol: "AXSUSD", name: "Axie Infinity", baseCurrency: "AXS", quoteCurrency: "USD" },
+    { symbol: "SANDUSD", name: "The Sandbox", baseCurrency: "SAND", quoteCurrency: "USD" },
+    { symbol: "MANAUSD", name: "Decentraland", baseCurrency: "MANA", quoteCurrency: "USD" },
+    { symbol: "ENJUSD", name: "Enjin Coin", baseCurrency: "ENJ", quoteCurrency: "USD" },
+    { symbol: "CHZUSD", name: "Chiliz", baseCurrency: "CHZ", quoteCurrency: "USD" },
+    { symbol: "APEUSD", name: "ApeCoin", baseCurrency: "APE", quoteCurrency: "USD" },
   ];
 
   // ----------------------------------------------------------------------
-  // Base prices (same as FuturesChart)
+  // Base prices for all pairs
   // ----------------------------------------------------------------------
   const getBasePrice = useCallback((symbol: string): number => {
     const basePrices: Record<string, number> = {
-      EURUSD: 1.0850, GBPUSD: 1.2650, USDJPY: 148.50, AUDUSD: 0.6550,
-      USDCAD: 1.3550, USDCHF: 0.8750, NZDUSD: 0.6050, EURGBP: 0.8570,
-      EURJPY: 161.20, GBPJPY: 188.30, AUDJPY: 97.20, EURAUD: 1.6550,
-      GBPAUD: 1.9300, USDMXN: 17.20, USDRY: 30.50, USDZAR: 18.90,
-      USDSGD: 1.3450, USDHKD: 7.8200, USDKRW: 1330.00, USDINR: 83.20,
+      // Forex
+      EURUSD: 1.0842, GBPUSD: 1.2635, USDJPY: 148.65, AUDUSD: 0.6532, USDCAD: 1.3580, USDCHF: 0.8795, NZDUSD: 0.6025, EURGBP: 0.8590, EURJPY: 161.15, GBPJPY: 187.65, AUDJPY: 97.15, EURAUD: 1.6590, GBPAUD: 1.9340, USDMXN: 17.25, USDTRY: 32.15, USDZAR: 18.95, USDSGD: 1.3420, USDHKD: 7.8185, USDKRW: 1335.00, USDINR: 83.25, EURCHF: 0.9530, EURNZD: 1.7990, GBPEUR: 1.1645, AUDNZD: 1.0845, CADJPY: 109.50, CHFJPY: 169.05, NZDJPY: 91.25, SGDJPY: 110.75, HKDJPY: 19.02, ZARJPY: 7.85,
+      // Metals
+      XAUUSD: 2345.80, XAGUSD: 28.25, XPTUSD: 985.50, XPDUSD: 1045.00, XAUEUR: 2165.00, XAGEUR: 26.05, XPTEUR: 908.00, XAUGBP: 1855.00, XAGGBP: 22.35,
+      // Oil
+      USOIL: 84.25, UKOIL: 87.85, BRENT: 87.15, WTI: 84.35, CRUDE: 84.50, NGAS: 2.85, HEAT: 2.65, GAS: 2.75,
+      // CFD
+      US30: 38550, US500: 5125, NAS100: 18450, US2000: 2185, GER40: 18485, UK100: 8075, FRA40: 7525, EU50: 4895, JP225: 39750, HK50: 16750, AUS200: 7850, TWII: 20750, KR100: 2850, IN50: 22450, TECH100: 8450,
+      // Crypto
+      BTCUSD: 67450, ETHUSD: 3425, XRPUSD: 0.515, SOLUSD: 142.50, ADAUSD: 0.445, DOGEUSD: 0.0825, DOTUSD: 7.15, AVAXUSD: 34.85, LINKUSD: 14.25, MATICUSD: 0.585, UNIUSD: 6.85, ATOMUSD: 8.45, LTCUSD: 84.50, BCHUSD: 485.00, NEARUSD: 5.25, ALGOUSD: 0.185, VETUSD: 0.0225, FILUSD: 5.85, THETAUSD: 0.985, AXSUSD: 6.85, SANDUSD: 0.425, MANAUSD: 0.385, ENJUSD: 0.285, CHZUSD: 0.085, APEUSD: 1.25,
     };
     return basePrices[symbol] || 1.0;
   }, []);
 
   // ----------------------------------------------------------------------
-  // Decimal places (forex convention)
+  // Decimal places for each pair type
   // ----------------------------------------------------------------------
   const getDecimalPlaces = useCallback((symbol: string): number => {
-    if (symbol.includes("JPY") && !symbol.startsWith("JPY")) return 3;
-    return 5;
+    if (["XAUUSD", "XAUEUR", "XAUGBP"].includes(symbol)) return 2;
+    if (["XAGUSD", "XAGEUR", "XAGGBP"].includes(symbol)) return 2;
+    if (["XPTUSD", "XPTEUR"].includes(symbol)) return 2;
+    if (["XPDUSD"].includes(symbol)) return 2;
+    if (["USOIL", "UKOIL", "BRENT", "WTI", "CRUDE"].includes(symbol)) return 2;
+    if (["NGAS", "HEAT", "GAS"].includes(symbol)) return 3;
+    if (["BTCUSD", "ETHUSD"].includes(symbol)) return 2;
+    if (["XRPUSD", "ADAUSD", "DOGEUSD", "MATICUSD", "UNIUSD", "THETAUSD", "CHZUSD", "APEUSD"].includes(symbol)) return 4;
+    if (["LTCUSD", "BCHUSD", "FILUSD", "AXSUSD", "SANDUSD", "MANAUSD", "ENJUSD"].includes(symbol)) return 2;
+    if (["DOTUSD", "AVAXUSD", "LINKUSD", "ATOMUSD", "NEARUSD"].includes(symbol)) return 2;
+    if (["ALGOUSD", "VETUSD"].includes(symbol)) return 4;
+    if (["US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225", "HK50", "AUS200", "TWII", "KR100", "IN50", "TECH100"].includes(symbol)) return 0;
+    if (symbol.endsWith("JPY")) return 3;
+    if (symbol.includes("USD") && !symbol.startsWith("USD")) return 5;
+    return 2;
   }, []);
 
   const formatNumber = useCallback((num: number, symbol?: string): string => {
@@ -194,15 +301,30 @@ function MarketDetail() {
   // ----------------------------------------------------------------------
   // Update all market data in a single batch
   // ----------------------------------------------------------------------
-  const updateMarketData = useCallback((symbol: string) => {
+  const updateMarketData = useCallback(async (symbol: string) => {
+    // Fetch crypto prices if needed
+    if (cryptoCoinIds[symbol]) {
+      await fetchCryptoPrices();
+    }
+
     setMarketStats(prev => {
-      const basePrice = prev.price ?? getBasePrice(symbol);
-      const newPrice = randomWalk(basePrice);
-      const changePercent = ((newPrice - basePrice) / basePrice) * 100;
+      let basePrice = prev.price ?? getBasePrice(symbol);
+      let newPrice: number;
+      let changePercent: number;
+
+      // Use real crypto price if available
+      if (cryptoCoinIds[symbol] && cryptoCache.current[symbol] && cryptoCache.current[symbol].price) {
+        newPrice = cryptoCache.current[symbol].price;
+        changePercent = cryptoCache.current[symbol].change;
+      } else {
+        newPrice = randomWalk(basePrice);
+        changePercent = ((newPrice - basePrice) / basePrice) * 100;
+      }
 
       // Approximate 24h high/low using a simple multiplier
-      const high = Math.max(newPrice * 1.002, basePrice * 1.002);
-      const low = Math.min(newPrice * 0.998, basePrice * 0.998);
+      const volatility = cryptoCoinIds[symbol] ? 0.01 : 0.002;
+      const high = newPrice * (1 + volatility);
+      const low = newPrice * (1 - volatility);
       const volume = 1000000 + Math.random() * 500000;
       const quoteVolume = newPrice * volume;
 
@@ -219,16 +341,29 @@ function MarketDetail() {
         quoteVolume,
       };
     });
-  }, [randomWalk, generateOrderBook, generateTrades, getBasePrice]);
+  }, [randomWalk, generateOrderBook, generateTrades, getBasePrice, fetchCryptoPrices]);
 
   // ----------------------------------------------------------------------
   // Initialize data for a symbol
   // ----------------------------------------------------------------------
-  const initializeData = useCallback((symbol: string) => {
-    const basePrice = getBasePrice(symbol);
+  const initializeData = useCallback(async (symbol: string) => {
+    // Fetch crypto prices if needed
+    if (cryptoCoinIds[symbol]) {
+      await fetchCryptoPrices();
+    }
+
+    let basePrice = getBasePrice(symbol);
+    let changePercent = 0;
+
+    // Use cached crypto price if available
+    if (cryptoCoinIds[symbol] && cryptoCache.current[symbol] && cryptoCache.current[symbol].price) {
+      basePrice = cryptoCache.current[symbol].price;
+      changePercent = cryptoCache.current[symbol].change;
+    }
+
     setMarketStats({
       price: basePrice,
-      changePercent: 0,
+      changePercent,
       high: basePrice * 1.002,
       low: basePrice * 0.998,
       volume: 1000000,
@@ -237,7 +372,7 @@ function MarketDetail() {
     setOrderBook(generateOrderBook(basePrice, symbol));
     setRecentTrades(generateTrades(basePrice, symbol, 10));
     setIsLoading(false);
-  }, [getBasePrice, generateOrderBook, generateTrades]);
+  }, [getBasePrice, generateOrderBook, generateTrades, fetchCryptoPrices]);
 
   // ----------------------------------------------------------------------
   // Handle coin change from URL
@@ -264,11 +399,11 @@ function MarketDetail() {
     initializeData(coin);
 
     if (updateInterval.current) clearInterval(updateInterval.current);
-    updateInterval.current = setInterval(() => {
+    updateInterval.current = setInterval(async () => {
       if (isComponentMounted.current && currentCoinRef.current === coin) {
-        updateMarketData(coin);
+        await updateMarketData(coin);
       }
-    }, 1000); // ⬅️ now 1 second to match chart ticks
+    }, 2000);
 
     return () => {
       isComponentMounted.current = false;
@@ -361,18 +496,7 @@ function MarketDetail() {
             <i className="fas fa-arrow-left"></i>
           </div>
           <div className="trading-pair" onClick={toggleCoinSelector}>
-            <div className="pair-flag">
-              <img
-                src={`https://flagcdn.com/w40/${currencyToCountry[currentCoin.baseCurrency] || currentCoin.baseCurrency.toLowerCase()}.png`}
-                alt={currentCoin.baseCurrency}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  if (parent) parent.innerText = currentCoin.baseCurrency;
-                }}
-              />
-            </div>
+            
             {currentCoin.name}
             <i className={`fas fa-chevron-down dropdown-arrow ${showCoinSelector ? 'rotate' : ''}`}></i>
           </div>

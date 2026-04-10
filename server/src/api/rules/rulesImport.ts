@@ -1,18 +1,21 @@
-
 import PermissionChecker from '../../services/user/permissionChecker';
 import ApiResponseHandler from '../apiResponseHandler';
 import Permissions from '../../security/permissions';
-import CategoryService from '../../services/categoryService';
+import RulesService from '../../services/rulesService';
+
 
 export default async (req, res, next) => {
   try {
     new PermissionChecker(req).validateHas(
-      Permissions.values.categoryCreate,
+      Permissions.values.categoryImport,
     );
 
-    const payload = await new CategoryService(req).create(
+    await new RulesService(req).import(
       req.body.data,
+      req.body.importHash,
     );
+
+    const payload = true;
 
     await ApiResponseHandler.success(req, res, payload);
   } catch (error) {

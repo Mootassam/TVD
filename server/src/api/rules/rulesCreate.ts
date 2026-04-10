@@ -2,7 +2,7 @@
 import PermissionChecker from '../../services/user/permissionChecker';
 import ApiResponseHandler from '../apiResponseHandler';
 import Permissions from '../../security/permissions';
-import CategoryService from '../../services/categoryService';
+import RulesService from '../../services/rulesService';
 
 export default async (req, res, next) => {
   try {
@@ -10,7 +10,7 @@ export default async (req, res, next) => {
       Permissions.values.categoryCreate,
     );
 
-    const payload = await new CategoryService(req).create(
+    const payload = await new RulesService(req).create(
       req.body.data,
     );
 

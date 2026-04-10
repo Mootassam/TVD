@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { init, dispose, KLineData } from "klinecharts";
+import { fetchAllCryptoPrices, cryptoCoinIds } from "../Market/MarketContext";
 
 const INDICATORS = ["MA", "EMA", "BOLL", "MACD", "RSI", "WR", "VOL"] as const;
 type IndicatorName = (typeof INDICATORS)[number];
@@ -10,38 +11,83 @@ type TF = (typeof TIMEFRAMES)[number];
 const chartTypes = ["candle", "bar", "area"] as const;
 type ChartType = (typeof chartTypes)[number];
 
-// Base prices for forex pairs (used as starting point)
+// All base prices for all pairs
 const basePrices: Record<string, number> = {
-  EURUSD: 1.0850,
-  GBPUSD: 1.2650,
-  USDJPY: 148.50,
-  AUDUSD: 0.6550,
-  USDCAD: 1.3550,
-  USDCHF: 0.8750,
-  NZDUSD: 0.6050,
-  EURGBP: 0.8570,
-  EURJPY: 161.20,
-  GBPJPY: 188.30,
-  AUDJPY: 97.20,
-  EURAUD: 1.6550,
-  GBPAUD: 1.9300,
-  USDMXN: 17.20,
-  USDRY: 30.50,
-  USDZAR: 18.90,
-  USDSGD: 1.3450,
-  USDHKD: 7.8200,
-  USDKRW: 1330.00,
-  USDINR: 83.20,
+  // Forex
+  EURUSD: 1.0842, GBPUSD: 1.2635, USDJPY: 148.65, AUDUSD: 0.6532, USDCAD: 1.3580, USDCHF: 0.8795, NZDUSD: 0.6025, EURGBP: 0.8590, EURJPY: 161.15, GBPJPY: 187.65, AUDJPY: 97.15, EURAUD: 1.6590, GBPAUD: 1.9340, USDMXN: 17.25, USDTRY: 32.15, USDZAR: 18.95, USDSGD: 1.3420, USDHKD: 7.8185, USDKRW: 1335.00, USDINR: 83.25, EURCHF: 0.9530, EURNZD: 1.7990, GBPEUR: 1.1645, AUDNZD: 1.0845, CADJPY: 109.50, CHFJPY: 169.05, NZDJPY: 91.25, SGDJPY: 110.75, HKDJPY: 19.02, ZARJPY: 7.85,
+  // Metals
+  XAUUSD: 2345.80, XAGUSD: 28.25, XPTUSD: 985.50, XPDUSD: 1045.00, XAUEUR: 2165.00, XAGEUR: 26.05, XPTEUR: 908.00, XAUGBP: 1855.00, XAGGBP: 22.35,
+  // Oil
+  USOIL: 84.25, UKOIL: 87.85, BRENT: 87.15, WTI: 84.35, CRUDE: 84.50, NGAS: 2.85, HEAT: 2.65, GAS: 2.75,
+  // CFD
+  US30: 38550, US500: 5125, NAS100: 18450, US2000: 2185, GER40: 18485, UK100: 8075, FRA40: 7525, EU50: 4895, JP225: 39750, HK50: 16750, AUS200: 7850, TWII: 20750, KR100: 2850, IN50: 22450, TECH100: 8450,
+  // Crypto
+  BTCUSD: 67450, ETHUSD: 3425, XRPUSD: 0.515, SOLUSD: 142.50, ADAUSD: 0.445, DOGEUSD: 0.0825, DOTUSD: 7.15, AVAXUSD: 34.85, LINKUSD: 14.25, MATICUSD: 0.585, UNIUSD: 6.85, ATOMUSD: 8.45, LTCUSD: 84.50, BCHUSD: 485.00, NEARUSD: 5.25, ALGOUSD: 0.185, VETUSD: 0.0225, FILUSD: 5.85, THETAUSD: 0.985, AXSUSD: 6.85, SANDUSD: 0.425, MANAUSD: 0.385, ENJUSD: 0.285, CHZUSD: 0.085, APEUSD: 1.25,
 };
 
-// Get decimal places for a symbol (forex convention)
+// Get decimal places for each symbol
 const getDecimalPlaces = (symbol: string): number => {
-  if (symbol.includes("JPY") && !symbol.startsWith("JPY")) return 3;
-  return 5;
+  if (["XAUUSD", "XAUEUR", "XAUGBP"].includes(symbol)) return 2;
+  if (["XAGUSD", "XAGEUR", "XAGGBP"].includes(symbol)) return 2;
+  if (["XPTUSD", "XPTEUR"].includes(symbol)) return 2;
+  if (["XPDUSD"].includes(symbol)) return 2;
+  if (["USOIL", "UKOIL", "BRENT", "WTI", "CRUDE"].includes(symbol)) return 2;
+  if (["NGAS", "HEAT", "GAS"].includes(symbol)) return 3;
+  if (["BTCUSD", "ETHUSD"].includes(symbol)) return 2;
+  if (["XRPUSD", "ADAUSD", "DOGEUSD", "MATICUSD", "UNIUSD", "THETAUSD", "CHZUSD", "APEUSD"].includes(symbol)) return 4;
+  if (["LTCUSD", "BCHUSD", "FILUSD", "AXSUSD", "SANDUSD", "MANAUSD", "ENJUSD"].includes(symbol)) return 2;
+  if (["DOTUSD", "AVAXUSD", "LINKUSD", "ATOMUSD", "NEARUSD"].includes(symbol)) return 2;
+  if (["ALGOUSD", "VETUSD"].includes(symbol)) return 4;
+  if (["US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225", "HK50", "AUS200", "TWII", "KR100", "IN50", "TECH100"].includes(symbol)) return 0;
+  if (symbol.endsWith("JPY")) return 3;
+  if (symbol.includes("USD") && !symbol.startsWith("USD")) return 5;
+  return 2;
+};
+
+// Fetch all crypto prices from shared context
+const fetchCryptoPrices = async (): Promise<Record<string, { price: number; change: number }>> => {
+  await fetchAllCryptoPrices();
+  const result: Record<string, { price: number; change: number }> = {};
+  Object.keys(cryptoCoinIds).forEach(symbol => {
+    if (cryptoCoinIds[symbol]) {
+      // This will use the shared cache
+      fetchAllCryptoPrices().then(prices => {
+        if (prices[symbol]) {
+          result[symbol] = { price: prices[symbol].price, change: prices[symbol].change };
+        }
+      });
+    }
+  });
+  return result;
+};
+
+// Legacy function - uses shared prices
+const fetchCryptoPrice = async (symbol: string): Promise<{ price: number; change: number } | null> => {
+  if (!cryptoCoinIds[symbol]) return null;
+  const prices = await fetchCryptoPrices();
+  if (prices[symbol]) {
+    return { price: prices[symbol].price, change: prices[symbol].change };
+  }
+  return null;
+};
+
+// Get volatility based on asset type
+const getVolatility = (symbol: string, timeframe: TF): number => {
+  const volatilityMap: Record<TF, number> = {
+    "1m": 0.0001, "5m": 0.0002, "15m": 0.0003, "1h": 0.0005, "4h": 0.0008, "1d": 0.002,
+  };
+  const baseVol = volatilityMap[timeframe] || 0.0005;
+  
+  // Higher volatility for crypto, metals, oil
+  if (cryptoCoinIds[symbol]) return baseVol * 10; // Crypto is very volatile
+  if (symbol.startsWith("XAU") || symbol.startsWith("XAG") || symbol.startsWith("XPT") || symbol.startsWith("XPD")) return baseVol * 2;
+  if (symbol.includes("OIL") || symbol === "BRENT" || symbol === "WTI" || symbol === "NGAS" || symbol === "HEAT" || symbol === "GAS") return baseVol * 3;
+  if (["US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225", "HK50", "AUS200", "TWII", "KR100", "IN50", "TECH100"].includes(symbol)) return baseVol * 1.5;
+  return baseVol;
 };
 
 // Random walk price change
-const randomChange = (current: number, volatility: number = 0.001): number => {
+const randomChange = (current: number, volatility: number): number => {
   const change = (Math.random() * 2 - 1) * volatility;
   return current * (1 + change);
 };
@@ -53,15 +99,7 @@ const generateHistory = (
   count: number = 500
 ): KLineData[] => {
   const basePrice = basePrices[symbol] || 1.0;
-  const volatilityMap: Record<TF, number> = {
-    "1m": 0.0001,
-    "5m": 0.0002,
-    "15m": 0.0003,
-    "1h": 0.0005,
-    "4h": 0.0008,
-    "1d": 0.002,
-  };
-  const volatility = volatilityMap[timeframe] || 0.0005;
+  const volatility = getVolatility(symbol, timeframe);
 
   const data: KLineData[] = [];
   let price = basePrice;
@@ -244,26 +282,42 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "EURUSD" }) => {
 
     // Clear old interval and set up new one for real‑time updates
     if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
+    
+    // Fetch crypto price and use it as base if available
+    let cachedCryptoPrice: number | null = null;
+    if (cryptoCoinIds[symbol]) {
+      fetchCryptoPrice(symbol).then(result => {
+        if (result) cachedCryptoPrice = result.price;
+      });
+    }
+
+    intervalRef.current = setInterval(async () => {
       const chart = chartRef.current;
       if (!chart) return;
 
-      // ✅ Correct way: use getDataList() to retrieve all candles
+      // Get current last candle
       const dataList = chart.getDataList?.();
       const lastCandle = dataList?.[dataList.length - 1];
       if (!lastCandle) return;
 
-      const volatilityMap: Record<TF, number> = {
-        "1m": 0.0001,
-        "5m": 0.0002,
-        "15m": 0.0003,
-        "1h": 0.0005,
-        "4h": 0.0008,
-        "1d": 0.002,
-      };
-      const volatility = volatilityMap[activeTf] || 0.0005;
-
-      const newClose = randomChange(lastCandle.close, volatility);
+      let newClose: number;
+      
+      // Use real crypto price if available
+      if (cryptoCoinIds[symbol]) {
+        const cryptoData = await fetchCryptoPrice(symbol);
+        if (cryptoData) {
+          cachedCryptoPrice = cryptoData.price;
+          newClose = cryptoData.price;
+        } else if (cachedCryptoPrice) {
+          newClose = cachedCryptoPrice;
+        } else {
+          newClose = lastCandle.close;
+        }
+      } else {
+        const volatility = getVolatility(symbol, activeTf);
+        newClose = randomChange(lastCandle.close, volatility);
+      }
+      
       const newHigh = Math.max(lastCandle.high, newClose);
       const newLow = Math.min(lastCandle.low, newClose);
       const updatedCandle = {
@@ -276,7 +330,7 @@ const FuturesChart: React.FC<FuturesChartProps> = ({ symbol = "EURUSD" }) => {
 
       // Update the last candle with the new tick
       chart.updateData?.(updatedCandle);
-    }, 1000); // update every second
+    }, 2000); // update every 2 seconds
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);

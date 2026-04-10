@@ -189,14 +189,7 @@ function History() {
   return (
     <div className="history-container">
       {/* Header Section - Matching Profile Page */}
-      <div className="header">
-        <div className="nav-bar">
-          <Link to="/wallets" className="back-arrow">
-            <i className="fas fa-arrow-left" />
-          </Link>
-          <div className="page-title">{i18n("pages.history.title")}</div>
-        </div>
-      </div>
+  
 
       {/* Content Card - Matching Profile Page */}
       <div className="content-card">
@@ -345,10 +338,7 @@ function History() {
         .content-card {
           flex: 1;
           background-color: #1c1c1c;
-          border-top-left-radius: 24px;
-          border-top-right-radius: 24px;
           padding: 20px 16px;
-          border-top: 2px solid #39FF14;
         }
 
         /* Filter Options */
