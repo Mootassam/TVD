@@ -4,7 +4,7 @@ import AuditLogRepository from "./auditLogRepository";
 import Error404 from "../../errors/Error404";
 import { IRepositoryOptions } from "./IRepositoryOptions";
 import lodash from "lodash";
-import Category from "../models/category";
+import Rules from "../models/rules";
 import FileRepository from "./fileRepository";
 
 class RulesRepository {
@@ -13,7 +13,7 @@ class RulesRepository {
 
     const currentUser = MongooseRepository.getCurrentUser(options);
 
-    const [record] = await Category(options.database).create(
+    const [record] = await Rules(options.database).create(
       [
         {
           ...data,
@@ -36,7 +36,7 @@ class RulesRepository {
   }
 
   static async findContact(options) {
-    const record = await Category(options.database).find();
+    const record = await Rules(options.database).find();
     const item = record.find((item) => item.name === "WhatsApp");
     return item.number;
   }
@@ -45,7 +45,7 @@ class RulesRepository {
     const currentTenant = MongooseRepository.getCurrentTenant(options);
 
     let record = await MongooseRepository.wrapWithSessionIfExists(
-      Category(options.database).findOne({
+      Rules(options.database).findOne({
         _id: id,
         tenant: currentTenant.id,
       }),
@@ -56,7 +56,7 @@ class RulesRepository {
       throw new Error404();
     }
 
-    await Category(options.database).updateOne(
+    await Rules(options.database).updateOne(
       { _id: id },
       {
         ...data,
@@ -76,7 +76,7 @@ class RulesRepository {
     const currentTenant = MongooseRepository.getCurrentTenant(options);
 
     let record = await MongooseRepository.wrapWithSessionIfExists(
-      Category(options.database).findOne({
+      Rules(options.database).findOne({
         _id: id,
         tenant: currentTenant.id,
       }),
@@ -87,7 +87,7 @@ class RulesRepository {
       throw new Error404();
     }
 
-    await Category(options.database).deleteOne({ _id: id }, options);
+    await Rules(options.database).deleteOne({ _id: id }, options);
 
     await this._createAuditLog(AuditLogRepository.DELETE, id, record, options);
   }
@@ -103,7 +103,7 @@ class RulesRepository {
 
     const currentTenant = MongooseRepository.getCurrentTenant(options);
 
-    const records = await Category(options.database)
+    const records = await Rules(options.database)
       .find({
         _id: { $in: ids },
         tenant: currentTenant.id,
@@ -117,7 +117,7 @@ class RulesRepository {
     const currentTenant = MongooseRepository.getCurrentTenant(options);
 
     return MongooseRepository.wrapWithSessionIfExists(
-      Category(options.database).countDocuments({
+      Rules(options.database).countDocuments({
         ...filter,
         tenant: currentTenant.id,
       }),
@@ -129,7 +129,7 @@ class RulesRepository {
     const currentTenant = MongooseRepository.getCurrentTenant(options);
 
     let record = await MongooseRepository.wrapWithSessionIfExists(
-      Category(options.database).findOne({
+      Rules(options.database).findOne({
         _id: id,
         tenant: currentTenant.id,
       }),
@@ -243,13 +243,13 @@ class RulesRepository {
     const limitEscaped = Number(limit || 0) || undefined;
     const criteria = criteriaAnd.length ? { $and: criteriaAnd } : null;
 
-    let rows = await Category(options.database)
+    let rows = await Rules(options.database)
       .find(criteria)
       .skip(skip)
       .limit(limitEscaped)
       .sort(sort);
 
-    const count = await Category(options.database).countDocuments(criteria);
+    const count = await Rules(options.database).countDocuments(criteria);
 
     rows = await Promise.all(
       rows.map(this._mapRelationshipsAndFillDownloadUrl)
@@ -288,7 +288,7 @@ class RulesRepository {
 
     const criteria = { $and: criteriaAnd };
 
-    const records = await Category(options.database)
+    const records = await Rules(options.database)
       .find(criteria)
       .limit(limitEscaped)
       .sort(sort);
@@ -302,7 +302,7 @@ class RulesRepository {
   static async _createAuditLog(action, id, data, options: IRepositoryOptions) {
     // await AuditLogRepository.log(
     //   {
-    //     entityName: Category(options.database).modelName,
+    //     entityName: Rules(options.database).modelName,
     //     entityId: id,
     //     action,
     //     values: data,

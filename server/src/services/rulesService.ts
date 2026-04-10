@@ -1,7 +1,7 @@
 import Error400 from "../errors/Error400";
 import MongooseRepository from "../database/repositories/mongooseRepository";
 import { IServiceOptions } from "./IServiceOptions";
-import CategoryRepository from "../database/repositories/categoryRepository";
+import RulesRepository from "../database/repositories/rulesRepository";
 
 export default class RulesService {
   options: IServiceOptions;
@@ -16,7 +16,7 @@ export default class RulesService {
     );
 
     try {
-      const record = await CategoryRepository.create(data, {
+      const record = await RulesRepository.create(data, {
         ...this.options,
         session,
       });
@@ -34,7 +34,7 @@ export default class RulesService {
   }
 
   async findAll() {
-    const record = await CategoryRepository.findContact(this.options);
+    const record = await RulesRepository.findContact(this.options);
     return record;
   }
 
@@ -44,7 +44,7 @@ export default class RulesService {
     );
 
     try {
-      const record = await CategoryRepository.update(id, data, {
+      const record = await RulesRepository.update(id, data, {
         ...this.options,
         session,
       });
@@ -72,7 +72,7 @@ export default class RulesService {
 
     try {
       for (const id of ids) {
-        await CategoryRepository.destroy(id, {
+        await RulesRepository.destroy(id, {
           ...this.options,
           session,
         });
@@ -86,15 +86,15 @@ export default class RulesService {
   }
 
   async findById(id) {
-    return CategoryRepository.findById(id, this.options);
+    return RulesRepository.findById(id, this.options);
   }
 
   async findAllAutocomplete(search, limit) {
-    return CategoryRepository.findAllAutocomplete(search, limit, this.options);
+    return RulesRepository.findAllAutocomplete(search, limit, this.options);
   }
 
   async findAndCountAll(args) {
-    return CategoryRepository.findAndCountAll(args, this.options);
+    return RulesRepository.findAndCountAll(args, this.options);
   }
 
   async import(data, importHash) {
@@ -121,7 +121,7 @@ export default class RulesService {
   }
 
   async _isImportHashExistent(importHash) {
-    const count = await CategoryRepository.count(
+    const count = await RulesRepository.count(
       {
         importHash,
       },
