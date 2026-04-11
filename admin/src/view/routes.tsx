@@ -68,6 +68,7 @@ const privateRoutes = [
     permissionRequired: permissions.categoryRead,
     exact: true,
   },
+
   {
     path: '/category',
     loader: () =>
@@ -105,6 +106,86 @@ const privateRoutes = [
     permissionRequired: permissions.categoryRead,
     exact: true,
   },
+
+
+// routes for rules
+
+
+{
+    path: '/rules',
+    loader: () =>
+      import('src/view/rules/list/RulesListPage'),
+    permissionRequired: permissions.categoryRead,
+    exact: true,
+  },
+  {
+    path: '/rules/new',
+    loader: () =>
+      import('src/view/rules/form/RulesFormPage'),
+    permissionRequired: permissions.categoryCreate,
+    exact: true,
+  },
+  {
+    path: '/rules/importer',
+    loader: () =>
+      import(
+        'src/view/rules/importer/RulesImporterPage'
+      ),
+    permissionRequired: permissions.categoryImport,
+    exact: true,
+  },
+  {
+    path: '/rules/:id/edit',
+    loader: () =>
+      import('src/view/rules/form/RulesFormPage'),
+    permissionRequired: permissions.categoryEdit,
+    exact: true,
+  },
+  {
+    path: '/rules/:id',
+    loader: () =>
+      import('src/view/rules/view/RulesViewPage'),
+    permissionRequired: permissions.categoryRead,
+    exact: true,
+  },{
+    path: '/rules',
+    loader: () =>
+      import('src/view/rules/list/RulesListPage'),
+    permissionRequired: permissions.categoryRead,
+    exact: true,
+  },
+  {
+    path: '/rules/new',
+    loader: () =>
+      import('src/view/rules/form/RulesFormPage'),
+    permissionRequired: permissions.categoryCreate,
+    exact: true,
+  },
+  {
+    path: '/rules/importer',
+    loader: () =>
+      import(
+        'src/view/rules/importer/RulesImporterPage'
+      ),
+    permissionRequired: permissions.categoryImport,
+    exact: true,
+  },
+  {
+    path: '/rules/:id/edit',
+    loader: () =>
+      import('src/view/rules/form/RulesFormPage'),
+    permissionRequired: permissions.categoryEdit,
+    exact: true,
+  },
+  {
+    path: '/rules/:id',
+    loader: () =>
+      import('src/view/rules/view/RulesViewPage'),
+    permissionRequired: permissions.categoryRead,
+    exact: true,
+  },
+
+
 
   // product routes
   {

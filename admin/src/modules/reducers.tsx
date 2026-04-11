@@ -8,6 +8,8 @@ import settings from 'src/modules/settings/settingsReducers';
 import numbers from 'src/modules/numbers/numberReducers';
 import coupons from 'src/modules/coupons/couponsReducers';
 import category from 'src/modules/category/categoryReducers';
+import rules from 'src/modules/rules/rulesReducers';
+
 import vip from 'src/modules/vip/vipReducers'
 import transaction from 'src/modules/transaction/transactionReducers'
 import product from 'src/modules/product/productReducers'
@@ -35,5 +37,6 @@ export default (history) =>
     notification,
     settings,
     numbers,
+    rules
 
   });

@@ -3509,6 +3509,7 @@ const en = {
     home: 'Home',
     plan: 'Stacking Plan',
     aboutUs: "About Us",
+    rules: "Rules",
     users: 'Users',
     customersupport:"Customer Support ",
     depositMethod: "Deposit Method",

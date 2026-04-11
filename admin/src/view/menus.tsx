@@ -55,6 +55,17 @@ export default [
     permissionRequired: permissions.userRead,
   },
 
+  {
+    id: 'rules',
+    path: '/rules',
+    exact: true,
+    icon: 'fas fa-list',
+    label: i18n('dashboard.rules'),
+    className: 'menu-li side-menue sub-item',
+    permissionRequired: permissions.userRead,
+  },
+
+
 
   {
     id: 'category',
