@@ -4,6 +4,8 @@ import auth from "src/modules/auth/authReducers";
 import tenant from "src/modules/tenant/tenantReducers";
 import user from "src/modules/user/userReducers";
 import category from "src/modules/category/categoryReducers";
+import rules from "src/modules/category/categoryReducers";
+
 import company from "src/modules/company/companyReducers";
 import vip from "src/modules/vip/vipReducers";
 import plan from "src/modules/stackingPlan/stackingPlanReducers";
@@ -47,4 +49,5 @@ export default (history) =>
     record,
     tenant,
     user,
+    rules
   });

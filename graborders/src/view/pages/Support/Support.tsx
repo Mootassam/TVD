@@ -1,8 +1,22 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Link } from 'react-router-dom';
+import actions from "src/modules/rules/list/rulesListActions";
+import selector from "src/modules/rules/list/rulesListSelectors";
 import { i18n } from "../../../i18n";
 
 function HelpCenter() {
+  const dispatch = useDispatch();
+
+  const record = useSelector(selector.selectRows);
+  console.log("🚀 ~ HelpCenter ~ record:", record)
+  const loading = useSelector(selector.selectLoading);
+
+  useEffect(() => {
+    dispatch(actions.doFetch());
+    // eslint-disable-next-line
+  }, [dispatch]);
+
   const faqItems = [
     i18n("pages.helpCenter.faq.aboutAccounts"),
     i18n("pages.helpCenter.faq.transactionVolume"),
@@ -29,13 +43,13 @@ function HelpCenter() {
       {/* Content Card - Matching Profile Page */}
       <div className="content-card">
         <div className="helpcenter-content">
-          {faqItems.map((question, index) => (
+          {record.map((item, index) => (
             <Link to={`/support/details/${index + 1}`} className="remove_blue" key={index}>
               <div className="faq-item">
                 <div className="faq-icon">
                   <i className="fas fa-arrow-left" />
                 </div>
-                <div className="faq-text">{question}</div>
+                <div className="faq-text">{item.question}</div>
               </div>
             </Link>
           ))}
