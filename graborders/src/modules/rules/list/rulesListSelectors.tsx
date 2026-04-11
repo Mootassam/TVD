@@ -110,7 +110,7 @@ const selectIsAllSelected = createSelector(
   },
 );
 
-const categoryListSelectors = {
+const rulesListSelectors = {
   selectLoading,
   selectRows,
   selectCount,
@@ -128,4 +128,4 @@ const categoryListSelectors = {
   selectSorter,
 };
 
-export default categoryListSelectors;
+export default rulesListSelectors;

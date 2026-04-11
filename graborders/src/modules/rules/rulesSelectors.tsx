@@ -58,7 +58,7 @@ const selectPermissionToDestroy = createSelector(
     ),
 );
 
-const categorySelectors = {
+const rulesSelectors = {
   selectPermissionToRead,
   selectPermissionToEdit,
   selectPermissionToCreate,
@@ -66,4 +66,4 @@ const categorySelectors = {
   selectPermissionToImport,
 };
 
-export default categorySelectors;
+export default rulesSelectors;
