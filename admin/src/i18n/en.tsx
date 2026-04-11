@@ -2,12 +2,12 @@ const en = {
   common: {
     freeze: 'freeze',
     onclicklogin: 'One-Click Login',
-      freezeConfirmation: "Freeze Funds",
+    freezeConfirmation: "Freeze Funds",
     unfreezeConfirmation: "Unfreeze Funds",
-     unfreeze: "Unfreeze",
+    unfreeze: "Unfreeze",
     or: 'Or',
     cancel: 'Cancel',
-    reset: 'Change Password',
+    reset: 'Reset',
     save: 'Save',
     search: 'Search',
     edit: 'Edit',
@@ -333,7 +333,7 @@ const en = {
     assets: {
       menu: 'Assets',
 
-       freeze: {
+      freeze: {
         confirmation: "Are you sure you want to freeze these funds?"
       },
       unfreeze: {
@@ -343,9 +343,9 @@ const en = {
         title: 'Assets List',
       },
       fields: {
-        accountType:"Account Type",
+        accountType: "Account Type",
         id: 'ID',
-        idnumber:'idnumber',
+        idnumber: 'idnumber',
         user: 'User',
         symbol: 'Symbol',
         coinName: 'Coin Name',
@@ -364,8 +364,8 @@ const en = {
           locked: 'Locked',
           pending: 'Pending',
         },
-        accountType :{ 
-            exchange: 'exchange',
+        accountType: {
+          exchange: 'exchange',
           trade: 'trade',
           perpetual: 'perpetual',
         }
@@ -809,6 +809,7 @@ const en = {
       list: {
         menu: 'Categories',
         title: 'Customer Support',
+        rules:'Rules',
       },
       create: {
         success: 'Number successfully saved',
@@ -824,11 +825,15 @@ const en = {
       },
       edit: {
         title: 'Edit Number',
+        editRule: 'Edit Rule',
+
       },
       fields: {
         id: 'Id',
         name: 'Name',
         slug: 'Number',
+        question: 'Question',
+        description: 'Description',
         photo: 'Photo',
         metaKeywords: 'MetaKeywords',
         metaDescriptions: 'MetaDescriptions',
@@ -856,6 +861,7 @@ const en = {
       hints: {},
       new: {
         title: 'New Number',
+        newrules: 'New Rule',
       },
       view: {
         title: 'View Number',
@@ -3511,7 +3517,7 @@ const en = {
     aboutUs: "About Us",
     rules: "Rules",
     users: 'Users',
-    customersupport:"Customer Support ",
+    customersupport: "Customer Support ",
     depositMethod: "Deposit Method",
     userManagement: 'User Management',
     clients: "Clients",

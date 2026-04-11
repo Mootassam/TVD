@@ -127,9 +127,9 @@ function RulesListTable(props) {
 
               <th
                 className="sortable-header"
-                onClick={() => doChangeSort('name')}
+                onClick={() => doChangeSort('question')}
               >
-                {i18n('entities.category.fields.name')}
+                {i18n('entities.category.fields.question')}
                 {sorter.field === 'name' && (
                   <span className="sort-icon">
                     {sorter.order === 'ascend' ? '↑' : '↓'}
@@ -139,9 +139,9 @@ function RulesListTable(props) {
 
               <th
                 className="sortable-header"
-                onClick={() => doChangeSort('status')}
+                onClick={() => doChangeSort('description')}
               >
-                {i18n('entities.category.fields.name')}
+                {i18n('entities.category.fields.description')}
                 {sorter.field === 'status' && (
                   <span className="sort-icon">
                     {sorter.order === 'ascend' ? '↑' : '↓'}
@@ -149,8 +149,7 @@ function RulesListTable(props) {
                 )}
               </th>
 
-              <th className="actions-header">status</th>
-              
+
               <th className="actions-header">Actions</th>
             </tr>
           </thead>
@@ -190,48 +189,16 @@ function RulesListTable(props) {
                   </td>
 
                   {/* Photo + Name combined? Actually we have separate photo column, but we can put photo inside name cell or separate. In the original KYC table, they have separate cells for images. Here we have only one photo. To match style, we'll create a cell for photo and one for name. */}
-                  <td className="table-cell">
-                    {row.photo && row.photo[0]?.downloadUrl ? (
-                      <div
-                        className="image-preview-thumbnail"
-                        onClick={() =>
-                          openImagePreview(
-                            row.photo[0].downloadUrl,
-                            `Category Photo - ${row.name}`
-                          )
-                        }
-                      >
-                        <img
-                          src={row.photo[0].downloadUrl}
-                          style={{ height: '50px', cursor: 'pointer' }}
-                          alt={row.name}
-                          title="Click to view larger"
-                        />
-                        <div className="image-overlay">
-                          <i className="fas fa-search-plus"></i>
-                        </div>
-                      </div>
-                    ) : (
-                      <span>No image</span>
-                    )}
+
+
+                  <td className="table-cell numeric">
+                    {row.question}
                   </td>
 
                   <td className="table-cell numeric">
-                    {row.name}
+                    {row.description}
                   </td>
 
-                  <td className="table-cell">
-                    <select
-                      className="form-control"
-                      name="status"
-                      onChange={(e) => formSubmit(row.id, e)}
-                      value={row.status}
-                      style={{ width: '100%' }}
-                    >
-                      <option value="enable">Enable</option>
-                      <option value="disable">Disable</option>
-                    </select>
-                  </td>
 
                   <td className="actions-cell">
                     <div className="actions-container">

@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 export default (database) => {
   try {
-    return database.model("category");
+    return database.model("rules");
   } catch (error) {
     // continue, because model doesnt exist
   }

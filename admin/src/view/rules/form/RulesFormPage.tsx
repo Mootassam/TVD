@@ -5,7 +5,7 @@ import { i18n } from 'src/i18n';
 import actions from 'src/modules/rules/form/rulesFormActions';
 import selectors from 'src/modules/rules/form/rulesFormSelectors';
 import { getHistory } from 'src/modules/store';
-import CategoryForm from 'src/view/rules/form/RulesForm';
+import RulesForm from 'src/view/rules/form/RulesForm';
 import ContentWrapper from 'src/view/layout/styles/ContentWrapper';
 import Breadcrumb from 'src/view/shared/Breadcrumb';
 import Spinner from 'src/view/shared/Spinner';
@@ -26,8 +26,8 @@ function RulesFormPage(props) {
 
   const isEditing = Boolean(match.params.id);
   const title = isEditing
-    ? i18n('entities.category.edit.title')
-    : i18n('entities.category.new.title');
+    ? i18n('entities.category.edit.editRule')
+    : i18n('entities.category.new.newrules');
 
   useEffect(() => {
     dispatch(actions.doInit(match.params.id));
@@ -58,7 +58,7 @@ function RulesFormPage(props) {
         {initLoading && <Spinner />}
 
         {dispatched && !initLoading && (
-          <CategoryForm
+          <RulesForm
             saveLoading={saveLoading}
             initLoading={initLoading}
             record={record}

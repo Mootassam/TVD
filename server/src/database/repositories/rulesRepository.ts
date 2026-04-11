@@ -6,6 +6,7 @@ import { IRepositoryOptions } from "./IRepositoryOptions";
 import lodash from "lodash";
 import Rules from "../models/rules";
 import FileRepository from "./fileRepository";
+import { log } from "console";
 
 class RulesRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -148,6 +149,9 @@ class RulesRepository {
     options: IRepositoryOptions
   ) {
     
+
+
+    log("filter",);
     const currentTenant = MongooseRepository.getCurrentTenant(options);
 
     let criteriaAnd: any = [];

@@ -13,6 +13,7 @@ import SelectFormItem from 'src/view/shared/form/items/SelectFormItem';
 import categoryEnumerators from 'src/modules/rules/rulesEnumerators';
 import Storage from 'src/security/storage';
 import ImagesFormItem from 'src/view/shared/form/items/ImagesFormItem';
+import TextAreaFormItem from 'src/view/shared/form/items/TextAreaFormItem';
 
 const schema = yup.object().shape({
   name: yupFormSchemas.string(
@@ -51,21 +52,14 @@ const schema = yup.object().shape({
   ),
 });
 
-function RulesForm(props) {
+function RulesForm
+  (props) {
   const [initialValues] = useState(() => {
     const record = props.record || {};
 
     return {
-      name: record.name,
-      number: record.number,
-      type: record.type,
-      slug: record.slug,
-      photo: record.photo || [],
-      metaKeywords: record.metaKeywords,
-      metaDescriptions: record.metaDescriptions,
-      status: record.status,
-      isFeature: record.isFeature,
-      serial: record.serial,
+      question: record.question,
+      description: record.description,
     };
   });
 
@@ -91,61 +85,29 @@ function RulesForm(props) {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="row">
             <div className="col-lg-7 col-md-8 col-12">
-              <SelectFormItem
-                name="type"
-                label={i18n(
-                  'entities.category.fields.type',
-                )}
-                options={categoryEnumerators.type.map(
-                  (value) => ({
-                    value,
-                    label: i18n(
-                      `entities.category.enumerators.type.${value}`,
-                    ),
-                  }),
-                )}
-                required={false}
-              />
-            </div>
-            <div className="col-lg-7 col-md-8 col-12">
-              <ImagesFormItem
-                name="photo"
-                label={i18n(
-                  'entities.category.fields.photo',
-                )}
-                required={false}
-                storage={Storage.values.categoryPhoto}
-                max={undefined}
-              />
-            </div>
-            <div className="col-lg-7 col-md-8 col-12">
               <InputFormItem
-                name="name"
+                name="question"
                 label={i18n(
-                  'entities.category.fields.name',
+                  'entities.category.fields.question',
                 )}
                 required={false}
                 autoFocus
               />
             </div>
+
             <div className="col-lg-7 col-md-8 col-12">
-              <InputFormItem
-                name="number"
+              <TextAreaFormItem
+                name="description"
                 label={i18n(
-                  'entities.category.fields.slug',
+                  'entities.category.fields.description',
                 )}
                 required={false}
+                autoFocus
               />
             </div>
 
-            {/* <div className="col-lg-7 col-md-8 col-12">
-              <SwitchFormItem
-                name="isFeature"
-                label={i18n(
-                  'entities.category.fields.isFeature',
-                )}
-              />
-            </div> */}
+
+
           </div>
 
           <div className="form-buttons">
