@@ -21,16 +21,16 @@ const schema = yup.object().shape({
   user: yupFilterSchemas.relationToOne(
     i18n('entities.transaction.fields.user'),
   ),
-  idnumber: yupFilterSchemas.decimal(
-    i18n('entities.assets.fields.idnumber'),
-  ),
-    accountType:  yupFilterSchemas.enumerator(i18n('entities.assets.fields.accountType')),
+  // idnumber: yupFilterSchemas.decimal(
+  //   i18n('entities.assets.fields.idnumber'),
+  // ),
+  //   accountType:  yupFilterSchemas.enumerator(i18n('entities.assets.fields.accountType')),
 
  });
 
 const emptyValues = {
 user: null,
-  levellimit: null,
+  // levellimit: null,
 };
 
 const previewRenders = {
@@ -38,15 +38,15 @@ const previewRenders = {
     label: i18n('entities.transaction.fields.user'),
     render: filterRenders.relationToOne(),
   },
-  idnumer: {
-    label: i18n('entities.assets.fields.idnumer'),
-    render: filterRenders.decimal(),
-  },
+  // idnumer: {
+  //   label: i18n('entities.assets.fields.idnumer'),
+  //   render: filterRenders.decimal(),
+  // },
 
-  accountType: {
-    label: i18n('entities.assets.fields.accountType'),
-    render: filterRenders.enumerator('user.accountType'),
-  },
+  // accountType: {
+  //   label: i18n('entities.assets.fields.accountType'),
+  //   render: filterRenders.enumerator('user.accountType'),
+  // },
   
 
 };
@@ -128,7 +128,7 @@ function CouponsListFilter(props) {
 
 
 
-                       <div className="col-lg-6 col-12">
+                       {/* <div className="col-lg-6 col-12">
                   <SelectFormItem
                     name={'accountType'}
                     label={i18n('entities.assets.fields.accountType')}
@@ -149,7 +149,7 @@ function CouponsListFilter(props) {
                     )}
                   />
                 </div>
-             
+              */}
             
               </div>
 

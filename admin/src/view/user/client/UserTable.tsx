@@ -202,6 +202,15 @@ function UserTable() {
                     <td className="actions-cell">
                       <div className="actions-container">
                   
+                 
+                          <Link
+                            className="btn btn-link"
+                            to={`/user/${row.id}`}
+                          >
+                            <i className="fas fa-eye"></i>
+                            
+                          </Link>
+                   
 
                         <Link
                           className="btn btn-link"

@@ -236,6 +236,7 @@ const en = {
         title: 'Deposit Orders',
       },
       fields: {
+        depositType: 'Deposit Type',
         id: 'id',
         orderno: 'Order No',
         createdBy: 'Created By',
@@ -442,6 +443,7 @@ const en = {
       fields: {
         id: 'ID',
         orderNo: 'Order No',
+        withdrawType: 'Withdraw Type',
         currency: 'Currency',
         withdrawAmount: 'Withdraw Amount',
         withdrawAddress: 'Withdraw Address',
@@ -3262,6 +3264,14 @@ const en = {
 
   user: {
     fields: {
+      accountHolderName: 'Account Holder Name',
+      bankName: 'Bank Name',
+      ibanNumber: 'IBAN Number',
+      ifscCode: 'IFSC Code',
+      walletname: 'Wallet Name',
+      usernamewallet: 'Username Wallet',
+      preferredcoin: 'Preferred Coin',
+      trc20: 'TRC20 Address',
       currentrecord: 'Tasks Done',
       freezeblance: 'Freeze Balance',
       id: 'Id',

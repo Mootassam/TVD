@@ -11,6 +11,7 @@ import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import UserViewPage from 'src/view/user/view/UserViewPage';
 import UserWalletPage from 'src/view/user/view/UserWalletPage';
+import UserBankPage from 'src/view/user/view/UserBankPage';
 
 function UserDetailsToolbar(props) {
   const { match } = props;
@@ -35,6 +36,10 @@ function UserDetailsToolbar(props) {
         </Tab>
         <Tab eventKey="wallet" title="wallet">
           <UserWalletPage />
+        </Tab>
+       
+          <Tab eventKey="Bank details" title="Bank details">
+          <UserBankPage />
         </Tab>
        
       </Tabs>

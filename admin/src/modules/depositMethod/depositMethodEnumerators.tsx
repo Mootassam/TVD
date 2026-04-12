@@ -3,16 +3,16 @@ const depositMethodEnumerators = {
   type: ['multiple', 'single'],
   coins: [
     'USDT',
-    'ETH',
-    'BTC',
-    'USDC',
-    'DAI',
-    'SHIB',
-    'XRP',
-    'TRX',
-    'SOL',
-    'BNB',
-    'DOGE'
+    // 'ETH',
+    // 'BTC',
+    // 'USDC',
+    // 'DAI',
+    // 'SHIB',
+    // 'XRP',
+    // 'TRX',
+    // 'SOL',
+    // 'BNB',
+    // 'DOGE'
   ]
 
 };

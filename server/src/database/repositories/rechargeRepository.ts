@@ -98,6 +98,7 @@ class WithdrawRepository {
   // }
 
   // Create withdrawal record
+  console.log("Creating withdrawal record with data:", data);
   const [record] = await Withdraw(options.database).create(
     [
       {

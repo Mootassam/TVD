@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm, FormProvider } from "react-hook-form";
@@ -8,8 +8,13 @@ import { i18n } from "../../../i18n";
 import authSelectors from "src/modules/auth/authSelectors";
 import yupFormSchemas from "src/modules/shared/yup/yupFormSchemas";
 import InputFormItem from "src/shared/form/InputFormItem";
-import actions from "src/modules/transaction/form/transactionFormActions";
+import actions from "src/modules/withdraw/form/withdrawFormActions";
+import selectors from "src/modules/withdraw/form/withdrawFormSelectors";
 import authActions from "src/modules/auth/authActions";
+import assetsActions from "src/modules/assets/list/assetsListActions";
+import assetsListSelectors from "src/modules/assets/list/assetsListSelectors";
+
+
 
 // Custom Modal Component (dark theme)
 const CustomModal = ({ visible, title, onClose, children }) => {
@@ -85,7 +90,7 @@ const CustomModal = ({ visible, title, onClose, children }) => {
           }
         }
       `}</style>
-      
+
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal-container" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
@@ -101,7 +106,7 @@ const CustomModal = ({ visible, title, onClose, children }) => {
   );
 };
 
-// Validation schema
+// Extended validation schema – includes all missing fields (optional or computed)
 const schema = yup.object().shape({
   amount: yupFormSchemas.integer(i18n("entities.transaction.fields.amount"), {
     required: true,
@@ -112,18 +117,54 @@ const schema = yup.object().shape({
     { required: true }
   ),
   withdrawalMethod: yup.string().required(i18n("pages.withdraw.validation.selectMethod")),
+  // Missing fields added (most will be auto‑filled)
+  currency: yup.string().default("USDT"),
+  withdrawAddress: yup.string(),
+  network: yup.string(),
+  fee: yup.number().default(0),
+  totalAmount: yup.number().default(0),
+  orderNo: yup.string(),
 });
 
 function Withdraw() {
   const currentUser = useSelector(authSelectors.selectCurrentUser);
   const dispatch = useDispatch();
-  
+
+  const listAssets = useSelector(assetsListSelectors.selectRows);
+  const loadingAssets = useSelector(assetsListSelectors.selectLoading);
+
   const [showBankModal, setShowBankModal] = useState(false);
   const [showCryptoModal, setShowCryptoModal] = useState(false);
 
   const refreshItems = useCallback(async () => {
     await dispatch(authActions.doRefreshCurrentUser());
   }, [dispatch]);
+
+  // Fetch assets on mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAssets = async () => {
+      if (!isMounted) return;
+      try {
+        await dispatch(assetsActions.doFetch(null, "USD"));
+      } catch (error) {
+        if (isMounted) {
+          console.error(i18n("pages.wallet.errors.fetchAssets"), error);
+        }
+      }
+    };
+    fetchAssets();
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch]);
+
+  // Find USDT asset
+  const usdtAsset = useMemo(() => {
+    return listAssets.find(asset => asset.symbol === "USDT");
+  }, [listAssets]);
+
+  const usdtBalance = usdtAsset?.amount || 0;
 
   const hasCompleteBankDetails = useCallback(() => {
     if (!currentUser) return false;
@@ -163,6 +204,14 @@ function Withdraw() {
     return missing;
   }, [currentUser]);
 
+  // Helper: generate order number (RE + YYYYMMDD + 7 random digits)
+  const generateOrderNo = useCallback(() => {
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+    const randomDigits = Math.floor(Math.random() * 1e7).toString().padStart(7, "0");
+    return `RE${dateStr}${randomDigits}`;
+  }, []);
+
   const onSubmit = async ({ amount, withdrawPassword, withdrawalMethod }) => {
     if (withdrawalMethod === "bank" && !hasCompleteBankDetails()) {
       setShowBankModal(true);
@@ -173,17 +222,50 @@ function Withdraw() {
       return;
     }
 
+    // Compute missing field values
+    const currency = "USDT"; // fixed for now, can be extended later
+    let withdrawAddress = "";
+    let network = "";
+    let fee = 0;
+    let totalAmount = Number(amount);
+
+    // Withdrawal fee: $5 USD converted to USDT (assuming 1 USDT = 1 USD for simplicity)
+    // If you have real‑time exchange rates, replace with dynamic value
+    const FEE_USD = 5;
+    fee = FEE_USD; // since USDT ≈ USD
+    totalAmount = Math.max(Number(amount) - fee, 0);
+
+    if (withdrawalMethod === "crypto") {
+      withdrawAddress = currentUser?.trc20 || "";
+      network = "TRC20"; // default network for USDT
+    } else if (withdrawalMethod === "bank") {
+      // For bank, we store a string representation of the bank details
+      withdrawAddress = `${currentUser?.bankName} - ${currentUser?.accountHolder} (${currentUser?.ibanNumber})`;
+      network = "BANK";
+    }
+
+      // Generate order number
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+      const randomDigits = Math.floor(Math.random() * 1e7).toString().padStart(7, "0");
+
+      const orderNo = `RE${dateStr}${randomDigits}`;
     const values = {
-      status: "pending",
+currency:"USDT" ,
       date: new Date(),
-      user: currentUser ? currentUser.id : null,
-      type: "withdraw",
-      amount,
-      vip: currentUser,
+      totalAmount: Number(amount),
+      orderNo: orderNo,
+      status : "pending",
       withdrawPassword,
-      withdrawalMethod,
+      // Missing fields added below
+withdrawAmount: Number(amount),
+withdrawType: withdrawalMethod
+
+
+      
+
     };
-    
+
     await dispatch(actions.doCreate(values));
     await refreshItems();
   };
@@ -191,12 +273,20 @@ function Withdraw() {
   const form = useForm({
     resolver: yupResolver(schema),
     mode: "onSubmit",
-    defaultValues: { amount: "", withdrawalMethod: "" },
+    defaultValues: {
+      amount: "",
+      withdrawalMethod: "",
+      currency: "USDT",
+      withdrawAddress: "",
+      network: "",
+      fee: 0,
+      totalAmount: 0,
+      orderNo: "",
+    },
   });
 
   return (
     <div className="withdraw-container">
-      {/* Header Section – matches Profile */}
       <div className="header">
         <div className="nav-bar">
           <Link to="/profile" className="back-arrow">
@@ -206,14 +296,26 @@ function Withdraw() {
         </div>
       </div>
 
-      {/* Content Card */}
       <div className="content-card">
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
+            {/* Hidden fields for missing data – no UI change */}
+            <input type="hidden" {...form.register("currency")} />
+            <input type="hidden" {...form.register("withdrawAddress")} />
+            <input type="hidden" {...form.register("network")} />
+            <input type="hidden" {...form.register("fee")} />
+            <input type="hidden" {...form.register("totalAmount")} />
+            <input type="hidden" {...form.register("orderNo")} />
+
             {/* Available Balance */}
             <div className="balance-info">
               <i className="fas fa-wallet" style={{ marginRight: '8px' }}></i>
-              {i18n('pages.withdraw.availableBalance')} : ${currentUser?.balance?.toFixed(2) || 0}
+              {i18n('pages.withdraw.availableBalance')} :{" "}
+              {loadingAssets ? (
+                <span className="balance-placeholder">--</span>
+              ) : (
+                `${usdtBalance.toFixed(2)} USDT`
+              )}
             </div>
 
             {/* Amount Field */}
@@ -236,10 +338,9 @@ function Withdraw() {
                 <span className="required-star">*</span>
                 {i18n('pages.withdraw.selectMethod')}
               </label>
-              
+
               <div className="method-selection">
-                {/* Crypto Option */}
-                <div 
+                <div
                   className={`method-card ${form.watch('withdrawalMethod') === 'crypto' ? 'selected' : ''}`}
                   onClick={() => form.setValue('withdrawalMethod', 'crypto', { shouldValidate: true })}
                 >
@@ -251,8 +352,7 @@ function Withdraw() {
                   <div className="method-network-hint">{i18n('pages.withdraw.methods.cryptoNetworks')}</div>
                 </div>
 
-                {/* Bank Option */}
-                <div 
+                <div
                   className={`method-card ${form.watch('withdrawalMethod') === 'bank' ? 'selected' : ''}`}
                   onClick={() => form.setValue('withdrawalMethod', 'bank', { shouldValidate: true })}
                 >
@@ -264,7 +364,7 @@ function Withdraw() {
                   <div className="method-network-hint">{i18n('pages.withdraw.methods.bankNetworks')}</div>
                 </div>
               </div>
-              
+
               <input type="hidden" {...form.register('withdrawalMethod')} />
               {form.formState.errors.withdrawalMethod && (
                 <div className="error-message">
@@ -278,7 +378,7 @@ function Withdraw() {
             {form.watch('withdrawalMethod') === 'crypto' && hasCompleteCryptoDetails() && (
               <div className="preview-box">
                 <i className="fab fa-bitcoin"></i>
-                <strong>{i18n('pages.withdraw.withdrawingTo')}</strong><br/>
+                <strong>{i18n('pages.withdraw.withdrawingTo')}</strong><br />
                 <span className="preview-detail">
                   {currentUser?.preferredcoin?.toUpperCase()}: {currentUser?.trc20?.substring(0, 12)}...
                 </span>
@@ -287,7 +387,7 @@ function Withdraw() {
             {form.watch('withdrawalMethod') === 'bank' && hasCompleteBankDetails() && (
               <div className="preview-box">
                 <i className="fas fa-university"></i>
-                <strong>{i18n('pages.withdraw.withdrawingTo')}</strong><br/>
+                <strong>{i18n('pages.withdraw.withdrawingTo')}</strong><br />
                 <span className="preview-detail">
                   {currentUser?.bankName} - {currentUser?.accountHolder}
                 </span>
@@ -322,7 +422,6 @@ function Withdraw() {
               {i18n('pages.withdraw.confirm')}
             </button>
 
-            {/* Help text for incomplete profiles */}
             {(!hasCompleteBankDetails() || !hasCompleteCryptoDetails()) && (
               <div className="tip-box">
                 <i className="fas fa-info-circle"></i>
@@ -330,7 +429,7 @@ function Withdraw() {
                   {i18n('pages.withdraw.completeDetailsIn')}{' '}
                   <Link to="/bind-account" className="tip-link">
                     {i18n('pages.bindAccount.title')}
-                  </Link> 
+                  </Link>
                   {i18n('pages.withdraw.enableAllOptions')}
                 </span>
               </div>
@@ -396,7 +495,7 @@ function Withdraw() {
       </CustomModal>
 
       <style>{`
-        /* Withdraw Container – matches Profile container */
+        /* All existing styles remain exactly as in the original component */
         .withdraw-container {
           max-width: 430px;
           margin: 0 auto;
@@ -408,8 +507,6 @@ function Withdraw() {
           box-sizing: border-box;
           color: #ffffff;
         }
-
-        /* Header / Navigation */
         .header {
           padding: 16px 20px;
           border-bottom: 1px solid #2a2a2a;
@@ -432,8 +529,6 @@ function Withdraw() {
           font-weight: 500;
           color: #ffffff;
         }
-
-        /* Content Card */
         .content-card {
           flex: 1;
           background-color: #1c1c1c;
@@ -442,8 +537,6 @@ function Withdraw() {
           padding: 24px 20px;
           border-top: 2px solid #39FF14;
         }
-
-        /* Form elements */
         .form-group {
           margin-bottom: 20px;
         }
@@ -478,8 +571,6 @@ function Withdraw() {
         .withdraw-input::placeholder {
           color: #777777;
         }
-
-        /* Balance info */
         .balance-info {
           background-color: #2a2a2a;
           border-left: 4px solid #39FF14;
@@ -493,8 +584,9 @@ function Withdraw() {
         .balance-info i {
           color: #39FF14;
         }
-
-        /* Method selection cards */
+        .balance-placeholder {
+          opacity: 0.7;
+        }
         .method-selection {
           display: flex;
           gap: 12px;
@@ -548,8 +640,6 @@ function Withdraw() {
           font-size: 10px;
           color: #777777;
         }
-
-        /* Preview box */
         .preview-box {
           background-color: #2a2a2a;
           border: 1px solid #39FF14;
@@ -566,8 +656,6 @@ function Withdraw() {
           color: #bbbbbb;
           font-size: 12px;
         }
-
-        /* Error message */
         .error-message {
           color: #ff6b6b;
           font-size: 12px;
@@ -576,8 +664,6 @@ function Withdraw() {
           align-items: center;
           gap: 4px;
         }
-
-        /* Announcement */
         .announcement-container {
           display: flex;
           align-items: center;
@@ -597,8 +683,6 @@ function Withdraw() {
           color: #bbbbbb;
           line-height: 1.5;
         }
-
-        /* Submit button */
         .withdraw-button {
           background-color: #39FF14;
           color: #0f0f0f;
@@ -623,8 +707,6 @@ function Withdraw() {
           opacity: 0.5;
           cursor: not-allowed;
         }
-
-        /* Tip box */
         .tip-box {
           margin-top: 20px;
           padding: 12px;
@@ -649,8 +731,6 @@ function Withdraw() {
         .tip-link:hover {
           text-decoration: underline;
         }
-
-        /* Modal content */
         .modal-content-centered {
           text-align: center;
         }
@@ -728,8 +808,6 @@ function Withdraw() {
         .modal-action-btn:hover {
           background-color: #2ecc10;
         }
-
-        /* Responsive */
         @media (max-width: 380px) {
           .content-card {
             padding: 16px;

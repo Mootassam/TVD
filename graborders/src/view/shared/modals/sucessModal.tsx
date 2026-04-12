@@ -6,6 +6,7 @@ interface SuccessModalProps {
   type: 'deposit' | 'convert' | 'staking' | 'withdraw';
   amount: string;
   coinType: string;
+  primaryColor?: string; // optional theme color
 }
 
 const SuccessModalComponent: React.FC<SuccessModalProps> = ({
@@ -13,7 +14,8 @@ const SuccessModalComponent: React.FC<SuccessModalProps> = ({
   onClose,
   type,
   amount,
-  coinType
+  coinType,
+  primaryColor = '#106cf5'
 }) => {
   // Handle escape key press
   useEffect(() => {
@@ -22,7 +24,6 @@ const SuccessModalComponent: React.FC<SuccessModalProps> = ({
         onClose();
       }
     };
-
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
@@ -34,7 +35,6 @@ const SuccessModalComponent: React.FC<SuccessModalProps> = ({
     } else {
       document.body.style.overflow = 'unset';
     }
-
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -46,25 +46,25 @@ const SuccessModalComponent: React.FC<SuccessModalProps> = ({
         title: 'Deposit Successful!',
         message: 'Your funds have been successfully deposited to your wallet.',
         icon: 'fa-arrow-down',
-        color: '#106cf5'
+        accent: primaryColor
       },
       convert: {
         title: 'Conversion Successful!',
         message: 'Your currency conversion has been completed successfully.',
         icon: 'fa-exchange-alt',
-        color: '#106cf5'
+        accent: primaryColor
       },
       staking: {
         title: 'Staking Successful!',
         message: 'Your funds are now staked and earning rewards!',
         icon: 'fa-coins',
-        color: '#F3BA2F'
+        accent: '#F3BA2F' // keep gold for staking
       },
       withdraw: {
         title: 'Withdrawal Submitted!',
         message: 'Your withdrawal request has been received and is under review.',
         icon: 'fa-arrow-up',
-        color: '#FF6838'
+        accent: '#FF6838' // keep warm orange for withdraw
       }
     };
     return config[modalType as keyof typeof config] || config.deposit;
@@ -78,25 +78,19 @@ const SuccessModalComponent: React.FC<SuccessModalProps> = ({
 
   if (!isOpen) return null;
 
-  const { title, message, icon, color } = getTypeConfig(type);
+  const { title, message, icon, accent } = getTypeConfig(type);
 
   return (
     <>
       <style>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
-
         .success-modal-overlay {
           position: fixed;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          background-color: rgba(0, 0, 0, 0.7);
+          background-color: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(4px);
           display: flex;
           justify-content: center;
           align-items: center;
@@ -107,128 +101,128 @@ const SuccessModalComponent: React.FC<SuccessModalProps> = ({
         .success-modal-container {
           background: white;
           width: 100%;
-          max-width: 400px;
-          border-radius: 20px;
+          max-width: 420px;
+          border-radius: 24px;
           overflow: hidden;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-          animation: modalSlideIn 0.3s ease;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+          animation: modalSlideIn 0.3s cubic-bezier(0.2, 0.9, 0.4, 1);
         }
 
         @keyframes modalSlideIn {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(30px) scale(0.95);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
           }
         }
 
-        .modal-header {
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
-          padding: 20px;
-          position: relative;
-          text-align: center;
-        }
-
-        .page-title {
-          color: white;
-          font-size: 18px;
-          font-weight: 600;
-        }
-
         .success-content {
-          padding: 40px 20px 30px;
+          padding: 48px 24px 32px;
           text-align: center;
         }
 
         .success-icon {
-          width: 80px;
-          height: 80px;
+          width: 88px;
+          height: 88px;
           border-radius: 50%;
-          background: ${color};
+          background: ${accent}15;
           display: flex;
           justify-content: center;
           align-items: center;
-          margin: 0 auto 25px;
-          color: white;
-          font-size: 32px;
+          margin: 0 auto 24px;
+          color: ${accent};
+          font-size: 36px;
+          border: 2px solid ${accent}30;
         }
 
         .success-title {
-          font-size: 22px;
-          font-weight: 600;
-          color: #222;
-          margin-bottom: 10px;
+          font-size: 24px;
+          font-weight: 700;
+          color: #1a202c;
+          margin-bottom: 8px;
+          letter-spacing: -0.02em;
         }
 
         .success-amount {
-          font-size: 28px;
-          font-weight: 700;
-          margin: 15px 0;
-          color: #106cf5;
+          font-size: 32px;
+          font-weight: 800;
+          margin: 16px 0 8px;
+          color: ${primaryColor};
+          line-height: 1.2;
+        }
+
+        .coin-type {
+          font-size: 16px;
+          font-weight: 500;
+          color: #718096;
+          margin-left: 4px;
         }
 
         .success-message {
-          color: #888f99;
-          font-size: 14px;
-          line-height: 1.6;
-          margin-bottom: 30px;
-          max-width: 300px;
+          color: #64748b;
+          font-size: 15px;
+          line-height: 1.5;
+          margin-bottom: 32px;
+          max-width: 280px;
           margin-left: auto;
           margin-right: auto;
         }
 
         .success-button {
-          background: linear-gradient(135deg, #106cf5 0%, #0a4fc4 100%);
+          background: ${primaryColor};
           border: none;
-          border-radius: 8px;
-          padding: 12px;
+          border-radius: 12px;
+          padding: 14px 24px;
           color: white;
-          font-size: 14px;
+          font-size: 16px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.3s ease;
+          transition: all 0.2s ease;
           width: 100%;
-          margin-top: 10px;
+          border: 1px solid transparent;
         }
 
         .success-button:hover {
-          opacity: 0.9;
+          background: ${adjustBrightness(primaryColor, -10)};
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(16, 108, 245, 0.3);
+          box-shadow: 0 8px 20px ${primaryColor}40;
         }
 
-        @media (max-width: 380px) {
+        .success-button:active {
+          transform: translateY(0);
+          box-shadow: 0 4px 12px ${primaryColor}30;
+        }
+
+        @media (max-width: 480px) {
           .success-modal-overlay {
             padding: 16px;
           }
 
           .success-content {
-            padding: 30px 16px 25px;
+            padding: 40px 20px 28px;
           }
 
           .success-icon {
-            width: 70px;
-            height: 70px;
-            font-size: 28px;
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
           }
 
           .success-title {
-            font-size: 20px;
+            font-size: 22px;
           }
 
           .success-amount {
-            font-size: 24px;
+            font-size: 28px;
           }
         }
       `}</style>
 
       <div className="success-modal-overlay" onClick={handleOverlayClick}>
         <div className="success-modal-container">
-      
-
           <div className="success-content">
             <div className="success-icon">
               <i className={`fas ${icon}`}></i>
@@ -237,12 +231,10 @@ const SuccessModalComponent: React.FC<SuccessModalProps> = ({
             <div className="success-title">{title}</div>
 
             <div className="success-amount">
-              {amount} {coinType}
+              {amount} <span className="coin-type">{coinType}</span>
             </div>
 
-            <div className="success-message">
-              {message}
-            </div>
+            <div className="success-message">{message}</div>
 
             <button className="success-button" onClick={onClose}>
               Done
@@ -253,5 +245,23 @@ const SuccessModalComponent: React.FC<SuccessModalProps> = ({
     </>
   );
 };
+
+// Helper function to darken a hex color for hover states
+function adjustBrightness(hex: string, percent: number): string {
+  // Remove # if present
+  let cleanHex = hex.replace('#', '');
+  // Convert 3-digit to 6-digit
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map(c => c + c).join('');
+  }
+  const num = parseInt(cleanHex, 16);
+  let r = (num >> 16) + percent;
+  let g = ((num >> 8) & 0x00FF) + percent;
+  let b = (num & 0x0000FF) + percent;
+  r = Math.min(255, Math.max(0, r));
+  g = Math.min(255, Math.max(0, g));
+  b = Math.min(255, Math.max(0, b));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+}
 
 export default SuccessModalComponent;

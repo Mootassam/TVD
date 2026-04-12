@@ -340,10 +340,6 @@ export default class UserRepository {
 
 
 
-
-
-
-
   static async UpdateWithdrawPassword(value: { oldPassword?: string; newPassword: string }, options: IRepositoryOptions) {
     const currentUser = MongooseRepository.getCurrentUser(options);
     const userId = currentUser.id;

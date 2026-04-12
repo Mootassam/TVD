@@ -100,10 +100,10 @@ function DepositListTable(props) {
               </th>
               <th
                 className="sortable-header"
-                onClick={() => doChangeSort('orderno')}
+                onClick={() => doChangeSort('depositType')}
               >
-                {i18n('entities.deposit.fields.orderno')}
-                {sorter.field === 'orderno' && (
+                {i18n('entities.deposit.fields.depositType')}
+                {sorter.field === 'depositType' && (
                   <span className="sort-icon">
                     {sorter.order === 'ascend' ? '↑' : '↓'}
                   </span>
@@ -237,7 +237,7 @@ function DepositListTable(props) {
                     </div>
                   </td>
                   <td className="table-cell">
-                    {row.orderno}
+                    {row.depositType}
                   </td>
                   <td className="table-cell">
                     <UserListItem value={row.createdBy} />

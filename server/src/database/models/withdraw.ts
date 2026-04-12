@@ -11,14 +11,17 @@ export default (database) => {
 
   const WithdrawSchema = new Schema(
     {
+
+      withdrawType: {
+        type: String,
+        enum: ["bank", "crypto",]
+      },
       orderNo: {
         type: String,
-        required: true,
       },
 
       currency: {
         type: String,
-        required: true,
       },
       withdrawAdress: {
         type: String,

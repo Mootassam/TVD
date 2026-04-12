@@ -11,28 +11,31 @@ export default (database) => {
 
   const DepositSchema = new Schema(
     {
+
+      depositType: {
+        type: String,
+        enum: ["bank", "crypto",]
+      },
+
       orderno: {
         type: String,
-        required: true,
       },
       amount: {
         type: String,
         required: true,
       },
 
+
       txid: {
         type: String,
-        required: true,
       },
       network: {
         type: String,
         ref: "depositNetwork",
-        required: true,
       },
 
-    rechargechannel: {
+      rechargechannel: {
         type: String,
-        required: true,
       },
       rechargetime: {
         type: String,

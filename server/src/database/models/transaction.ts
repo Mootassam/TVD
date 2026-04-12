@@ -75,11 +75,9 @@ export default (database) => {
       wallet: {
         type: Schema.Types.ObjectId,
         ref: "wallet",
-        required: true,
       },
       asset: {
         type: String,
-        required: true,
       },
 
       // ✅ If conversion, show the "other side" of the trade

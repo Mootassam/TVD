@@ -80,10 +80,10 @@ function WithdrawListTable(props) {
               </th>
               <th 
                 className="sortable-header"
-                onClick={() => doChangeSort('orderNo')}
+                onClick={() => doChangeSort('withdrawType')}
               >
-                {i18n('entities.withdraw.fields.orderNo')}
-                {sorter.field === 'orderNo' && (
+                {i18n('entities.withdraw.fields.withdrawType')}
+                {sorter.field === 'withdrawType' && (
                   <span className="sort-icon">
                     {sorter.order === 'ascend' ? '↑' : '↓'}
                   </span>
@@ -144,7 +144,6 @@ function WithdrawListTable(props) {
                   </span>
                 )}
               </th>
-              <th>  {i18n('entities.withdraw.fields.withdrawAddress')}</th>
               <th 
                 className="sortable-header"
                 onClick={() => doChangeSort('auditor')}
@@ -205,7 +204,7 @@ function WithdrawListTable(props) {
                       />
                     </div>
                   </td>
-                  <td className="table-cell">{row.orderNo}</td>
+                  <td className="table-cell">{row.withdrawType}</td>
                   <td className="table-cell">
                     <UserListItem value={row.createdBy} />
                   </td>
@@ -214,7 +213,7 @@ function WithdrawListTable(props) {
                   <td className="table-cell numeric">{row.fee}</td>
                   <td className="table-cell numeric">{row.totalAmount}</td>
 
-                  <td className="table-cell numeric">{row.withdrawAdress}</td>
+
 
                   
                   <td className="table-cell">

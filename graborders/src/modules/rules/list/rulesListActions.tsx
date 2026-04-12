@@ -81,7 +81,6 @@ const rulesListActions = {
         selectors.selectOffset(getState()),
       );
 
-    console.log("🚀 ~ response:", response)
 
       dispatch({
         type: rulesListActions.FETCH_SUCCESS,
@@ -90,6 +89,8 @@ const rulesListActions = {
           count: response.count,
         },
       });
+
+      
     } catch (error) {
       Errors.handle(error);
 

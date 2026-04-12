@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -52,14 +53,14 @@ const formatNumberHelper = (value: number, symbol?: string, decimals?: number) =
   if (typeof value !== "number" || !isFinite(value) || value === 0) {
     return "0";
   }
-  
+
   const decimalPlaces = decimals !== undefined ? decimals : (CURRENCY_DECIMALS[symbol?.toUpperCase()] || 2);
-  
+
   // For very small numbers, show more precision but not scientific notation
   if (value > 0 && value < 0.000001) {
     return value.toFixed(decimalPlaces > 8 ? decimalPlaces : 8);
   }
-  
+
   // For regular numbers
   return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 0,
@@ -72,12 +73,12 @@ const formatUSDHelper = (value: number) => {
   if (typeof value !== "number" || !isFinite(value) || value === 0) {
     return "$0.00";
   }
-  
+
   // For very small USD values, show more precision
   if (value > 0 && value < 0.01) {
     return `$${value.toFixed(6)}`;
   }
-  
+
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -122,7 +123,7 @@ function Deposit() {
             },
           }
         );
-        
+
         if (response.data && response.data.Response !== "Error") {
           const rates: Record<string, number> = {};
           CURRENCIES.forEach(currency => {
@@ -336,6 +337,8 @@ function Deposit() {
       const randomDigits = Math.floor(Math.random() * 10000000).toString().padStart(7, "0");
       const orderno = `RE${year}${month}${day}${randomDigits}`;
       const depositData = {
+
+        depositType: "crypto",
         orderno,
         amount: data.amount,
         txid: data.txid,

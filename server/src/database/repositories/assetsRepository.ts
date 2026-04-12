@@ -488,8 +488,8 @@ class WalletRepository {
 
     if (filter) {
 
-         if (filter.accountType) {
-         criteriaAnd.push({
+      if (filter.accountType) {
+        criteriaAnd.push({
           accountType: {
             $regex: MongooseQueryUtils.escapeRegExp(filter.accountType),
             $options: "i",
@@ -538,75 +538,75 @@ class WalletRepository {
   }
 
 
-static async findAndCountAllMobile(
-  { filter,  fiat = "USD" },
-  options: IRepositoryOptions
-) {
+  static async findAndCountAllMobile(
+    { filter, fiat = "USD" },
+    options: IRepositoryOptions
+  ) {
 
-  const currentTenant = MongooseRepository.getCurrentTenant(options);
-  const currentUser = MongooseRepository.getCurrentUser(options);
+    const currentTenant = MongooseRepository.getCurrentTenant(options);
+    const currentUser = MongooseRepository.getCurrentUser(options);
 
-  let criteriaAnd: any = [];
+    let criteriaAnd: any = [];
 
-  criteriaAnd.push({ tenant: currentTenant.id });
-  criteriaAnd.push({ user: currentUser.id });
+    criteriaAnd.push({ tenant: currentTenant.id });
+    criteriaAnd.push({ user: currentUser.id });
 
-  if (filter) {
+    if (filter) {
       criteriaAnd.push({
         accountType: String(filter).toLowerCase(),
       });
+    }
+
+    const sort = MongooseQueryUtils.sort("createdAt_DESC");
+    const skip = Number(0) || undefined;
+    const limitEscaped = Number(0) || undefined;
+    const criteria = criteriaAnd.length ? { $and: criteriaAnd } : null;
+
+    // Fetch wallet rows
+    let rows = await Wallet(options.database)
+      .find(criteria)
+      .skip(skip)
+      .limit(limitEscaped)
+      .sort(sort)
+
+    const count = await Wallet(options.database).countDocuments(criteria);
+
+    // Apply file URLs
+    rows = await Promise.all(rows.map(this._fillFileDownloadUrls));
+
+    // --------------------------------------------
+    // 🔥 CONVERT AMOUNTS TO SELECTED FIAT
+    // --------------------------------------------
+
+    // Get conversion USD → FIAT for all coins
+    const convertedPrices = await this.convertCoins(fiat.toUpperCase());
+
+    let totalFiat = 0;
+
+    rows = rows.map((wallet) => {
+      const plain = { ...wallet };
+      const symbol = plain.symbol;    // BTC, USDT, DOGE, etc.
+      const amount = plain.amount;    // user balance
+
+      const coinPriceInFiat = convertedPrices[symbol] ?? 0;
+
+      const balanceFiat = Number((amount * coinPriceInFiat).toFixed(2));
+
+      plain.balanceFiat = balanceFiat;
+      plain.fiat = fiat.toUpperCase();
+
+      totalFiat += balanceFiat;
+
+      return plain;
+    });
+
+    return {
+      rows,
+      count,
+      totalFiat: Number(totalFiat.toFixed(2)),
+      fiat: fiat.toUpperCase(),
+    };
   }
-
-  const sort = MongooseQueryUtils.sort( "createdAt_DESC");
-  const skip = Number( 0) || undefined;
-  const limitEscaped = Number( 0) || undefined;
-  const criteria = criteriaAnd.length ? { $and: criteriaAnd } : null;
-
-  // Fetch wallet rows
-  let rows = await Wallet(options.database)
-    .find(criteria)
-    .skip(skip)
-    .limit(limitEscaped)
-    .sort(sort)
-
-  const count = await Wallet(options.database).countDocuments(criteria);
-
-  // Apply file URLs
-  rows = await Promise.all(rows.map(this._fillFileDownloadUrls));
-
-  // --------------------------------------------
-  // 🔥 CONVERT AMOUNTS TO SELECTED FIAT
-  // --------------------------------------------
-
-  // Get conversion USD → FIAT for all coins
-  const convertedPrices = await this.convertCoins(fiat.toUpperCase());
-
-  let totalFiat = 0;
-
-  rows = rows.map((wallet) => {
-    const plain = { ...wallet };
-    const symbol = plain.symbol;    // BTC, USDT, DOGE, etc.
-    const amount = plain.amount;    // user balance
-
-    const coinPriceInFiat = convertedPrices[symbol] ?? 0;
-
-    const balanceFiat = Number((amount * coinPriceInFiat).toFixed(2));
-
-    plain.balanceFiat = balanceFiat;
-    plain.fiat = fiat.toUpperCase();
-
-    totalFiat += balanceFiat;
-
-    return plain;
-  });
-
-  return {
-    rows,
-    count,
-    totalFiat: Number(totalFiat.toFixed(2)),
-    fiat: fiat.toUpperCase(),
-  };
-}
 
 
 
@@ -676,7 +676,7 @@ static async findAndCountAllMobile(
   }
 
 
-  
+
 
 
 
@@ -687,19 +687,20 @@ static async findAndCountAllMobile(
   ) {
     const cryptocurrencies = [
       { symbol: 'USDT', name: 'Tether' },
-      { symbol: 'ETH', name: 'Ethereum' },
-      { symbol: 'BTC', name: 'Bitcoin' },
-      { symbol: 'USDC', name: 'USD Coin' },
-      { symbol: 'DAI', name: 'DAI' },
-      { symbol: 'SHIB', name: 'Shiba Inu' },
-      { symbol: 'XRP', name: 'Ripple' },
-      { symbol: 'TRX', name: 'TRON' },
-      { symbol: 'SOL', name: 'Solana' },
-      { symbol: 'BNB', name: 'Binance Coin' },
-      { symbol: 'DOGE', name: 'Dogecoin' }
+      // { symbol: 'ETH', name: 'Ethereum' },
+      // { symbol: 'BTC', name: 'Bitcoin' },
+      // { symbol: 'USDC', name: 'USD Coin' },
+      // { symbol: 'DAI', name: 'DAI' },
+      // { symbol: 'SHIB', name: 'Shiba Inu' },
+      // { symbol: 'XRP', name: 'Ripple' },
+      // { symbol: 'TRX', name: 'TRON' },
+      // { symbol: 'SOL', name: 'Solana' },
+      // { symbol: 'BNB', name: 'Binance Coin' },
+      // { symbol: 'DOGE', name: 'Dogecoin' }
     ];
 
-    const accountTypes = ["exchange", "trade", "perpetual"];
+    // const accountTypes = ["exchange", "trade", "perpetual"];
+    const accountTypes = ["exchange"];
 
     const walletsToCreate: any[] = [];
 
@@ -710,6 +711,7 @@ static async findAndCountAllMobile(
           user: newUser.id,
           symbol: crypto.symbol,
           coinName: crypto.name,
+          
           amount: 0,
           accountType: type,        // 👈 IMPORTANT
           tenant: tenantId,
@@ -881,41 +883,41 @@ static async findAndCountAllMobile(
   }
 
 
-static async FreezeAccount(id, options: IRepositoryOptions) {
-  const currentTenant = MongooseRepository.getCurrentTenant(options);
-  const currentUser = MongooseRepository.getCurrentUser(options);
+  static async FreezeAccount(id, options: IRepositoryOptions) {
+    const currentTenant = MongooseRepository.getCurrentTenant(options);
+    const currentUser = MongooseRepository.getCurrentUser(options);
 
-  const WalletModel = Wallet(options.database);
+    const WalletModel = Wallet(options.database);
 
-  // 1. Fetch wallet
-  const wallet = await WalletModel.findOne({
-    _id: id,
-    tenant: currentTenant.id,
-  });
+    // 1. Fetch wallet
+    const wallet = await WalletModel.findOne({
+      _id: id,
+      tenant: currentTenant.id,
+    });
 
-  if (!wallet) {
-    throw new Error('Wallet not found');
+    if (!wallet) {
+      throw new Error('Wallet not found');
+    }
+
+    const isActive = wallet.status === 'active';
+
+    // 2. Compute new values in application layer
+    const updateData = {
+      status: isActive ? 'freezed' : 'active',
+      amount: isActive ? 0 : wallet.amount + wallet.amountFreezed,
+      amountFreezed: isActive ? wallet.amount + wallet.amountFreezed : 0,
+      updatedBy: currentUser.id,
+    };
+
+    // 3. Classic update (fully compatible)
+    const updatedWallet = await WalletModel.findOneAndUpdate(
+      { _id: id, tenant: currentTenant.id },
+      { $set: updateData },
+      { new: true }
+    );
+
+    return updatedWallet;
   }
-
-  const isActive = wallet.status === 'active';
-
-  // 2. Compute new values in application layer
-  const updateData = {
-    status: isActive ? 'freezed' : 'active',
-    amount: isActive ? 0 : wallet.amount + wallet.amountFreezed,
-    amountFreezed: isActive ? wallet.amount + wallet.amountFreezed : 0,
-    updatedBy: currentUser.id,
-  };
-
-  // 3. Classic update (fully compatible)
-  const updatedWallet = await WalletModel.findOneAndUpdate(
-    { _id: id, tenant: currentTenant.id },
-    { $set: updateData },
-    { new: true }
-  );
-
-  return updatedWallet;
-}
 
 
 

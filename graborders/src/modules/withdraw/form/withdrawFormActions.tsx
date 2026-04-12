@@ -68,6 +68,8 @@ const vipFormActions = {
       });
 
       dispatch(assetsListActions.doFetch('exchange'));
+      Message.success(i18n("pages.withdraw.message"));
+
 
     } catch (error) {
       Errors.handle(error);

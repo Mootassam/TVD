@@ -1,3 +1,4 @@
+
 import { i18n } from 'src/i18n';
 import auditLogSelectors from 'src/modules/auditLog/auditLogSelectors';
 import couponsSelectors from 'src/modules/deposit/depositSelectors';
@@ -141,10 +142,27 @@ function DepositListToolbar(props) {
 
   return (
     <Toolbar>
- 
+
 
       {renderDestroyButton()}
 
+
+      {hasPermissionToCreate && (
+        <Link to="/deposit/new">
+          <span
+            data-tip={i18n('common.new')}
+            data-for="charge-list-toolbar-new-tooltip"
+          >
+            <button
+              className="btn btn-primary"
+              type="button"
+            >
+              <ButtonIcon iconClass="fas fa-plus" />
+            </button>
+            <ReactTooltip id="charge-list-toolbar-new-tooltip" />
+          </span>
+        </Link>
+      )}
 
       {destroyAllConfirmVisible && (
         <ConfirmModal

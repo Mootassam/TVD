@@ -1532,6 +1532,7 @@ const en = {
 
     withdraw: {
       title: "Withdraw",
+      message : "Your withdrawal request has been submitted successfully and is being processed. ",
       announcement: "The minimum withdrawal amount is $20. All withdrawals are processed within 30 minutes.",
       withdrawAmount: "Withdrawal Amount",
       withdrawPassword: "Withdraw Password",

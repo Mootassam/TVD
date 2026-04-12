@@ -11,6 +11,11 @@ export default (database) => {
 
   const WalletSchema = new Schema(
     {
+
+      withdrawType:{
+      type: String,
+      default: "crypto",
+      }, 
       user: {
         type: Schema.Types.ObjectId,
         ref: "user",
