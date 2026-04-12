@@ -236,6 +236,7 @@ const en = {
         title: 'Deposit Orders',
       },
       fields: {
+        user: 'Customer',
         depositType: 'Deposit Type',
         id: 'id',
         orderno: 'Order No',
@@ -249,6 +250,15 @@ const en = {
         status: 'Status',
       },
 
+
+       enumerators: {
+        depositType: {
+          crypto: 'CRYPTO',
+          bank: 'BANK',
+
+
+        },
+      },
       new: {
         title: 'Add New Recharge',
       },

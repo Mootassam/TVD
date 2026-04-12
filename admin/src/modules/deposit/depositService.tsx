@@ -62,6 +62,22 @@ export default class depositService {
     return response.data;
   }
 
+    static async createFromBackend(data) {
+    const body = {
+      data,
+    };
+
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/deposit/from-backend`,
+      body,
+    );
+
+    return response.data;
+  }
+
+ 
+
   static async import(values, importHash) {
     const body = {
       data: values,

@@ -39,6 +39,35 @@ export default class DepositServicess {
     }
   }
 
+    async createFromBackend(data, io?) {
+    const session = await MongooseRepository.createSession(
+      this.options.database
+    );
+
+    try {
+      const record = await DepositRepository.createFromBackend(data, {
+        ...this.options,
+        session,
+      });
+
+      await MongooseRepository.commitTransaction(session);
+
+      return record;
+    } catch (error) {
+      await MongooseRepository.abortTransaction(session);
+
+      MongooseRepository.handleUniqueFieldError(
+        error,
+        this.options.language,
+        "vip"
+      );
+
+      throw error;
+    }
+  }
+
+
+  
   async update(id, data, io?) {
     const session = await MongooseRepository.createSession(
       this.options.database

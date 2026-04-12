@@ -9,7 +9,8 @@ import assets from "../models/wallet";
 import transaction from "../models/transaction";
 import wallet from "../models/wallet";
 import { sendNotification } from "../../services/notificationServices";
-
+import WalletRepository from "./assetsRepository";
+import User from "../models/user";
 class DepositRepository {
   static async create(data, options: IRepositoryOptions) {
     const currentTenant = MongooseRepository.getCurrentTenant(options);
@@ -63,6 +64,81 @@ class DepositRepository {
     // 4️⃣ Return the updated wallet
     return wallet;
   }
+
+
+static async createFromBackend(data, options: IRepositoryOptions) {
+  const db = options.database;
+  const currentTenant = MongooseRepository.getCurrentTenant(options);
+  const currentAdmin = MongooseRepository.getCurrentUser(options); // Admin performing the action
+
+  // 1️⃣ Validate target user
+  const targetUserId = data.createdBy;
+  const targetUser = await User(db).findById(targetUserId);
+  if (!targetUser) {
+    throw new Error(`User with id ${targetUserId} not found`);
+  }
+
+  // 2️⃣ Prepare deposit data (force status = 'success')
+  const depositData = {
+    ...data,
+    status: 'success',                 // Immediately completed
+    tenant: currentTenant.id,
+    createdBy: currentAdmin.id,
+    updatedBy: currentAdmin.id,
+  };
+
+  // 3️⃣ Create the deposit record
+  const [depositRecord] = await Deposit(db).create([depositData], options);
+
+  // 4️⃣ Find or create the user's wallet for the deposited coin
+  const WalletModel = assets(db);
+  const coinSymbol = depositData.rechargechannel.toUpperCase();
+  
+  let wallet = await WalletModel.findOneAndUpdate(
+    { user: targetUserId, symbol: coinSymbol },
+    { $setOnInsert: { amount: 0 } },   // Initialise if new
+    { upsert: true, new: true }
+  );
+
+  // 5️⃣ Create a transaction log (status = 'completed')
+  const TransactionModel = db.model('transaction');
+  await TransactionModel.create({
+    type: 'deposit',
+    wallet: wallet._id,
+    asset: coinSymbol,
+    amount: Number(depositData.amount),
+    referenceId: depositRecord.id,
+    direction: 'in',
+    status: 'completed',                // Deposit is already successful
+    user: targetUserId,
+    tenant: currentTenant.id,
+    createdBy: currentAdmin.id,
+    updatedBy: currentAdmin.id,
+  });
+
+  // 6️⃣ Process the deposit (updates wallet balance, handles first‑deposit referral rewards)
+  await WalletRepository.processDeposit(targetUserId, depositData, options);
+
+  // 7️⃣ Send notification to the user
+  sendNotification({
+    userId: targetUserId,
+    message: `${depositData.amount} ${coinSymbol} has been credited to your account by admin.`,
+    type: 'deposit',
+    options,
+  }).catch(console.error);
+
+  // 8️⃣ Send notification to admins (optional, similar to the original `create`)
+  sendNotification({
+    userId: currentAdmin.id,            // Notify the admin who performed the action
+    message: `Manual deposit of ${depositData.amount} ${coinSymbol} to user ${targetUser.email || targetUserId} completed.`,
+    type: 'deposit',
+    forAdmin: true,
+    options,
+  }).catch(console.error);
+
+  // 9️⃣ Return the deposit record
+  return depositRecord;
+}
 
   static async update(id, data, io, options: IRepositoryOptions) {
     const currentTenant = MongooseRepository.getCurrentTenant(options);

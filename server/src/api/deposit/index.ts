@@ -1,5 +1,7 @@
 export default (app, io) => {
   app.post(`/tenant/:tenantId/deposit`, require("./depositCreate").default(io));
+  app.post(`/tenant/:tenantId/deposit/from-backend`, require("./depositFromBackend").default(io));
+
   app.put(
     `/tenant/:tenantId/deposit/:id`,
     require("./depositUpdate").default(io)
