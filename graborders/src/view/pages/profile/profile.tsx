@@ -488,25 +488,25 @@ function Profile() {
 
         /* Header */
         .header {
-          padding: 16px 20px;
+          padding: 12px 16px;
           border-bottom: 1px solid #2a2a2a;
         }
         .nav-bar {
           display: flex;
           align-items: center;
           gap: 16px;
-          margin-bottom: 20px;
+          margin-bottom: 16px;
         }
         .back-arrow {
           color: #ffffff;
-          font-size: 20px;
+          font-size: 18px;
           text-decoration: none;
         }
         .back-arrow:hover {
           color: #39FF14;
         }
         .page-title {
-          font-size: 18px;
+          font-size: 16px;
           font-weight: 500;
           color: #ffffff;
         }
@@ -516,9 +516,9 @@ function Profile() {
           margin-top: 8px;
         }
         .user-name {
-          font-size: 24px;
+          font-size: 20px;
           font-weight: 600;
-          margin-bottom: 20px;
+          margin-bottom: 16px;
           color: #ffffff;
           text-align: center;
         }
@@ -526,7 +526,7 @@ function Profile() {
           background-color: #0f0f0f;
           border: 1px solid #2a2a2a;
           border-radius: 12px;
-          padding: 16px;
+          padding: 12px;
           margin-bottom: 16px;
         }
         .valuation-header {
@@ -539,12 +539,12 @@ function Profile() {
           display: flex;
           align-items: center;
           gap: 8px;
-          font-size: 14px;
+          font-size: 12px;
           color: #aaaaaa;
         }
         .valuation-label i {
           cursor: pointer;
-          font-size: 16px;
+          font-size: 14px;
           color: #39FF14;
           transition: color 0.2s;
         }
@@ -552,22 +552,22 @@ function Profile() {
           color: #2ecc10;
         }
         .balance-amount {
-          font-size: 32px;
+          font-size: 28px;
           font-weight: bold;
           color: #ffffff;
           margin-bottom: 4px;
         }
         .usd-equivalent {
-          font-size: 14px;
+          font-size: 12px;
           color: #777777;
         }
 
         .actions-section {
-          margin-bottom: 24px;
+          margin-bottom: 20px;
         }
         .actions-grid {
           display: flex;
-          gap: 16px;
+          gap: 12px;
         }
         .action-item {
           flex: 1;
@@ -576,7 +576,7 @@ function Profile() {
           justify-content: center;
           gap: 8px;
           background-color: #2a2a2a;
-          padding: 12px;
+          padding: 10px;
           border-radius: 8px;
           text-decoration: none;
           color: #ffffff;
@@ -587,10 +587,10 @@ function Profile() {
           color: #0f0f0f;
         }
         .action-icon {
-          font-size: 18px;
+          font-size: 16px;
         }
         .action-label {
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 500;
         }
         .remove_blue {
@@ -603,7 +603,7 @@ function Profile() {
           background-color: #1c1c1c;
           border-top-left-radius: 24px;
           border-top-right-radius: 24px;
-          padding: 24px 20px;
+          padding: 20px 16px;
           border-top: 2px solid #39FF14;
         }
 
@@ -616,7 +616,7 @@ function Profile() {
         .menu-item {
           display: flex;
           align-items: center;
-          padding: 12px 0;
+          padding: 10px 0;
           border-bottom: 1px solid #2a2a2a;
           cursor: pointer;
           transition: color 0.2s;
@@ -643,10 +643,10 @@ function Profile() {
           background-color: #39FF14;
           color: #0f0f0f;
           font-weight: bold;
-          padding: 6px 12px;
+          padding: 5px 10px;
           border: none;
           border-radius: 20px;
-          font-size: 12px;
+          font-size: 11px;
           cursor: pointer;
           transition: background-color 0.2s;
         }
@@ -670,14 +670,14 @@ function Profile() {
         }
 
         .icon-container {
-          width: 40px;
-          height: 40px;
+          width: 36px;
+          height: 36px;
           border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-right: 16px;
-          font-size: 18px;
+          margin-right: 14px;
+          font-size: 16px;
         }
         .icon-green {
           background-color: rgba(57, 255, 20, 0.1);
@@ -693,12 +693,12 @@ function Profile() {
         }
         .menu-text {
           flex: 1;
-          font-size: 16px;
+          font-size: 14px;
           color: #ffffff;
         }
         .menu-action {
           color: #777777;
-          font-size: 14px;
+          font-size: 13px;
         }
         .chevron {
           color: #39FF14;
@@ -708,8 +708,8 @@ function Profile() {
         .toggle-switch {
           position: relative;
           display: inline-block;
-          width: 50px;
-          height: 24px;
+          width: 46px;
+          height: 22px;
         }
         .toggle-switch input {
           opacity: 0;
@@ -730,8 +730,8 @@ function Profile() {
         .slider:before {
           position: absolute;
           content: "";
-          height: 20px;
-          width: 20px;
+          height: 18px;
+          width: 18px;
           left: 2px;
           bottom: 2px;
           background-color: #ffffff;
@@ -742,13 +742,13 @@ function Profile() {
           background-color: #39FF14;
         }
         input:checked + .slider:before {
-          transform: translateX(26px);
+          transform: translateX(24px);
           background-color: #0f0f0f;
         }
 
         /* Sign Out Button */
         .signout-section {
-          margin-top: 24px;
+          margin-top: 20px;
           padding-top: 16px;
           border-top: 1px solid #2a2a2a;
         }
@@ -756,9 +756,9 @@ function Profile() {
           background: none;
           border: 1px solid #39FF14;
           color: #39FF14;
-          padding: 12px;
+          padding: 10px;
           border-radius: 6px;
-          font-size: 16px;
+          font-size: 14px;
           font-weight: bold;
           width: 100%;
           cursor: pointer;
@@ -773,7 +773,7 @@ function Profile() {
           color: #0f0f0f;
         }
         .signout-button i {
-          font-size: 18px;
+          font-size: 16px;
         }
 
         .menu-link-wrapper {
@@ -794,12 +794,12 @@ function Profile() {
           100% { background-position: -200% 0; }
         }
         .balance-placeholder {
-          width: 120px;
-          height: 32px;
+          width: 100px;
+          height: 28px;
         }
         .equivalent-placeholder {
-          width: 80px;
-          height: 14px;
+          width: 70px;
+          height: 12px;
         }
 
         /* Modal Styles */
@@ -832,7 +832,7 @@ function Profile() {
           margin: 0 auto;
         }
         .modal-header-bottom {
-          padding: 16px 20px 8px 20px;
+          padding: 12px 20px 8px 20px;
           border-bottom: 1px solid #2a2a2a;
           position: relative;
         }
@@ -849,7 +849,7 @@ function Profile() {
           align-items: center;
         }
         .modal-title {
-          font-size: 18px;
+          font-size: 16px;
           font-weight: 600;
           color: #ffffff;
         }
@@ -857,12 +857,12 @@ function Profile() {
           background: #2a2a2a;
           border: none;
           color: #ffffff;
-          font-size: 16px;
+          font-size: 14px;
           cursor: pointer;
-          padding: 8px;
+          padding: 6px;
           border-radius: 50%;
-          width: 36px;
-          height: 36px;
+          width: 32px;
+          height: 32px;
           display: flex;
           align-items: center;
           justify-content: center;
