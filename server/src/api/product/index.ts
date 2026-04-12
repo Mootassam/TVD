@@ -38,7 +38,7 @@ export default (app) => {
   )
 
 
-  app.post(
+  app.get(
     `/tenant/:tenantId/findNews/`,
     require('./findNews').default,
   )

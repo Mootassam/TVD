@@ -14,7 +14,7 @@ interface FuturesModalProps {
   selectedCoin: string;
   marketPrice: string;
   availableBalance: number;
-  setOpeningOrders
+  setOpeningOrders: React.Dispatch<React.SetStateAction<any[]>>; // Added proper typing
 }
 
 const FuturesModal: React.FC<FuturesModalProps> = ({
@@ -29,7 +29,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   setOpeningOrders
 }) => {
   const [selectedDuration, setSelectedDuration] = useState<string>("120");
-  const [selectvalue, setSelectedValue] = useState<string>("20") // Set default value to "20"
+  const [selectvalue, setSelectedValue] = useState<string>("20"); // Default payout percentage
   const [selectedLeverage, setSelectedLeverage] = useState<string>("2");
   const [futuresAmount, setFuturesAmount] = useState<number>(30);
   const [tradeStatus, setTradeStatus] = useState<
@@ -43,10 +43,19 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [tradeDetails, setTradeDetails] = useState<any>(null);
 
+  // Helper to format numbers with commas and two decimals
+  const formatBalance = (value: number): string => {
+    if (!Number.isFinite(value)) return "0.00";
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   const changeValues = (duration: string, value: string) => {
     setSelectedDuration(duration);
     setSelectedValue(value);
-  }
+  };
 
   // prevent background scroll when modal open
   useEffect(() => {
@@ -267,8 +276,8 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     setPnlDisplay("");
     setTradeDetails(null);
     setFuturesAmount(30);
-    setSelectedValue("20"); // Reset to default value
-    setSelectedDuration("120"); // Reset duration as well
+    setSelectedValue("20");
+    setSelectedDuration("120");
   };
 
   const calculateProfit = (
@@ -276,11 +285,9 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     leverage: string,
     value: string
   ): number => {
-    // Ensure all values are valid numbers, use 0 as fallback
     const validAmount = Number.isFinite(amount) ? amount : 0;
     const validLeverage = parseInt(leverage, 10) || 0;
     const validValue = parseInt(value, 10) || 0;
-    
     return (validAmount * validLeverage * validValue) / 100;
   };
 
@@ -318,14 +325,6 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         {/* Header Section */}
         <div className="modal-header">
           <div className="pair-info">
-            <div className="pair-icon">
-              <img
-                src={`https://images.weserv.nl/?url=https://bin.bnbstatic.com/static/assets/logos/${selectedCoin.split("USD")[0]}.png`}
-                style={{ width: 30, height: 30 }}
-                alt={selectedCoin}
-                loading="lazy"
-              />
-            </div>
             <div className="pair-name">{selectedCoin.replace("USD", "/USD")}</div>
           </div>
           <button className="close-btn" onClick={onClose}>×</button>
@@ -387,7 +386,6 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                 </div>
               </div>
             )}
-
 
             <div className="trade-actions">
               {tradeStatus === "in-progress" && (
@@ -482,7 +480,10 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                     +
                   </button>
                 </div>
-                <div className="balance-info">Available: {availableBalance} USD</div>
+                {/* ✅ UPDATED BALANCE DISPLAY WITH FORMATTING */}
+                <div className="balance-info">
+                  Available: {formatBalance(availableBalance)} USD
+                </div>
                 {amountError && (
                   <div className="error-message" style={{ color: "#FF6838", fontSize: "12px", marginTop: "5px" }}>
                     {amountError}
@@ -579,6 +580,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   .pair-name {
       font-weight: bold;
       font-size: 18px;
+      color: #FBFBFB;
   }
 
   .close-btn {
@@ -793,6 +795,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       font-size: 24px;
       font-weight: bold;
       margin-bottom: 5px;
+      color: #FFFFFF;
   }
 
   .progress-label {

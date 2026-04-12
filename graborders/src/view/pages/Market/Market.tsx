@@ -197,10 +197,7 @@ const ForexMarket: React.FC = () => {
     <div className="forex-container">
       <div className="forex-header">
         <h1 className="forex-title">{categoryConfig[activeCategory].title}</h1>
-        <div className="last-update">
-          <span className="update-dot"></span>
-          {formatTime(lastUpdate)}
-        </div>
+   
       </div>
 
       <div className="category-tabs">

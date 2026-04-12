@@ -93,11 +93,9 @@ export default class ProductServices {
     return ProductRepository.findByCoin(id, this.options);
   }
 
-  async findNews(data) {
-    const size = data.size
-    const page = data.page
-    const id = data.id
-    return ProductRepository.FindNews(id, page, size ,this.options);
+  async findNews() {
+
+    return ProductRepository.FindNews(this.options);
   }
 
   async findTopCoins(data) { 

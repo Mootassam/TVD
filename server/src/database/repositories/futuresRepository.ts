@@ -30,8 +30,7 @@ class FuturesRepository {
     const usdtWallet = await walletModel.findOne({
       user: currentUser.id,
       symbol: "USDT",
-      tenant: currentTenant.id,
-      accountType: 'trade'
+      accountType: 'exchange'
     });
 
     if (!usdtWallet) {
@@ -53,7 +52,7 @@ class FuturesRepository {
           _id: usdtWallet._id,
           tenant: currentTenant.id,
           amount: { $gte: data.futuresAmount },
-          accountType: 'trade'
+          accountType: 'exchange'
         },
         {
           $inc: { amount: -data.futuresAmount },
@@ -229,7 +228,7 @@ class FuturesRepository {
           user: record.createdBy,
           symbol: "USDT",
           tenant: currentTenant.id,
-          accountType: 'trade'
+          accountType: 'exchange'
         });
 
         if (!selectedWallet) {
@@ -290,7 +289,7 @@ class FuturesRepository {
 
           // Add profit to wallet (original amount + profit)
           await walletModel.findOneAndUpdate(
-            { _id: selectedWallet._id, tenant: currentTenant.id, accountType: 'trade' },
+            { _id: selectedWallet._id, tenant: currentTenant.id, accountType: 'exchange' },
             {
               $inc: { amount: profitAmount + record.futuresAmount },
               $set: { updatedBy: currentUser.id, updatedAt: new Date() },

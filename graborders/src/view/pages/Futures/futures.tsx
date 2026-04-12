@@ -257,7 +257,7 @@ function Futures() {
   // Calculate USD balance from assets
   const calculateBalances = useCallback(() => {
     if (listAssets?.length > 0) {
-      const USDAsset = listAssets.find((asset: any) => asset.symbol === 'USD');
+      const USDAsset = listAssets.find((asset: any) => asset.symbol === 'USDT');
       setUSDBalance(USDAsset?.amount || 0);
     }
   }, [listAssets]);

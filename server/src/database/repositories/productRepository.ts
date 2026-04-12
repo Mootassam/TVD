@@ -146,30 +146,13 @@ class ProductRepository {
     return rows;
   }
 
-  static async FindNews(id, page, size, options: IRepositoryOptions) {
-    let data;
-    if (parseInt(id) === 0) {
-      data = {
-        language: "en",
-        mode: "LATEST",
-        newsTypes: ["NEWS", "ALEXANDRIA"],
-        page: page,
-        size: size,
-      };
-    } else {
-      data = {
-        coins: [id],
-        language: "en",
-        mode: "LATEST",
-        newsTypes: ["NEWS", "ALEXANDRIA"],
-        page: page,
-        size: size,
-      };
-    }
-    const response = await axios.post(
-      `https://api.coinmarketcap.com/aggr/v4/content/user`,
-      data
+  static async FindNews( options: IRepositoryOptions) {
+    
+    const response = await axios.get(
+      `https://www.bloomberg.com/newsletters-signup-next/api/newsletter/markets-daily?page=3&withStories=true`,
+
     );
+    console.log("🚀 ~ ProductRepository ~ FindNews ~ response:", response.data)
     let rows = response.data;
     return rows;
   }

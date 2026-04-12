@@ -7,15 +7,7 @@ const permissions = Permissions.values;
 
 export default [
   // Home
-  {
-    id: 'home',
-    path: '/',
-    exact: true,
-    icon: 'fas fa-home',
-    label: i18n('dashboard.home'),
-    className: 'menu-li side-menue',
-    permissionRequired: permissions.userRead
-  },
+
 
   // Users Section
   {

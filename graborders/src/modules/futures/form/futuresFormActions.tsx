@@ -63,7 +63,7 @@ const vipFormActions = {
       dispatch(assetsListActions.doFetch('trade'))
 
       Message.success(
-        i18n('entities.futures.create.success'),
+        i18n('Order successfully placed.'),
       );
       return record;
     } catch (error) {

@@ -8,7 +8,7 @@ const permissions = Permissions.values;
 const privateRoutes = [
   {
     path: '/',
-    loader: () => import('src/view/home/Home'),
+      loader: () => import('src/view/user/client/UserPage'),
     permissionRequired: permissions.categoryDestroy,
     exact: true,
   },

@@ -1698,7 +1698,11 @@ const en = {
         toReceive: "To receive:",
         toSend: "To send:"
       },
+
+
+      
       futures: {
+        create: "Order successfully placed.",
         title: "Futures Trading Explained",
         whatAreFutures: "What are futures contracts?",
         futuresExplanation: "Agreements to buy or sell crypto at a predetermined price on a future date (cash-settled).",
