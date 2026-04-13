@@ -1,94 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import actions from "src/modules/rules/list/rulesListActions";
+import selector from "src/modules/rules/list/rulesListSelectors";
 import { i18n } from "../../../i18n";
 
 function HelpCenterDetail() {
   const { id } = useParams();
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const dispatch = useDispatch();
 
-  // Updated FAQ data with new entries
-  const faqData = [
-    {
-      id: "1",
-      question: i18n("pages.helpCenter.faq.aboutAccounts"),
-      answer: i18n("pages.helpCenterDetail.answers.aboutAccounts")
-    },
-    {
-      id: "2",
-      question: i18n("pages.helpCenter.faq.transactionVolume"),
-      answer: i18n("pages.helpCenterDetail.answers.transactionVolume")
-    },
-    {
-      id: "3",
-      question: i18n("pages.helpCenter.faq.transferFunds"),
-      answer: i18n("pages.helpCenterDetail.answers.transferFunds")
-    },
-    {
-      id: "4",
-      question: i18n("pages.helpCenter.faq.whatAreFutures"),
-      answer: i18n("pages.helpCenterDetail.answers.whatAreFutures")
-    },
-    {
-      id: "5",
-      question: i18n("pages.helpCenter.faq.convertedAmountChanges"),
-      answer: i18n("pages.helpCenterDetail.answers.convertedAmountChanges")
-    },
-    {
-      id: "6",
-      question: i18n("pages.helpCenter.faq.realNameAuthentication"),
-      answer: i18n("pages.helpCenterDetail.answers.realNameAuthentication")
-    },
-    {
-      id: "7",
-      question: i18n("pages.helpCenter.faq.frozenAssets"),
-      answer: i18n("pages.helpCenterDetail.answers.frozenAssets")
-    },
-    {
-      id: "8",
-      question: i18n("pages.helpCenter.faq.futuresTradingRules"),
-      answer: i18n("pages.helpCenterDetail.answers.futuresTradingRules")
-    },
-    {
-      id: "9",
-      question: i18n("pages.helpCenterDetail.questions.aiQuantification"),
-      answer: i18n("pages.helpCenterDetail.answers.aiQuantification")
-    },
-    {
-      id: "10",
-      question: i18n("pages.helpCenterDetail.questions.exploreNFTs"),
-      answer: i18n("pages.helpCenterDetail.answers.exploreNFTs")
-    },
-    {
-      id: "11",
-      question: i18n("pages.helpCenterDetail.questions.bitcoinEnergy"),
-      answer: i18n("pages.helpCenterDetail.answers.bitcoinEnergy")
-    },
-    {
-      id: "12",
-      question: i18n("pages.helpCenterDetail.questions.bitcoinRecordPrice"),
-      answer: i18n("pages.helpCenterDetail.answers.bitcoinRecordPrice")
-    },
-    {
-      id: "13",
-      question: i18n("pages.helpCenterDetail.questions.trumpStatueBitcoin"),
-      answer: i18n("pages.helpCenterDetail.answers.trumpStatueBitcoin")
-    }
-  ];
+  const records = useSelector(selector.selectRows);
+  const record = records.find(r => r.id === id);
 
   useEffect(() => {
-    // Find the FAQ item by id
-    const faqItem = faqData.find(item => item.id === id);
-    
-    if (faqItem) {
-      setQuestion(faqItem.question);
-      setAnswer(faqItem.answer);
-    } else {
-      // If no FAQ found, redirect back to help center
-      // In a real app, you would use: navigate('/support');
-      console.log(i18n("pages.helpCenterDetail.faqNotFound"));
-    }
-  }, [id]);
+    dispatch(actions.doFetch());
+  }, [dispatch]);
 
   return (
     <div className="helpcenterdetail-container">
@@ -105,11 +31,11 @@ function HelpCenterDetail() {
       {/* Content Card - Matching Profile Page */}
       <div className="content-card">
         <div className="helpcenterdetail-content">
-          {question && (
+          {record && (
             <>
-              <div className="question-title">{question}</div>
+              <div className="question-title">{record.question}</div>
               <div className="divider-line"></div>
-              <div className="answer-content">{answer}</div>
+              <div className="answer-content">{record.description}</div>
             </>
           )}
         </div>

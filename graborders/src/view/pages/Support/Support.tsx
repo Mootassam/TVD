@@ -43,8 +43,8 @@ function HelpCenter() {
       {/* Content Card - Matching Profile Page */}
       <div className="content-card">
         <div className="helpcenter-content">
-          {record.map((item, index) => (
-            <Link to={`/support/details/${index + 1}`} className="remove_blue" key={index}>
+          {record.map((item) => (
+            <Link to={`/support/details/${item.id}`} className="remove_blue" key={item.id}>
               <div className="faq-item">
                 <div className="faq-icon">
                   <i className="fas fa-arrow-left" />
