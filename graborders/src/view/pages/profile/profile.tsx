@@ -22,11 +22,13 @@ const MENU_ITEMS = [
     icon: "fas fa-shield-alt",
     path: "/typepassword",
     name: i18n("pages.profile.menu.password"),
+    requiresKyc: true,
   },
   {
     icon: "fas fa-file-alt",
     path: "/transferAll",
     name: i18n("pages.profile.menu.withdrawalAddress"),
+    requiresKyc: true,
   },
   {
     icon: "fas fa-comment-dots",
@@ -55,20 +57,13 @@ const MENU_ITEMS = [
   },
 ];
 
-// Status constants
-const VERIFICATION_STATUS = {
-  PENDING: "pending",
-  SUCCESS: "success",
-  UNVERIFIED: "unverified",
-};
-
 function Profile() {
   const dispatch = useDispatch();
   const history = useHistory();
 
   // User & KYC
   const currentUser = useSelector(authSelectors.selectCurrentUser);
-  const selectRows = useSelector(kycSelectors.selectRows);
+  const kycStatus = useSelector(kycSelectors.selectKycStatus);
   const loadingKyc = useSelector(kycSelectors.selectLoading);
 
   // Asset data
@@ -81,15 +76,10 @@ function Profile() {
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [hideAmounts, setHideAmounts] = useState(false);
 
-  // KYC status
-  const kycStatus = useMemo(() => {
-    if (selectRows[0]?.status === VERIFICATION_STATUS.PENDING) {
-      return VERIFICATION_STATUS.PENDING;
-    }
-    return currentUser?.kyc
-      ? VERIFICATION_STATUS.SUCCESS
-      : VERIFICATION_STATUS.UNVERIFIED;
-  }, [selectRows, currentUser?.kyc]);
+  // KYC status - using selector directly
+  const isKycVerified = useMemo(() => {
+    return kycStatus === 'success';
+  }, [kycStatus]);
 
   // Memoized user data for KYC fetch
   const userData = useMemo(() => ({ user: currentUser }), [currentUser]);
@@ -154,15 +144,15 @@ function Profile() {
     () =>
       MENU_ITEMS.map((item) => ({
         ...item,
-        disabled: item?.requiresKyc && !currentUser?.kyc,
+        disabled: item?.requiresKyc && !isKycVerified,
       })),
-    [currentUser?.kyc]
+    [isKycVerified]
   );
 
   const handleVerifyNow = useCallback(() => {
-    if (kycStatus === VERIFICATION_STATUS.UNVERIFIED) {
+    if (kycStatus === 'unverified') {
       history.push("/proof");
-    } else if (kycStatus === VERIFICATION_STATUS.PENDING) {
+    } else if (kycStatus === 'pending') {
       alert(i18n("pages.profile.verification.pendingAlert"));
     } else {
       // already verified – do nothing or show message
@@ -172,9 +162,9 @@ function Profile() {
   // KYC display helpers
   const getVerificationText = () => {
     switch (kycStatus) {
-      case VERIFICATION_STATUS.SUCCESS:
+      case 'success':
         return i18n("pages.profile.status.verified");
-      case VERIFICATION_STATUS.PENDING:
+      case 'pending':
         return i18n("pages.profile.verification.pending.status");
       default:
         return i18n("pages.profile.status.unverified");
@@ -183,9 +173,9 @@ function Profile() {
 
   const getVerificationIcon = () => {
     switch (kycStatus) {
-      case VERIFICATION_STATUS.SUCCESS:
+      case 'success':
         return "fas fa-check-circle";
-      case VERIFICATION_STATUS.PENDING:
+      case 'pending':
         return "fas fa-clock";
       default:
         return "fas fa-exclamation-circle";
@@ -194,9 +184,9 @@ function Profile() {
 
   const getVerificationButtonText = () => {
     switch (kycStatus) {
-      case VERIFICATION_STATUS.SUCCESS:
+      case 'success':
         return i18n("pages.profile.status.verified");
-      case VERIFICATION_STATUS.PENDING:
+      case 'pending':
         return i18n("pages.profile.verification.pending.button");
       default:
         return i18n("pages.profile.verification.alert.verifyNow");
@@ -205,13 +195,13 @@ function Profile() {
 
   const isVerificationButtonDisabled = () => {
     return (
-      kycStatus === VERIFICATION_STATUS.SUCCESS ||
-      kycStatus === VERIFICATION_STATUS.PENDING
+      kycStatus === 'success' ||
+      kycStatus === 'pending'
     );
   };
 
   const shouldPulseBadge = () => {
-    return kycStatus === VERIFICATION_STATUS.UNVERIFIED;
+    return kycStatus === 'unverified';
   };
 
   // Render menu items (includes standard items plus the special KYC item)

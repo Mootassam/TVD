@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { i18n } from "../../../i18n";
 import yupFormSchemas from "src/modules/shared/yup/yupFormSchemas";
 import InputFormItem from "src/shared/form/InputFormItem";
@@ -12,6 +12,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import authSelectors from "src/modules/auth/authSelectors";
 import transactionEnumerators from "src/modules/transaction/transactionEnumerators";
 import Storage from "src/security/storage";
+import kycSelectors from "src/modules/kyc/list/kycListSelectors";
+import kycListActions from "src/modules/kyc/list/kycListActions";
 
 // Dynamic schema function
 const createSchema = (documentType) =>
@@ -36,7 +38,14 @@ const createSchema = (documentType) =>
 function Proof() {
   const [document, setDocument] = useState("passport");
   const currentUser = useSelector(authSelectors.selectCurrentUser);
+  const kycStatus = useSelector(kycSelectors.selectKycStatus);
   const dispatch = useDispatch();
+  const history = useHistory();
+
+  // Fetch KYC list on mount
+  useEffect(() => {
+    dispatch(kycListActions.doFetch());
+  }, [dispatch]);
 
   // Use useMemo to recompute schema only when document changes
   const schema = useMemo(() => createSchema(document), [document]);
@@ -72,6 +81,260 @@ function Proof() {
     { value: "idCard", label: i18n("pages.proof.documentTypes.idCard"), icon: "fas fa-id-card" },
     { value: "driversLicense", label: i18n("pages.proof.documentTypes.driversLicense"), icon: "fas fa-id-card-alt" },
   ];
+
+  // If KYC is already submitted (pending or success), show status instead of form
+  if (kycStatus !== 'unverified') {
+    return (
+      <div className="proof-container">
+        {/* Header Section - Matching Profile Page */}
+        <div className="header">
+          <div className="nav-bar">
+            <button
+              className="back-arrow"
+              onClick={() => history.push('/profile')}
+              type="button"
+            >
+              <i className="fas fa-arrow-left" />
+            </button>
+            <div className="page-title">{i18n("pages.proof.title")}</div>
+          </div>
+        </div>
+
+        {/* Content Card */}
+        <div className="content-card">
+          <div className="kyc-status-view">
+            {kycStatus === 'pending' ? (
+              <>
+                <div className="status-icon pending">
+                  <i className="fas fa-clock"></i>
+                </div>
+                <h2 className="status-title">
+                  {i18n("pages.kycStatus.pending.title")}
+                </h2>
+                <p className="status-message">
+                  {i18n("pages.kycStatus.pending.message")}
+                </p>
+                <div className="status-note">
+                  <i className="fas fa-info-circle"></i>
+                  {i18n("pages.kycStatus.pending.note")}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="status-icon success">
+                  <i className="fas fa-check-circle"></i>
+                </div>
+                <h2 className="status-title">
+                  {i18n("pages.kycStatus.success.title")}
+                </h2>
+                <p className="status-message">
+                  {i18n("pages.kycStatus.success.message")}
+                </p>
+                <div className="status-features">
+                  <h3>{i18n("pages.kycStatus.success.featuresTitle")}</h3>
+                  <ul>
+                    <li>
+                      <i className="fas fa-check"></i>
+                      {i18n("pages.kycStatus.success.features.allAccess")}
+                    </li>
+                  </ul>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <style>{`
+          .proof-container {
+            max-width: 430px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #0f0f0f;
+            border-top: 2px solid #39FF14;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            color: #ffffff;
+          }
+
+          .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #2a2a2a;
+          }
+
+          .nav-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          }
+
+          .back-arrow {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .back-arrow:hover {
+            color: #39FF14;
+          }
+
+          .page-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffffff;
+          }
+
+          .content-card {
+            flex: 1;
+            background-color: #1c1c1c;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 24px 20px;
+            margin-top: 20px;
+            border-top: 2px solid #39FF14;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+
+          .kyc-status-view {
+            text-align: center;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+
+          .status-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 20px;
+          }
+
+          .status-icon.pending {
+            background-color: rgba(0, 123, 255, 0.15);
+            color: #007bff;
+            border: 2px solid #007bff;
+          }
+
+          .status-icon.success {
+            background-color: rgba(57, 255, 20, 0.15);
+            color: #39FF14;
+            border: 2px solid #39FF14;
+          }
+
+          .status-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #ffffff;
+          }
+
+          .status-message {
+            font-size: 14px;
+            color: #aaaaaa;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            max-width: 340px;
+          }
+
+          .status-note {
+            background-color: #2a2a2a;
+            border-left: 4px solid #007bff;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #cccccc;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+            max-width: 340px;
+            text-align: left;
+          }
+
+          .status-note i {
+            color: #007bff;
+            font-size: 16px;
+          }
+
+          .status-features {
+            background-color: #2a2a2a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            width: 100%;
+            max-width: 340px;
+          }
+
+          .status-features h3 {
+            font-size: 14px;
+            color: #39FF14;
+            margin-bottom: 16px;
+            text-align: left;
+          }
+
+          .status-features ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+          }
+
+          .status-features li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #3a3a3a;
+            font-size: 13px;
+            color: #ffffff;
+          }
+
+          .status-features li:last-child {
+            border-bottom: none;
+          }
+
+          .status-features li i {
+            color: #39FF14;
+            width: 16px;
+            text-align: center;
+          }
+
+          .back-to-profile {
+            background-color: #2a2a2a;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          .back-to-profile:hover {
+            background-color: #39FF14;
+            color: #0f0f0f;
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="proof-container">
@@ -292,7 +555,7 @@ function Proof() {
         }
         .document-option {
           flex: 1;
-          min-width: 100px;
+          // min-width: 100px;
           background-color: #2a2a2a;
           border: 1px solid #2a2a2a;
           border-radius: 8px;

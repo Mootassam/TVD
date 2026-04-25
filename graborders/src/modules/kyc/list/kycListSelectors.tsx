@@ -110,6 +110,52 @@ const selectIsAllSelected = createSelector(
   },
 );
 
+// KYC Status selectors
+const VERIFICATION_STATUS = {
+  PENDING: 'pending',
+  SUCCESS: 'success',
+  UNVERIFIED: 'unverified',
+};
+
+const selectKycStatus = createSelector(
+  [selectRows, (state) => state.auth.currentUser],
+  (rows, currentUser) => {
+    if (!currentUser) {
+      return VERIFICATION_STATUS.UNVERIFIED;
+    }
+
+    // Check if user has KYC verified field
+    if (currentUser.kyc) {
+      return VERIFICATION_STATUS.SUCCESS;
+    }
+
+    // Check KYC list for pending submissions
+    if (rows && rows.length > 0) {
+      const latestKyc = rows[0];
+      if (latestKyc.status === VERIFICATION_STATUS.PENDING) {
+        return VERIFICATION_STATUS.PENDING;
+      }
+    }
+
+    return VERIFICATION_STATUS.UNVERIFIED;
+  },
+);
+
+const selectIsKycVerified = createSelector(
+  [selectKycStatus],
+  (kycStatus) => kycStatus === VERIFICATION_STATUS.SUCCESS,
+);
+
+const selectIsKycPending = createSelector(
+  [selectKycStatus],
+  (kycStatus) => kycStatus === VERIFICATION_STATUS.PENDING,
+);
+
+const selectIsKycUnverified = createSelector(
+  [selectKycStatus],
+  (kycStatus) => kycStatus === VERIFICATION_STATUS.UNVERIFIED,
+);
+
 const couponsListSelectors = {
   selectLoading,
   selectRows,
@@ -126,6 +172,12 @@ const couponsListSelectors = {
   selectRawFilter,
   selectIsAllSelected,
   selectSorter,
+  // KYC status selectors
+  selectKycStatus,
+  selectIsKycVerified,
+  selectIsKycPending,
+  selectIsKycUnverified,
+  VERIFICATION_STATUS,
 };
 
 export default couponsListSelectors;

@@ -499,6 +499,33 @@ const en = {
         toggle: "Simulated trading {0}"
       }
     },
+    kycStatus: {
+      unverified: {
+        title: "Verification Required",
+        message: "You need to complete KYC verification to access all application features. Without verification, you cannot use password protection, withdrawal addresses, deposit, or withdrawal functions.",
+        featuresTitle: "Features you'll unlock with KYC:",
+        features: {
+          password: "Password protection",
+          withdrawal: "Withdrawal address management",
+          deposit: "Deposit functionality",
+          withdraw: "Withdraw funds"
+        },
+        verifyNow: "Verify Now"
+      },
+      pending: {
+        title: "Verification Pending",
+        message: "Your KYC documents are under review. We'll notify you once verification is complete. This usually takes 1-3 business days.",
+        note: "You cannot submit new documents while your current application is being processed."
+      },
+      success: {
+        title: "Verification Complete",
+        message: "Congratulations! Your identity has been verified. You now have full access to all platform features.",
+        featuresTitle: "What you can now do:",
+        features: {
+          allAccess: "Full access to all features"
+        }
+      }
+    },
     trade: {
       coinSelector: {
         title: "Select Trading Pair"

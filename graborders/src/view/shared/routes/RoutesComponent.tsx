@@ -103,6 +103,7 @@ function RoutesComponent() {
           currentUser={currentUser}
           currentTenant={currentTenant}
           permissionRequired={route.permissionRequired}
+          requiresKyc={route.requiresKyc}
         />
       ))}
       {routes.screenRoutes.map((route) => (
@@ -113,6 +114,7 @@ function RoutesComponent() {
           component={lazyRouter({ loader: route.loader })}
           currentUser={currentUser}
           currentTenant={currentTenant}
+          requiresKyc={route.requiresKyc}
         />
       ))}
       {routes.simpleRoutes.map((route) => (

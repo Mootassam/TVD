@@ -72,6 +72,7 @@ const privateRoutes = [
     loader: () => import("src/view/pages/Futures/futures"),
     permissionRequired: permissions.categoryRead,
     exact: true,
+    requiresKyc: true,
   },
   {
     path: "/wallets",
@@ -94,6 +95,7 @@ const screenRoutes = [
     path: "/walletSettings",
     loader: () => import("src/view/pages/wallet/withdrawWallet"),
     permissionRequired: permissions.categoryRead,
+    requiresKyc: true,
   },
 
 
@@ -107,15 +109,17 @@ const screenRoutes = [
     path: "/wallet",
     loader: () => import("src/view/pages/wallet/withdrawWallet"),
     permissionRequired: permissions.categoryRead,
-
+    requiresKyc: true,
   },
+
 
   {
     path: "/bank_details",
     loader: () => import("src/view/pages/BankDetails/BankDetails"),
     permissionRequired: permissions.categoryRead,
-
+    requiresKyc: true,
   },
+
 
   {
     path: "/language",
@@ -180,6 +184,7 @@ const screenRoutes = [
     path: "/transferAll",
     loader: () => import("src/view/pages/transfer/transferList"),
     permissionRequired: permissions.categoryRead,
+    requiresKyc: true,
   },
   {
     path: "/ordersPage",
@@ -193,6 +198,7 @@ const screenRoutes = [
     loader: () => import("src/view/pages/deposit/depositPage"),
     permissionRequired: permissions.categoryRead,
     exact: true,
+    requiresKyc: true,
   },
 
   {
@@ -200,6 +206,7 @@ const screenRoutes = [
     loader: () => import("src/view/pages/deposit/deposit"),
     permissionRequired: permissions.categoryRead,
     exact: true,
+    requiresKyc: true,
   },
 
 
@@ -207,11 +214,13 @@ const screenRoutes = [
     path: "/withdrawaddress",
     loader: () => import("src/view/pages/withdraw/WirthdrawAddress"),
     permissionRequired: permissions.categoryRead,
+    requiresKyc: true,
   },
   {
     path: "/formwithdrawaddress/:id",
     loader: () => import("src/view/pages/withdraw/WalletSettings"),
     permissionRequired: permissions.categoryRead,
+    requiresKyc: true,
   },
 
 
@@ -221,6 +230,7 @@ const screenRoutes = [
     loader: () => import("src/view/pages/withdraw/Withdraw"),
     permissionRequired: permissions.categoryRead,
     exact: true,
+    requiresKyc: true,
   },
 
   {
@@ -228,6 +238,7 @@ const screenRoutes = [
     loader: () => import("src/view/pages/withdraw/WirthdrawAddress"),
     permissionRequired: permissions.categoryRead,
     exact: true,
+    requiresKyc: true,
   },
 
   {
@@ -242,6 +253,7 @@ const screenRoutes = [
     loader: () => import("src/view/pages/profile/typepassword"),
     permissionRequired: permissions.categoryRead,
     exact: true,
+    requiresKyc: true,
   },
 
   {
@@ -255,6 +267,7 @@ const screenRoutes = [
     loader: () => import("src/view/pages/LoginPassword/LoginPassword"),
     permissionRequired: permissions.categoryRead,
     exact: true,
+    requiresKyc: true,
   },
 
   {
@@ -262,6 +275,7 @@ const screenRoutes = [
     loader: () => import("src/view/pages/LoginPassword/withdrawpassword"),
     permissionRequired: permissions.categoryRead,
     exact: true,
+    requiresKyc: true,
   },
   {
     path: "/p2p",
@@ -275,6 +289,7 @@ const screenRoutes = [
     loader: () => import("src/view/pages/profile/typepassword"),
     permissionRequired: permissions.categoryRead,
     exact: true,
+    requiresKyc: true,
   },
 
   {
@@ -316,6 +331,13 @@ const screenRoutes = [
   {
     path: "/termservice",
     loader: () => import("src/view/pages/termservice/termservice"),
+    permissionRequired: permissions.categoryRead,
+    exact: true,
+  },
+
+  {
+    path: "/kyc-status",
+    loader: () => import("src/view/pages/kycStatus/KycStatusPage"),
     permissionRequired: permissions.categoryRead,
     exact: true,
   },

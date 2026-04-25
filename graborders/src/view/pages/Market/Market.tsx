@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { MarketProvider, fetchAllCryptoPrices, cryptoCoinIds } from "./MarketContext";
+
+/* ------------------------------------------------------------------ */
+/*  Types & Config                                                    */
+/* ------------------------------------------------------------------ */
 
 interface MarketItem {
   symbol: string;
   name: string;
+  fullName: string;
   price: string;
   change: string;
   changePercent: string;
@@ -17,412 +21,647 @@ type MarketCategory = "Forex" | "Metal" | "Oil" | "CFD" | "Crypto";
 const categoryConfig: Record<MarketCategory, { title: string; symbols: string[] }> = {
   Forex: {
     title: "Forex",
-    symbols: ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD", "EURGBP", "EURJPY", "GBPJPY", "AUDJPY", "EURAUD", "GBPAUD", "USDMXN", "USDTRY", "USDZAR", "USDSGD", "USDHKD", "USDKRW", "USDINR", "EURCHF", "EURNZD", "GBPEUR", "AUDNZD", "CADJPY", "CHFJPY", "NZDJPY", "SGDJPY", "HKDJPY", "ZARJPY"],
+    symbols: [
+      "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
+      "EURGBP", "EURJPY", "GBPJPY", "AUDJPY", "EURAUD", "GBPAUD", "USDMXN",
+      "USDTRY", "USDZAR", "USDSGD", "USDHKD", "USDKRW", "USDINR",
+    ],
   },
   Metal: {
     title: "Metals",
-    symbols: ["XAUUSD", "XAGUSD", "XPTUSD", "XPDUSD", "XAUEUR", "XAGEUR", "XPTEUR", "XAUGBP", "XAGGBP"],
+    symbols: ["XAUUSD", "XAGUSD", "XPTUSD", "XPDUSD"],
   },
   Oil: {
-    title: "Oil",
-    symbols: ["USOIL", "UKOIL", "BRENT", "WTI", "CRUDE", "NGAS", "HEAT", "GAS"],
+    title: "Oil & Gas",
+    symbols: ["USOIL", "UKOIL", "NGAS"],
   },
   CFD: {
-    title: "CFD",
-    symbols: ["US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225", "HK50", "AUS200", "TWII", "KR100", "IN50", "TECH100"],
+    title: "Indices",
+    symbols: [
+      "US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225",
+    ],
   },
   Crypto: {
     title: "Crypto",
-    symbols: ["BTCUSD", "ETHUSD", "XRPUSD", "SOLUSD", "ADAUSD", "DOGEUSD", "DOTUSD", "AVAXUSD", "LINKUSD", "MATICUSD", "UNIUSD", "ATOMUSD", "LTCUSD", "BCHUSD", "NEARUSD", "ALGOUSD", "VETUSD", "FILUSD", "THETAUSD", "AXSUSD", "SANDUSD", "MANAUSD", "ENJUSD", "CHZUSD", "APEUSD"],
+    symbols: [
+      "BTCUSD", "ETHUSD", "XRPUSD", "SOLUSD", "ADAUSD", "DOGEUSD", "DOTUSD",
+      "AVAXUSD", "LINKUSD", "MATICUSD", "UNIUSD", "ATOMUSD", "LTCUSD",
+      "BCHUSD", "NEARUSD", "ALGOUSD", "VETUSD", "FILUSD", "THETAUSD",
+      "AXSUSD", "SANDUSD", "MANAUSD", "ENJUSD", "CHZUSD", "APEUSD",
+    ],
   },
 };
 
-const basePrices: Record<string, number> = {
-  EURUSD: 1.0842, GBPUSD: 1.2635, USDJPY: 148.65, AUDUSD: 0.6532, USDCAD: 1.3580, USDCHF: 0.8795, NZDUSD: 0.6025, EURGBP: 0.8590, EURJPY: 161.15, GBPJPY: 187.65, AUDJPY: 97.15, EURAUD: 1.6590, GBPAUD: 1.9340, USDMXN: 17.25, USDTRY: 32.15, USDZAR: 18.95, USDSGD: 1.3420, USDHKD: 7.8185, USDKRW: 1335.00, USDINR: 83.25, EURCHF: 0.9530, EURNZD: 1.7990, GBPEUR: 1.1645, AUDNZD: 1.0845, CADJPY: 109.50, CHFJPY: 169.05, NZDJPY: 91.25, SGDJPY: 110.75, HKDJPY: 19.02, ZARJPY: 7.85,
-  XAUUSD: 2345.80, XAGUSD: 28.25, XPTUSD: 985.50, XPDUSD: 1045.00, XAUEUR: 2165.00, XAGEUR: 26.05, XPTEUR: 908.00, XAUGBP: 1855.00, XAGGBP: 22.35,
-  USOIL: 84.25, UKOIL: 87.85, BRENT: 87.15, WTI: 84.35, CRUDE: 84.50, NGAS: 2.85, HEAT: 2.65, GAS: 2.75,
-  US30: 38550, US500: 5125, NAS100: 18450, US2000: 2185, GER40: 18485, UK100: 8075, FRA40: 7525, EU50: 4895, JP225: 39750, HK50: 16750, AUS200: 7850, TWII: 20750, KR100: 2850, IN50: 22450, TECH100: 8450,
-  BTCUSD: 67450, ETHUSD: 3425, XRPUSD: 0.515, SOLUSD: 142.50, ADAUSD: 0.445, DOGEUSD: 0.0825, DOTUSD: 7.15, AVAXUSD: 34.85, LINKUSD: 14.25, MATICUSD: 0.585, UNIUSD: 6.85, ATOMUSD: 8.45, LTCUSD: 84.50, BCHUSD: 485.00, NEARUSD: 5.25, ALGOUSD: 0.185, VETUSD: 0.0225, FILUSD: 5.85, THETAUSD: 0.985, AXSUSD: 6.85, SANDUSD: 0.425, MANAUSD: 0.385, ENJUSD: 0.285, CHZUSD: 0.085, APEUSD: 1.25,
+// Mapping your symbols to Yahoo Finance tickers
+const yahooSymbolMap: Record<string, string> = {
+  EURUSD: "EURUSD=X", GBPUSD: "GBPUSD=X", USDJPY: "USDJPY=X",
+  AUDUSD: "AUDUSD=X", USDCAD: "USDCAD=X", USDCHF: "USDCHF=X",
+  NZDUSD: "NZDUSD=X", EURGBP: "EURGBP=X", EURJPY: "EURJPY=X",
+  GBPJPY: "GBPJPY=X", AUDJPY: "AUDJPY=X", EURAUD: "EURAUD=X",
+  GBPAUD: "GBPAUD=X", USDMXN: "USDMXN=X", USDTRY: "USDTRY=X",
+  USDZAR: "USDZAR=X", USDSGD: "USDSGD=X", USDHKD: "USDHKD=X",
+  USDKRW: "USDKRW=X", USDINR: "USDINR=X",
+  XAUUSD: "GC=F", XAGUSD: "SI=F", XPTUSD: "PL=F", XPDUSD: "PA=F",
+  USOIL: "CL=F", UKOIL: "BZ=F", NGAS: "NG=F",
+  US30: "YM=F", US500: "ES=F", NAS100: "NQ=F", US2000: "RTY=F",
+  GER40: "DAX", UK100: "FTSE", FRA40: "FCHI", EU50: "STOXX50E",
+  JP225: "N225",
+};
+
+/* ------------------------------------------------------------------ */
+/*  Utility functions                                                 */
+/* ------------------------------------------------------------------ */
+
+const getDisplayName = (symbol: string): { short: string; full: string } => {
+  const map: Record<string, { short: string; full: string }> = {
+    EURUSD: { short: "EUR/USD", full: "Euro / US Dollar" },
+    GBPUSD: { short: "GBP/USD", full: "British Pound / US Dollar" },
+    USDJPY: { short: "USD/JPY", full: "US Dollar / Japanese Yen" },
+    AUDUSD: { short: "AUD/USD", full: "Australian Dollar / US Dollar" },
+    USDCAD: { short: "USD/CAD", full: "US Dollar / Canadian Dollar" },
+    USDCHF: { short: "USD/CHF", full: "US Dollar / Swiss Franc" },
+    NZDUSD: { short: "NZD/USD", full: "New Zealand Dollar / US Dollar" },
+    EURGBP: { short: "EUR/GBP", full: "Euro / British Pound" },
+    EURJPY: { short: "EUR/JPY", full: "Euro / Japanese Yen" },
+    GBPJPY: { short: "GBP/JPY", full: "British Pound / Japanese Yen" },
+    AUDJPY: { short: "AUD/JPY", full: "Australian Dollar / Japanese Yen" },
+    EURAUD: { short: "EUR/AUD", full: "Euro / Australian Dollar" },
+    GBPAUD: { short: "GBP/AUD", full: "British Pound / Australian Dollar" },
+    USDMXN: { short: "USD/MXN", full: "US Dollar / Mexican Peso" },
+    USDTRY: { short: "USD/TRY", full: "US Dollar / Turkish Lira" },
+    USDZAR: { short: "USD/ZAR", full: "US Dollar / South African Rand" },
+    USDSGD: { short: "USD/SGD", full: "US Dollar / Singapore Dollar" },
+    USDHKD: { short: "USD/HKD", full: "US Dollar / Hong Kong Dollar" },
+    USDKRW: { short: "USD/KRW", full: "US Dollar / South Korean Won" },
+    USDINR: { short: "USD/INR", full: "US Dollar / Indian Rupee" },
+    XAUUSD: { short: "Gold", full: "Gold Spot" },
+    XAGUSD: { short: "Silver", full: "Silver Spot" },
+    XPTUSD: { short: "Platinum", full: "Platinum Spot" },
+    XPDUSD: { short: "Palladium", full: "Palladium Spot" },
+    USOIL: { short: "Crude Oil", full: "WTI Crude Oil" },
+    UKOIL: { short: "Brent Oil", full: "Brent Crude Oil" },
+    NGAS: { short: "Nat Gas", full: "Natural Gas" },
+    US30: { short: "US 30", full: "Dow Jones 30" },
+    US500: { short: "US 500", full: "S&P 500" },
+    NAS100: { short: "NAS 100", full: "Nasdaq 100" },
+    US2000: { short: "Russell 2000", full: "Russell 2000" },
+    GER40: { short: "DAX", full: "DAX 40" },
+    UK100: { short: "FTSE 100", full: "FTSE 100" },
+    FRA40: { short: "CAC 40", full: "CAC 40" },
+    EU50: { short: "Euro Stoxx 50", full: "Euro Stoxx 50" },
+    JP225: { short: "Nikkei 225", full: "Nikkei 225" },
+    BTCUSD: { short: "BTC/USD", full: "Bitcoin" },
+    ETHUSD: { short: "ETH/USD", full: "Ethereum" },
+    XRPUSD: { short: "XRP/USD", full: "Ripple" },
+    SOLUSD: { short: "SOL/USD", full: "Solana" },
+    ADAUSD: { short: "ADA/USD", full: "Cardano" },
+    DOGEUSD: { short: "DOGE/USD", full: "Dogecoin" },
+    DOTUSD: { short: "DOT/USD", full: "Polkadot" },
+    AVAXUSD: { short: "AVAX/USD", full: "Avalanche" },
+    LINKUSD: { short: "LINK/USD", full: "Chainlink" },
+    MATICUSD: { short: "MATIC/USD", full: "Polygon" },
+    UNIUSD: { short: "UNI/USD", full: "Uniswap" },
+    ATOMUSD: { short: "ATOM/USD", full: "Cosmos" },
+    LTCUSD: { short: "LTC/USD", full: "Litecoin" },
+    BCHUSD: { short: "BCH/USD", full: "Bitcoin Cash" },
+    NEARUSD: { short: "NEAR/USD", full: "Near Protocol" },
+    ALGOUSD: { short: "ALGO/USD", full: "Algorand" },
+    VETUSD: { short: "VET/USD", full: "VeChain" },
+    FILUSD: { short: "FIL/USD", full: "Filecoin" },
+    THETAUSD: { short: "THETA/USD", full: "Theta Network" },
+    AXSUSD: { short: "AXS/USD", full: "Axie Infinity" },
+    SANDUSD: { short: "SAND/USD", full: "The Sandbox" },
+    MANAUSD: { short: "MANA/USD", full: "Decentraland" },
+    ENJUSD: { short: "ENJ/USD", full: "Enjin Coin" },
+    CHZUSD: { short: "CHZ/USD", full: "Chiliz" },
+    APEUSD: { short: "APE/USD", full: "ApeCoin" },
+  };
+  return map[symbol] ?? { short: symbol, full: symbol };
 };
 
 const formatPriceValue = (symbol: string, price: number): string => {
-  if (["XAUUSD", "XAUEUR", "XAUGBP"].includes(symbol)) return price.toFixed(2);
-  if (["XAGUSD", "XAGEUR", "XAGGBP"].includes(symbol)) return price.toFixed(2);
-  if (["XPTUSD", "XPTEUR"].includes(symbol)) return price.toFixed(2);
-  if (["XPDUSD"].includes(symbol)) return price.toFixed(2);
-  if (["USOIL", "UKOIL", "BRENT", "WTI", "CRUDE"].includes(symbol)) return price.toFixed(2);
-  if (["NGAS", "HEAT", "GAS"].includes(symbol)) return price.toFixed(3);
+  if (["XAUUSD", "GC=F"].includes(symbol)) return price.toFixed(2);
+  if (["XAGUSD", "SI=F"].includes(symbol)) return price.toFixed(2);
+  if (["XPTUSD", "PL=F", "XPDUSD", "PA=F"].includes(symbol)) return price.toFixed(2);
+  if (["USOIL", "CL=F", "UKOIL", "BZ=F"].includes(symbol)) return price.toFixed(2);
+  if (["NGAS", "NG=F"].includes(symbol)) return price.toFixed(3);
   if (["BTCUSD", "ETHUSD"].includes(symbol)) return price.toFixed(2);
   if (["XRPUSD", "ADAUSD", "DOGEUSD", "MATICUSD", "UNIUSD", "THETAUSD", "CHZUSD", "APEUSD"].includes(symbol)) return price.toFixed(4);
   if (["LTCUSD", "BCHUSD", "FILUSD", "AXSUSD", "SANDUSD", "MANAUSD", "ENJUSD"].includes(symbol)) return price.toFixed(2);
   if (["DOTUSD", "AVAXUSD", "LINKUSD", "ATOMUSD", "NEARUSD"].includes(symbol)) return price.toFixed(2);
   if (["ALGOUSD", "VETUSD"].includes(symbol)) return price.toFixed(4);
-  if (["US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225", "HK50", "AUS200", "TWII", "KR100", "IN50", "TECH100"].includes(symbol)) return price.toFixed(0);
+  if (["US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225"].includes(symbol)) return price.toFixed(0);
   if (symbol.endsWith("JPY")) return price.toFixed(3);
   if (symbol.includes("USD") && !symbol.startsWith("USD")) return price.toFixed(5);
   return price.toFixed(2);
 };
 
-const getDisplayName = (symbol: string): string => {
-  const names: Record<string, string> = {
-    XAUUSD: "Gold", XAGUSD: "Silver", XPTUSD: "Platinum", XPDUSD: "Palladium",
-    XAUEUR: "Gold/EUR", XAGEUR: "Silver/EUR", XPTEUR: "Platinum/EUR", XAUGBP: "Gold/GBP", XAGGBP: "Silver/GBP",
-    USOIL: "US Oil", UKOIL: "UK Oil", BRENT: "Brent", WTI: "WTI", CRUDE: "Crude",
-    NGAS: "Natural Gas", HEAT: "Heating Oil", GAS: "Gasoline",
-    US30: "Dow 30", US500: "S&P 500", NAS100: "Nasdaq 100", US2000: "Russell 2000",
-    GER40: "DAX", UK100: "FTSE 100", FRA40: "CAC 40", EU50: "Euro Stoxx 50",
-    JP225: "Nikkei 225", HK50: "Hang Seng", AUS200: "ASX 200", TWII: "Taiwan",
-    KR100: "KOSPI", IN50: "Nifty 50", TECH100: "Tech 100",
-    BTCUSD: "Bitcoin", ETHUSD: "Ethereum", XRPUSD: "Ripple", SOLUSD: "Solana",
-    ADAUSD: "Cardano", DOGEUSD: "Dogecoin", DOTUSD: "Polkadot", AVAXUSD: "Avalanche",
-    LINKUSD: "Chainlink", MATICUSD: "Polygon", UNIUSD: "Uniswap", ATOMUSD: "Cosmos",
-    LTCUSD: "Litecoin", BCHUSD: "Bitcoin Cash", NEARUSD: "Near", ALGOUSD: "Algorand",
-    VETUSD: "VeChain", FILUSD: "Filecoin", THETAUSD: "Theta", AXSUSD: "Axie Infinity",
-    SANDUSD: "The Sandbox", MANAUSD: "Decentraland", ENJUSD: "Enjin Coin", CHZUSD: "Chiliz", APEUSD: "ApeCoin",
-  };
-  return names[symbol] || symbol;
+const formatVolume = (vol: number): string => {
+  if (vol >= 1e9) return `${(vol / 1e9).toFixed(2)}B`;
+  if (vol >= 1e6) return `${(vol / 1e6).toFixed(2)}M`;
+  if (vol >= 1e3) return `${(vol / 1e3).toFixed(2)}K`;
+  return vol.toFixed(2);
 };
 
-const ForexMarket: React.FC = () => {
-  const [marketData, setMarketData] = useState<{ [key: string]: MarketItem }>({});
-  const [activeCategory, setActiveCategory] = useState<MarketCategory>("Forex");
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState<number>(Date.now());
-  const updateInterval = useRef<ReturnType<typeof setInterval> | null>(null);
-  const isComponentMounted = useRef(true);
-  const cryptoCache = useRef<{ [key: string]: { price: number; change: number; timestamp: number } }>({});
+/* ------------------------------------------------------------------ */
+/*  Yahoo Finance REST Polling Hook (Forex, Metals, Oil, Indices)     */
+/* ------------------------------------------------------------------ */
 
-  // Use shared crypto prices from MarketContext
-  const updatePrices = useCallback(async () => {
-    if (activeCategory === "Crypto") {
-      await fetchAllCryptoPrices();
-    }
+interface YahooTickerData {
+  price: number;
+  change: number;
+  changePercent: number;
+  dayHigh: number;
+  dayLow: number;
+  volume: number;
+}
 
-    setMarketData(prevData => {
-      const newData = { ...prevData };
-      const symbols = categoryConfig[activeCategory].symbols;
+const useYahooFinancePoll = (symbols: string[]): Record<string, YahooTickerData> => {
+  const [data, setData] = useState<Record<string, YahooTickerData>>({});
 
-      symbols.forEach(symbol => {
-        let basePrice = basePrices[symbol] || 1.0;
-        let currentPrice = basePrice;
-
-        if (prevData[symbol]) {
-          currentPrice = parseFloat(prevData[symbol].price);
-        } else {
-          if (activeCategory === "Crypto" && cryptoCache.current[symbol]) {
-            currentPrice = cryptoCache.current[symbol].price;
-          }
-        }
-
-        let changePercent = 0;
-        let changeVal = "0.00";
-
-        if (activeCategory === "Crypto" && cryptoCache.current[symbol] && cryptoCache.current[symbol].change != null && !isNaN(cryptoCache.current[symbol].change)) {
-          changePercent = cryptoCache.current[symbol].change;
-          changeVal = Number(changePercent).toFixed(2);
-        } else {
-          const range = activeCategory === "Metal" ? 0.001 : activeCategory === "Oil" ? 0.002 : activeCategory === "CFD" ? 0.001 : 0.0005;
-          changePercent = (Math.random() * 2 - 1) * range;
-          changeVal = (changePercent * 100).toFixed(2);
-        }
-
-        const newPrice = currentPrice * (1 + changePercent / 100);
-        const priceChange = newPrice - currentPrice;
-        
-        const isPositive = changePercent >= 0;
-
-        newData[symbol] = {
+  const fetchData = useCallback(async () => {
+    // Fetch all symbols in parallel
+    const results = await Promise.allSettled(
+      symbols.map(async (symbol) => {
+        const yahooId = yahooSymbolMap[symbol] || symbol;
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooId}?interval=1m&range=1d`;
+        const resp = await fetch(url);
+        const json = await resp.json();
+        const result = json?.chart?.result?.[0];
+        if (!result) return null;
+        const meta = result.meta;
+        const previousClose = meta.previousClose || meta.chartPreviousClose || meta.regularMarketPrice;
+        const price = meta.regularMarketPrice;
+        const change = price - previousClose;
+        const changePercent = previousClose ? (change / previousClose) * 100 : 0;
+        return {
           symbol,
-          name: getDisplayName(symbol),
-          price: formatPriceValue(symbol, newPrice),
-          change: priceChange >= 0 ? `+${Math.abs(priceChange).toFixed(2)}` : priceChange.toFixed(2),
-          changePercent: changeVal,
-          isPositive,
-          volume: "0",
+          data: {
+            price,
+            change,
+            changePercent,
+            dayHigh: meta.regularMarketDayHigh || price,
+            dayLow: meta.regularMarketDayLow || price,
+            volume: meta.regularMarketVolume || 0,
+          },
         };
+      })
+    );
 
-        basePrices[symbol] = newPrice;
-      });
-
-      return newData;
+    const newData: Record<string, YahooTickerData> = {};
+    results.forEach((r) => {
+      if (r.status === "fulfilled" && r.value) {
+        newData[r.value.symbol] = r.value.data;
+      }
     });
-
-    setLastUpdate(Date.now());
-  }, [activeCategory, fetchAllCryptoPrices]);
+    setData((prev) => ({ ...prev, ...newData }));
+  }, [symbols]);
 
   useEffect(() => {
-    isComponentMounted.current = true;
-    setIsLoading(true);
-    setMarketData({});
+    if (symbols.length === 0) return;
+    fetchData();
+    const interval = setInterval(fetchData, 5000); // poll every 5 seconds
+    return () => clearInterval(interval);
+  }, [symbols, fetchData]);
 
-    const loadData = async () => {
-      if (activeCategory === "Crypto") {
-        await fetchAllCryptoPrices();
+  return data;
+};
+
+/* ------------------------------------------------------------------ */
+/*  Binance WebSocket Hook (Crypto) - kept as before                  */
+/* ------------------------------------------------------------------ */
+
+interface BinanceTickerData {
+  price: number;
+  change: number;
+  changePercent: number;
+  high: number;
+  low: number;
+  volume: number;
+}
+
+const useBinanceStream = (symbols: string[], enabled: boolean): Record<string, BinanceTickerData> => {
+  const [data, setData] = useState<Record<string, BinanceTickerData>>({});
+  const wsRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    if (!enabled || symbols.length === 0) {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
       }
-      await updatePrices();
-      setIsLoading(false);
+      return;
+    }
+
+    const streams = symbols.map((s) => `${s.toLowerCase()}@ticker`).join("/");
+    const url = `wss://stream.binance.com:9443/stream?streams=${streams}`;
+
+    const ws = new WebSocket(url);
+    wsRef.current = ws;
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      if (msg?.data) {
+        const t = msg.data;
+        const binanceSymbol: string = t.s;
+        const ourSymbol = binanceSymbol.replace("USDT", "USD");
+        const price = parseFloat(t.c);
+        const change = parseFloat(t.p);
+        const changePercent = parseFloat(t.P);
+        const high = parseFloat(t.h);
+        const low = parseFloat(t.l);
+        const volume = parseFloat(t.q);
+
+        if (!isNaN(price)) {
+          setData((prev) => ({
+            ...prev,
+            [ourSymbol]: { price, change, changePercent, high, low, volume },
+          }));
+        }
+      }
     };
 
-    loadData();
-
-    updateInterval.current = setInterval(() => {
-      if (isComponentMounted.current) updatePrices();
-    }, 2500);
+    ws.onerror = (err) => console.error("Binance WS error", err);
 
     return () => {
-      isComponentMounted.current = false;
-      if (updateInterval.current) clearInterval(updateInterval.current);
+      ws.close();
+      wsRef.current = null;
     };
-  }, [activeCategory, updatePrices, fetchAllCryptoPrices]);
+  }, [symbols, enabled]);
 
-  const filteredData = useMemo(() => {
-    const symbols = categoryConfig[activeCategory].symbols;
-    return symbols.map(sym => marketData[sym]).filter(Boolean) as MarketItem[];
-  }, [marketData, activeCategory]);
+  return data;
+};
 
-  const LoadingRow = () => (
-    <div className="loading-row">
-      <div className="loading-icon"></div>
-      <div className="loading-line"></div>
-      <div className="loading-line short"></div>
-    </div>
+/* ------------------------------------------------------------------ */
+/*  Main Market Component                                             */
+/* ------------------------------------------------------------------ */
+
+const ForexMarket: React.FC = () => {
+  const [activeCategory, setActiveCategory] = useState<MarketCategory>("Forex");
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
+
+  const activeSymbols = useMemo(() => {
+    return categoryConfig[activeCategory].symbols;
+  }, [activeCategory]);
+
+  // Real data hooks
+  const yahooData = useYahooFinancePoll(
+    activeCategory !== "Crypto" ? activeSymbols : []
+  );
+  const cryptoBinanceSymbols = useMemo(
+    () => categoryConfig.Crypto.symbols.map((s) => s.replace("USD", "USDT")),
+    []
+  );
+  const binanceData = useBinanceStream(
+    cryptoBinanceSymbols,
+    activeCategory === "Crypto"
   );
 
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  };
+  // Build display items
+  const marketItems = useMemo<MarketItem[]>(() => {
+    return activeSymbols.map((symbol) => {
+      if (activeCategory === "Crypto") {
+        const ticker = binanceData[symbol];
+        if (ticker) {
+          const price = ticker.price;
+          const change = ticker.change;
+          const changePercent = ticker.changePercent;
+          const isPositive = changePercent >= 0;
+          return {
+            symbol,
+            name: getDisplayName(symbol).short,
+            fullName: getDisplayName(symbol).full,
+            price: formatPriceValue(symbol, price),
+            change: `${change >= 0 ? "+" : ""}${change.toFixed(2)}`,
+            changePercent: `${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(2)}`,
+            isPositive,
+            volume: formatVolume(ticker.volume),
+          };
+        }
+        return {
+          symbol,
+          name: getDisplayName(symbol).short,
+          fullName: getDisplayName(symbol).full,
+          price: "—",
+          change: "—",
+          changePercent: "—",
+          isPositive: true,
+          volume: "—",
+        };
+      }
+
+      // Non‑crypto: Yahoo
+      const ticker = yahooData[symbol];
+      if (ticker) {
+        const price = ticker.price;
+        const change = ticker.change;
+        const changePercent = ticker.changePercent;
+        const isPositive = changePercent >= 0;
+        return {
+          symbol,
+          name: getDisplayName(symbol).short,
+          fullName: getDisplayName(symbol).full,
+          price: formatPriceValue(symbol, price),
+          change: `${change >= 0 ? "+" : ""}${change.toFixed(2)}`,
+          changePercent: `${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(2)}`,
+          isPositive,
+          volume: formatVolume(ticker.volume),
+        };
+      }
+      return {
+        symbol,
+        name: getDisplayName(symbol).short,
+        fullName: getDisplayName(symbol).full,
+        price: "—",
+        change: "—",
+        changePercent: "—",
+        isPositive: true,
+        volume: "—",
+      };
+    });
+  }, [activeCategory, activeSymbols, binanceData, yahooData]);
+
+  // Update timestamp when data changes
+  useEffect(() => {
+    if (Object.keys(yahooData).length > 0 || Object.keys(binanceData).length > 0) {
+      setLastUpdate(Date.now());
+    }
+  }, [yahooData, binanceData]);
+
+  const formatTime = (timestamp: number) =>
+    new Date(timestamp).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+  const isLoading =
+    activeCategory === "Crypto"
+      ? Object.keys(binanceData).length === 0
+      : Object.keys(yahooData).length === 0;
 
   return (
-    <div className="forex-container">
-      <div className="forex-header">
-        <h1 className="forex-title">{categoryConfig[activeCategory].title}</h1>
-   
-      </div>
-
+    <div className="market-app">
+      {/* Category Tabs */}
       <div className="category-tabs">
-        {(Object.keys(categoryConfig) as MarketCategory[]).map(category => (
+        {(Object.keys(categoryConfig) as MarketCategory[]).map((cat) => (
           <button
-            key={category}
-            className={`tab-btn ${activeCategory === category ? "active" : ""}`}
-            onClick={() => setActiveCategory(category)}
+            key={cat}
+            className={`tab-btn ${activeCategory === cat ? "active" : ""}`}
+            onClick={() => setActiveCategory(cat)}
           >
-            {categoryConfig[category].title}
+            {categoryConfig[cat].title}
           </button>
         ))}
       </div>
 
-      <div className="forex-list">
-        <div className="list-header">
-          <span>Pair</span>
-          <span>Price</span>
-          <span>24h %</span>
-        </div>
+      {/* Live update indicator */}
+      <div className="live-indicator">
+        <span className="live-dot" />
+        <span className="live-text">
+          {activeCategory === "Crypto" ? "Live" : "Real-time"} · Updated{" "}
+          {formatTime(lastUpdate)}
+        </span>
+      </div>
 
-        {isLoading ? (
-          <div className="loading-container">
-            {categoryConfig[activeCategory].symbols.slice(0, 6).map((_, i) => <LoadingRow key={i} />)}
-          </div>
-        ) : filteredData.length > 0 ? (
-          filteredData.map(item => (
-            <Link key={item.symbol} to={`/market/detail/${item.symbol}`} className="forex-link">
-              <div className="forex-row">
-                <div className="forex-pair">
-           
-                  <span className="pair-name">{item.name}</span>
-                </div>
-                  <div className="forex-price">
-                    <span className="price">${item.price}</span>
+      {/* Market List */}
+      <div className="market-list">
+        {isLoading
+          ? Array.from({ length: 8 }).map((_, i) => (
+              <div className="skeleton-row" key={i}>
+                <div className="skeleton-box icon" />
+                <div className="skeleton-box name" />
+                <div className="skeleton-box price" />
+                <div className="skeleton-box change" />
+              </div>
+            ))
+          : marketItems.map((item) => (
+              <Link
+                to={`/market/detail/${item.symbol}`}
+                key={item.symbol}
+                className="market-row-link"
+              >
+                <div className="market-row">
+                  {/* Icon & Name */}
+                  <div className="asset-cell">
+                    <div className="asset-icon">
+                      {item.symbol.slice(0, 3).toUpperCase()}
+                    </div>
+                    <div className="asset-text">
+                      <span className="symbol">{item.name}</span>
+                      <span className="full-name">{item.fullName}</span>
+                    </div>
                   </div>
-                  <div className="forex-change">
-                    <span className={item.isPositive ? "change-positive" : "change-negative"}>
-                      {item.isPositive ? '+' : ''}{item.changePercent}%
-                    </span>
+
+                  {/* Price & Volume */}
+                  <div className="price-cell">
+                    <span className="last-price">${item.price}</span>
+                    <span className="volume">{item.volume}</span>
+                  </div>
+
+                  {/* Change */}
+                  <div
+                    className={`change-cell ${
+                      item.isPositive ? "positive" : "negative"
+                    }`}
+                  >
+                    <span className="change-percent">{item.changePercent}%</span>
+                    <span className="change-abs">{item.change}</span>
                   </div>
                 </div>
               </Link>
-          ))
-        ) : (
-          <div className="no-results">Loading data...</div>
-        )}
+            ))}
       </div>
 
       <style>{`
-        .forex-container {
-          max-width: 430px;
+        .market-app {
+          max-width: 480px;
           margin: 0 auto;
+          background: #0a0b0d;
           min-height: 100vh;
-          background-color: #0f0f0f;
-          border-top: 2px solid #39FF14;
-          display: flex;
-          flex-direction: column;
-          padding: 20px;
+          color: #eaeaea;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          padding: 20px 16px;
           box-sizing: border-box;
-        }
-        .forex-header {
-          margin-bottom: 16px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        .forex-title {
-          color: #ffffff;
-          font-size: 28px;
-          font-weight: 600;
-          margin: 0;
-        }
-        .last-update {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          color: #39FF14;
-          font-size: 12px;
-        }
-        .update-dot {
-          width: 8px;
-          height: 8px;
-          background-color: #39FF14;
-          border-radius: 50%;
-          animation: blink 2s infinite;
-        }
-        @keyframes blink {
-          0%, 50%, 100% { opacity: 1; }
-          25%, 75% { opacity: 0.3; }
         }
         .category-tabs {
           display: flex;
           gap: 8px;
-          margin-bottom: 20px;
           overflow-x: auto;
-          padding-bottom: 8px;
+          padding-bottom: 12px;
           scrollbar-width: none;
         }
-        .category-tabs::-webkit-scrollbar {
-          display: none;
-        }
+        .category-tabs::-webkit-scrollbar { display: none; }
         .tab-btn {
-          background-color: #1c1c1c;
-          border: 1px solid #2a2a2a;
-          border-radius: 20px;
-          padding: 10px 16px;
-          color: #ffffff;
+          background: #1a1d21;
+          border: 1px solid #2a2d31;
+          border-radius: 24px;
+          padding: 10px 18px;
           font-size: 14px;
           font-weight: 500;
+          color: #aaa;
           white-space: nowrap;
           cursor: pointer;
           transition: all 0.2s;
         }
         .tab-btn.active {
-          background-color: #39FF14;
-          color: #000000;
-          border-color: #39FF14;
+          background: #00e676;
+          color: #000;
+          border-color: #00e676;
+          font-weight: 600;
         }
         .tab-btn:not(.active):hover {
-          border-color: #39FF14;
+          border-color: #00e676;
+          color: #fff;
         }
-        .list-header {
-          display: flex;
-          justify-content: space-between;
-          padding: 0 0 8px 0;
-          margin-bottom: 8px;
-          border-bottom: 1px solid #2a2a2a;
-          color: #777777;
-          font-size: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-        .list-header span:first-child { flex: 2; }
-        .list-header span:nth-child(2) { flex: 1; text-align: right; }
-        .list-header span:nth-child(3) { flex: 0.8; text-align: right; }
-        .forex-link {
-          text-decoration: none;
-          display: block;
-          margin-bottom: 8px;
-        }
-        .forex-row {
-          background-color: #1c1c1c;
-          border: 1px solid #2a2a2a;
-          border-radius: 8px;
-          padding: 12px 16px;
+        .live-indicator {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          transition: border-color 0.2s;
+          gap: 8px;
+          margin-bottom: 18px;
+          font-size: 12px;
+          color: #999;
         }
-        .forex-row:hover {
-          border-color: #39FF14;
+        .live-dot {
+          width: 8px;
+          height: 8px;
+          background: #00e676;
+          border-radius: 50%;
+          animation: pulse-dot 2s infinite;
         }
-        .forex-pair {
+        @keyframes pulse-dot {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        .live-text { letter-spacing: 0.3px; }
+        .market-list {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .market-row-link {
+          text-decoration: none;
+          color: inherit;
+        }
+        .market-row {
+          display: flex;
+          align-items: center;
+          background: #111318;
+          border: 1px solid #1e2025;
+          border-radius: 12px;
+          padding: 12px 14px;
+          transition: border-color 0.2s, background 0.2s;
+        }
+        .market-row:hover {
+          border-color: #00e676;
+          background: #16181d;
+        }
+        .asset-cell {
           display: flex;
           align-items: center;
           gap: 12px;
-          flex: 2;
+          flex: 1.5;
         }
-
-        .icon-text {
-          font-size: 10px;
-          color: #39FF14;
-          font-weight: bold;
+        .asset-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #1e2a33, #0f1419);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 12px;
+          color: #00e676;
+          letter-spacing: 0.5px;
+          border: 1px solid #2a2d31;
         }
-        .pair-name {
-          color: #ffffff;
-          font-weight: 500;
-          font-size: 14px;
+        .asset-text {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
         }
-        .forex-price {
+        .symbol {
+          font-weight: 600;
+          font-size: 15px;
+          color: #f0f0f0;
+        }
+        .full-name {
+          font-size: 12px;
+          color: #888;
+        }
+        .price-cell {
+          flex: 1.2;
+          text-align: right;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 2px;
+        }
+        .last-price {
+          font-size: 16px;
+          font-weight: 600;
+          color: #fff;
+          font-family: 'JetBrains Mono', monospace;
+        }
+        .volume {
+          font-size: 11px;
+          color: #666;
+        }
+        .change-cell {
           flex: 1;
           text-align: right;
-          color: #ffffff;
-          font-weight: 500;
-          font-size: 14px;
-        }
-        .forex-change {
-          flex: 0.8;
-          text-align: right;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 2px;
           font-weight: 600;
-          font-size: 14px;
+          font-size: 15px;
         }
-        .change-positive { color: #39FF14; }
-        .change-negative { color: #ff6b6b; }
-        .loading-container { display: flex; flex-direction: column; gap: 8px; }
-        .loading-row {
-          background-color: #1c1c1c;
-          border: 1px solid #2a2a2a;
-          border-radius: 8px;
-          padding: 12px 16px;
+        .change-percent {
+          font-family: 'JetBrains Mono', monospace;
+        }
+        .change-abs {
+          font-size: 12px;
+          font-weight: 500;
+          color: #999;
+        }
+        .positive .change-percent {
+          color: #00e676;
+        }
+        .negative .change-percent {
+          color: #ff4d4d;
+        }
+        .skeleton-row {
           display: flex;
           align-items: center;
+          padding: 12px 14px;
+          border-radius: 12px;
+          background: #111318;
+          border: 1px solid #1e2025;
           gap: 12px;
         }
-        .loading-icon {
-          width: 32px; height: 32px;
-          border-radius: 50%; background-color: #2a2a2a;
-          animation: pulse 1.5s infinite;
+        .skeleton-box {
+          background: #1e2025;
+          border-radius: 8px;
+          animation: shimmer 1.5s infinite;
         }
-        .loading-line {
-          height: 16px; background-color: #2a2a2a;
-          border-radius: 4px; flex: 1;
-          animation: pulse 1.5s infinite;
+        .skeleton-box.icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
         }
-        .loading-line.short { flex: 0.5; }
-        @keyframes pulse {
-          0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; }
-        }
-        .no-results {
-          text-align: center;
-          padding: 40px 20px;
-          color: #777777;
-          font-size: 16px;
+        .skeleton-box.name { flex: 1; height: 16px; }
+        .skeleton-box.price { width: 80px; height: 16px; }
+        .skeleton-box.change { width: 60px; height: 16px; }
+        @keyframes shimmer {
+          0% { opacity: 0.4; }
+          50% { opacity: 0.8; }
+          100% { opacity: 0.4; }
         }
       `}</style>
     </div>
   );
 };
 
-const MarketWithProvider = () => (
-  <MarketProvider>
-    <ForexMarket />
-  </MarketProvider>
-);
-
-export default MarketWithProvider;
+export default ForexMarket;
