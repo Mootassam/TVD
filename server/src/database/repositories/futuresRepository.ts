@@ -151,41 +151,34 @@ class FuturesRepository {
 
     const isControlUpdate = data.control === "loss" || data.control === "profit";
 
-    // Your profit calculation formula with null checks
-    const calculateProfit = (
-      amount: number,
-      leverage: any,
-      duration: any
-    ): number => {
-      if (!amount || !leverage || !duration) return 0;
+     // Profit calculation formula aligned with front-end options
+     const calculateProfit = (
+       amount: number,
+       leverage: any,
+       duration: any
+     ): number => {
+       if (!amount || !leverage || !duration) return 0;
 
-      const data = [
-        { duration: "30", payout: "20" },
-        { duration: "60", payout: "30" },
-        { duration: "120", payout: "50" },
-        { duration: "86400", payout: "60" },
-        { duration: "172800", payout: "70" },
-        { duration: "259200", payout: "80" },
-        { duration: "604800", payout: "90" },
-        { duration: "1296000", payout: "100" },
-      ];
+       // Payout percentages matching FuturesModal.tsx options:
+       // 60s → 10%, 120s → 20%, 180s → 40%, 240s → 80%
+       const payoutMap: Record<string, number> = {
+         "60": 10,
+         "120": 20,
+         "180": 40,
+         "240": 80,
+       };
 
-      const leverageNum = parseFloat(leverage?.toString() || "0");
-      const durationNum = parseInt(duration?.toString() || "0", 10);
-      const amountNum = Number(amount) || 0;
+       const leverageNum = parseFloat(leverage?.toString() || "0");
+       const durationKey = duration?.toString().trim();
+       const amountNum = Number(amount) || 0;
 
-      // Find the matching payout for the given duration
-      const durationData = data.find((d) => parseInt(d.duration, 10) === durationNum);
+       const payoutPercent = payoutMap[durationKey];
+       if (!payoutPercent) return 0;
 
-      // If no match, return 0
-      if (!durationData) return 0;
-
-      const payoutNum = parseFloat(durationData.payout);
-
-      // Calculate profit
-      const profit = (amountNum * leverageNum * payoutNum) / 100;
-      return profit
-    };
+       // profit = amount * leverage * (payout% / 100)
+       const profit = (amountNum * leverageNum * payoutPercent) / 100;
+       return profit;
+     };
 
 
     // NEW: Calculate closing price based on your data pattern
@@ -269,14 +262,16 @@ class FuturesRepository {
         // USE MANUAL CLOSE TIME OR CURRENT TIME
         const closeTime = data.closePositionTime || new Date();
 
-        // USE MANUAL PROFIT/LOSS AMOUNT OR CALCULATE IT
-        let finalProfitLossAmount;
-        if (data.profitAndLossAmount !== undefined) {
-          finalProfitLossAmount = data.profitAndLossAmount;
-        } else {
-          // Use your profit formula for profit, keep existing logic for loss
-          finalProfitLossAmount = data.control === "profit" ? profitAmount : -lossAmount;
-        }
+         // USE MANUAL PROFIT/LOSS AMOUNT OR CALCULATE IT
+         let finalProfitLossAmount;
+         if (data.profitAndLossAmount !== undefined) {
+           finalProfitLossAmount = data.profitAndLossAmount;
+         } else {
+           // For profit: principal + profit; For loss: negative principal
+           finalProfitLossAmount = data.control === "profit"
+             ? (record.futuresAmount + profitAmount)
+             : -lossAmount;
+         }
 
         // Handle wallet updates based on profit/loss
         if (data.control === "profit") {
@@ -661,17 +656,162 @@ class FuturesRepository {
     // );
   }
 
-  static async _fillFileDownloadUrls(record) {
-    if (!record) {
-      return null;
+   static async _fillFileDownloadUrls(record) {
+     if (!record) {
+       return null;
+     }
+
+     const output = record.toObject ? record.toObject() : record;
+
+     output.photo = await FileRepository.fillDownloadUrl(output.photo);
+
+     return output;
+   }
+
+   /**
+    * Auto-finalizes expired futures trades that were not manually updated.
+    * This method should be called by a cron job to automatically mark
+    * expired futures as "loss" when admin hasn't manually set them to "profit".
+    *
+    * @param options Repository options including database connection
+    * @returns Object with count of processed records
+    */
+  static async autoFinalizeExpired(options: IRepositoryOptions) {
+    const now = new Date();
+    const PRE_EMPTIVE_WINDOW_MS = 20 * 1000; // 20 seconds
+    const preEmptiveCutoff = new Date(now.getTime() + PRE_EMPTIVE_WINDOW_MS);
+
+    const FuturesModel = Futures(options.database);
+    const WalletModel = Wallet(options.database);
+    const TransactionModel = Transaction(options.database);
+
+    // Find all non-finalized futures that either:
+    // - already expired (expiryTime <= now)
+    // - will expire within the next 20 seconds (expiryTime > now && <= now+20s)
+    const expiredFutures = await FuturesModel.find({
+      finalized: false,
+      $or: [
+        { expiryTime: { $lte: now } },
+        {
+          expiryTime: { $gt: now, $lte: preEmptiveCutoff }
+        }
+      ]
+    })
+    .limit(1000)
+    .lean();
+
+    if (expiredFutures.length === 0) {
+      return { processed: 0 };
     }
 
-    const output = record.toObject ? record.toObject() : record;
+    let processedCount = 0;
 
-    output.photo = await FileRepository.fillDownloadUrl(output.photo);
+    for (const record of expiredFutures) {
+      try {
+        // Determine if this is pre-emptive (not yet expired) or already expired
+        const isPreemptive = record.expiryTime > now;
 
-    return output;
+        // For both cases, treat as loss if admin didn't manually set to profit
+        const closePrice = this.calculateClosingPrice(
+          record.openPositionPrice,
+          record.futuresStatus,
+          "loss",
+          record.futureCoin || "BTC/USDT"
+        );
+
+        // Atomic update: only update if still not finalized
+        const updateResult = await FuturesModel.updateOne(
+          { _id: record._id, finalized: false },
+          {
+            $set: {
+              control: "loss",
+              finalized: true,
+              finalizedAt: now,
+              closePositionPrice: closePrice,
+              closePositionTime: now,
+              profitAndLossAmount: -record.futuresAmount,
+              updatedBy: null
+            }
+          }
+        );
+
+        if (updateResult.modifiedCount === 0) {
+          continue;
+        }
+
+        const wallet = await WalletModel.findOne({
+          user: record.createdBy,
+          symbol: "USDT",
+          accountType: 'exchange',
+          tenant: record.tenant
+        });
+
+        if (wallet) {
+          await TransactionModel.create({
+            type: "futures_loss",
+            referenceId: record._id,
+            wallet: wallet._id,
+            asset: "USDT",
+            amount: record.futuresAmount,
+            status: "completed",
+            direction: "out",
+            user: record.createdBy,
+            tenant: record.tenant,
+            dateTransaction: now,
+            description: `Futures loss: ${record.futuresAmount} USDT (Automated${isPreemptive ? ' - pre-emptive (20s before expiry)' : ' - duration expired'})`
+          });
+
+          await sendNotification({
+            userId: record.createdBy,
+            message: `Your futures trade has been closed with a loss of ${record.futuresAmount} USDT`,
+            type: "futures",
+            options: {
+              ...options,
+              currentUser: { id: record.createdBy },
+              currentTenant: { id: record.tenant }
+            }
+          });
+        }
+
+        processedCount++;
+      } catch (err) {
+        console.error(`Error processing expired future ${record._id}:`, err);
+      }
+    }
+
+    return { processed: processedCount };
   }
-}
 
-export default FuturesRepository;
+   /**
+    * Helper: Calculate closing price based on trade direction and outcome.
+    * Used for both manual and automatic profit/loss scenarios.
+    */
+  static calculateClosingPrice(
+    openPrice: number,
+    direction: "long" | "short",
+    control: "profit" | "loss",
+    assetType: string
+  ): number {
+    const basePrice = openPrice;
+
+    // Generate random percentage between 0.002% and 0.005%
+    const randomPercentage = 0.002 + Math.random() * (0.005 - 0.002);
+    const change = basePrice * (randomPercentage / 100);
+
+    if (control === "profit") {
+      if (direction === "long") {
+        return basePrice + change;
+      } else {
+        return basePrice - change;
+      }
+    } else {
+      if (direction === "long") {
+        return basePrice - change;
+      } else {
+        return basePrice + change;
+       }
+     }
+   }
+  }
+
+ export default FuturesRepository;

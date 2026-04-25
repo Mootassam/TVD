@@ -89,6 +89,9 @@ export default (database) => {
     }
   );
 
+  // Index for efficient auto-finalization of expired futures
+  FuturesSchema.index({ expiryTime: 1, finalized: 1 });
+
   FuturesSchema.virtual("id").get(function () {
     // @ts-ignore
     return this._id.toHexString();

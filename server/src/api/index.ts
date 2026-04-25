@@ -14,7 +14,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { createServer } from "http";
 import { setSocketIO } from "../services/notificationServices";
 import { startRatesCron } from "../database/utils/rates.cron";
-
+import { startFuturesAutoFinalizeCron } from "../database/utils/futuresAutoFinalize.cron";
 
 
 
@@ -30,7 +30,8 @@ const io = new SocketIOServer(server, {
 
 setSocketIO(io);
 
-startRatesCron() 
+startRatesCron();
+startFuturesAutoFinalizeCron(); 
 
 // Enables CORS
 app.use(cors({ origin: true }));
