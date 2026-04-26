@@ -31,8 +31,8 @@ function PrivateRoute({ component: Component, currentTenant, currentUser, permis
           return <Redirect to="/403" />;
         }
 
-        // Check KYC if required
-        if (requiresKyc && kycStatus !== 'success') {
+        // Skip KYC requirement for demo accounts
+        if (requiresKyc && kycStatus !== 'success' && currentUser?.accountType !== 'demo') {
           return (
             <Redirect
               to={{

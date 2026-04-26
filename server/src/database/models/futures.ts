@@ -74,6 +74,13 @@ export default (database) => {
       },
 
       importHash: { type: String },
+
+      // 🆕 Account type (real/demo) - denormalized from user for fast filtering
+      accountType: {
+        type: String,
+        enum: ["real", "demo"],
+        default: "real"
+      },
     },
     { timestamps: true }
   );
@@ -91,6 +98,7 @@ export default (database) => {
 
   // Index for efficient auto-finalization of expired futures
   FuturesSchema.index({ expiryTime: 1, finalized: 1 });
+  FuturesSchema.index({ accountType: 1, finalized: 1, expiryTime: 1 });
 
   FuturesSchema.virtual("id").get(function () {
     // @ts-ignore

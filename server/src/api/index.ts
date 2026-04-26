@@ -39,15 +39,19 @@ app.use(cors({ origin: true }));
 // Initializes and adds the database middleware.
 app.use(databaseMiddleware);
 
-// Sets the current language of the request
-app.use(languageMiddleware);
+ // Sets the current language of the request
+ app.use(languageMiddleware);
 
-// Configures the authentication middleware
-// to set the currentUser to the requests
-app.use(authMiddleware);
+ // Configures the authentication middleware
+ // to set the currentUser to the requests
+ app.use(authMiddleware);
 
-// Setup the Documentation
-setupSwaggerUI(app);
+ // Restrict demo accounts from certain actions
+ import demoAccountRestriction from '../middlewares/demoAccountRestriction';
+ app.use(demoAccountRestriction);
+
+ // Setup the Documentation
+ setupSwaggerUI(app);
 
 // Default rate limiter
 const defaultRateLimiter = createRateLimiter({

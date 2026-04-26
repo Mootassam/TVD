@@ -6,6 +6,7 @@ import assetsActions from 'src/modules/assets/view/assetsViewActions';
 import assetsSelectors from 'src/modules/assets/view/assetsViewSelectors';
 import transactionListSelector from "src/modules/transaction/list/transactionListSelectors";
 import transactionListActions from "src/modules/transaction/list/transactionListActions";
+import authSelectors from "src/modules/auth/authSelectors";
 import { Link } from 'react-router-dom';
 import { i18n } from "../../../i18n";
 
@@ -17,6 +18,7 @@ function AssetsDetail() {
     const assetLoading = useSelector(assetsSelectors.selectLoading);
     const Transactionloading = useSelector(transactionListSelector.selectLoading);
     const loading = assetLoading || Transactionloading;
+    const currentUser = useSelector(authSelectors.selectCurrentUser);
 
     const [filterModalOpen, setFilterModalOpen] = useState(false);
     const [filters, setFilters] = useState({
@@ -512,12 +514,16 @@ function AssetsDetail() {
             )}
 
             <div className="action-buttons">
-                <Link to="/deposit" className="action-button deposit-button remove_blue">
+              {currentUser?.accountType !== 'demo' && (
+                <>
+                  <Link to="/deposit" className="action-button deposit-button remove_blue">
                     {i18n("pages.assetsDetail.actions.deposit")}
-                </Link>
-                <Link to="/withdraw" className="action-button withdraw-button remove_blue">
+                  </Link>
+                  <Link to="/withdraw" className="action-button withdraw-button remove_blue">
                     {i18n("pages.assetsDetail.actions.withdraw")}
-                </Link>
+                  </Link>
+                </>
+              )}
             </div>
 
 

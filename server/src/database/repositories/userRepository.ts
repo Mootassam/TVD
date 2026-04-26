@@ -511,53 +511,54 @@ export default class UserRepository {
     return users;
   }
 
-  static async createFromAuth(data, options: IRepositoryOptions) {
-    data = this._preSave(data);
-    const req = data.req;
-    const normalizeIP = (ip: string) => ip.replace(/^::ffff:/, "");
+   static async createFromAuth(data, options: IRepositoryOptions) {
+     data = this._preSave(data);
+     const req = data.req;
+     const normalizeIP = (ip: string) => ip.replace(/^::ffff:/, "");
 
-    const rawIP =
-      req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
-      req.connection.remoteAddress ||
-      req.socket.remoteAddress ||
-      (req.connection as any).socket?.remoteAddress;
+     const rawIP =
+       req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
+       req.connection.remoteAddress ||
+       req.socket.remoteAddress ||
+       (req.connection as any).socket?.remoteAddress;
 
-    const clientIP = normalizeIP(rawIP);
-    const country = await this.getCountry(clientIP);
+     const clientIP = normalizeIP(rawIP);
+     const country = await this.getCountry(clientIP);
 
-    let [user] = await User(options.database).create(
-      [
-        {
-          email: data.email,
-          password: data.password,
-          phoneNumber: data.phoneNumber,
-          ipAddress: clientIP, // Save the IP address
-          country: country, // Save both form country and detected country
-          fullName: data.fullName,
-          withdrawPassword: data.withdrawPassword,
-          invitationcode: data.invitationcode,
-          refcode: await this.createUniqueRefCode(options),
-        },
-      ],
-      options
-    );
+     let [user] = await User(options.database).create(
+       [
+         {
+           email: data.email,
+           password: data.password,
+           phoneNumber: data.phoneNumber,
+           ipAddress: clientIP,
+           country: country,
+           fullName: data.fullName,
+           withdrawPassword: data.withdrawPassword,
+           invitationcode: data.invitationcode,
+           refcode: await this.createUniqueRefCode(options),
+           accountType: data.accountType || "real", // Default to "real"
+         },
+       ],
+       options
+     );
 
-    delete user.password;
-    // await AuditLogRepository.log(
-    //   {
-    //     entityName: "user",
-    //     entityId: user.id,
-    //     action: AuditLogRepository.CREATE,
-    //     values: user,
-    //   },
-    //   options
-    // );
+     delete user.password;
+     // await AuditLogRepository.log(
+     //   {
+     //     entityName: "user",
+     //     entityId: user.id,
+     //     action: AuditLogRepository.CREATE,
+     //     values: user,
+     //   },
+     //   options
+     // );
 
-    return this.findById(user.id, {
-      ...options,
-      bypassPermissionValidation: true,
-    });
-  }
+     return this.findById(user.id, {
+       ...options,
+       bypassPermissionValidation: true,
+     });
+   }
 
   static async getCountry(ip: string) {
     const response = await fetch(`http://ip-api.com/json/${ip}`);
@@ -580,53 +581,48 @@ export default class UserRepository {
 
     return { rows, count };
   }
-  static async createFromAuthMobile(data, options: IRepositoryOptions) {
-    const req = data.req;
+   static async createFromAuthMobile(data, options: IRepositoryOptions) {
+     const req = data.req;
 
-    const normalizeIP = (ip: string) => ip.replace(/^::ffff:/, "");
+     const normalizeIP = (ip: string) => ip.replace(/^::ffff:/, "");
 
-    const rawIP =
-      req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
-      req.connection.remoteAddress ||
-      req.socket.remoteAddress ||
-      (req.connection as any).socket?.remoteAddress;
+     const rawIP =
+       req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
+       req.connection.remoteAddress ||
+       req.socket.remoteAddress ||
+       (req.connection as any).socket?.remoteAddress;
 
-    const clientIP = normalizeIP(rawIP);
+     const clientIP = normalizeIP(rawIP);
 
-    const country = await this.getCountry(clientIP);
+     const country = await this.getCountry(clientIP);
 
-    let [user] = await User(options.database).create(
-      [
-        {
-          email: data.email,
-          password: data.password,
-          phoneNumber: data.phoneNumber,
-          ipAddress: clientIP, // Save the IP address
-          country: country, // Save both form country and detected country,
-          firstName: data.firstName,
-          fullName: data.fullName,
-          refcode: await this.createUniqueRefCode(options),
-        },
-      ],
-      options
-    );
+     const isDemo = data.accountType === "demo";
 
-    delete user.password;
-    // await AuditLogRepository.log(
-    //   {
-    //     entityName: "user",
-    //     entityId: user.id,
-    //     action: AuditLogRepository.CREATE,
-    //     values: user,
-    //   },
-    //   options
-    // );
+     let [user] = await User(options.database).create(
+       [
+         {
+           email: data.email,
+           password: data.password,
+           phoneNumber: data.phoneNumber,
+           ipAddress: clientIP,
+           country: country,
+           firstName: data.firstName,
+           fullName: data.fullName,
+           refcode: await this.createUniqueRefCode(options),
+           accountType: data.accountType || "real",
+           emailVerified: isDemo, // Auto-verify demo accounts
+         },
+       ],
+       options
+     );
 
-    return this.findByIdMobile(user.id, {
-      ...options,
-      bypassPermissionValidation: true,
-    });
-  }
+     delete user.password;
+
+     return this.findByIdMobile(user.id, {
+       ...options,
+       bypassPermissionValidation: true,
+     });
+   }
 
   static async updatePassword(
     id,
@@ -1537,6 +1533,7 @@ export default class UserRepository {
       invitationcode: user.invitationcode,
       nationality: user.nationality,
       refcode: user.refcode,
+      accountType: user.accountType || "real",
       roles,
       status,
     };
@@ -1563,25 +1560,26 @@ export default class UserRepository {
     // tenant members can only see its email
     const otherData = status === "active" ? user.toObject() : {};
 
-    return {
-      ...otherData,
-      id: user.id,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      fullName: user.fullName,
-      passportNumber: user.passportNumber,
-      country: user.country,
-      withdrawPassword: user.withdrawPassword,
-      balance: user.balance,
-      invitationcode: user.invitationcode,
-      nationality: user.nationality,
-      refcode: user.refcode,
-      roles,
-      status,
-    };
-  }
+     return {
+       ...otherData,
+       id: user.id,
+       email: user.email,
+       phoneNumber: user.phoneNumber,
+       firstName: user.firstName,
+       lastName: user.lastName,
+       fullName: user.fullName,
+       passportNumber: user.passportNumber,
+       country: user.country,
+       withdrawPassword: user.withdrawPassword,
+       balance: user.balance,
+       invitationcode: user.invitationcode,
+       nationality: user.nationality,
+       refcode: user.refcode,
+       accountType: user.accountType || "real",
+       roles,
+       status,
+     };
+   }
   static async findByRoleAutocomplete(
     search,
     limit,

@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import assetsActions from "src/modules/assets/list/assetsListActions";
 import assetsListSelectors from "src/modules/assets/list/assetsListSelectors";
+import authSelectors from "src/modules/auth/authSelectors";
 import { i18n } from "../../../i18n";
 
 // Constants - only Deposit and Withdraw remain
@@ -94,6 +95,7 @@ function Wallet() {
   const listAssets = useSelector(assetsListSelectors.selectRows);
   const selectTotalFiat = useSelector(assetsListSelectors.selectTotalFiat);
   const loading = useSelector(assetsListSelectors.selectLoading);
+  const currentUser = useSelector(authSelectors.selectCurrentUser);
   
   // State
   const [hideAmounts, setHideAmounts] = useState(false);
@@ -240,18 +242,20 @@ function Wallet() {
               i18n("pages.wallet.totalUsdValue")
             )}
           </div>
-        </div>
+         </div>
 
-        {/* Quick Actions - reduced size */}
-        <div className="actions-section">
-          <div className="actions-grid">
-            {QUICK_ACTIONS.map((item) => (
-              <QuickActionItem key={item.path} item={item} />
-            ))}
-          </div>
-        </div>
+         {/* Quick Actions - reduced size - hidden for demo accounts */}
+         {currentUser?.accountType !== 'demo' && (
+           <div className="actions-section">
+             <div className="actions-grid">
+               {QUICK_ACTIONS.map((item) => (
+                 <QuickActionItem key={item.path} item={item} />
+               ))}
+             </div>
+           </div>
+         )}
 
-        {/* Asset List (no tabs) */}
+         {/* Asset List (no tabs) */}
       </div>
 
       <style>{`

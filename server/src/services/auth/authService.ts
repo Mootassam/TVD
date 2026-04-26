@@ -1,4 +1,3 @@
-
 import UserRepository from "../../database/repositories/userRepository";
 import Error400 from "../../errors/Error400";
 import bcrypt from "bcrypt";
@@ -12,10 +11,10 @@ import { tenantSubdomain } from "../tenantSubdomain";
 import Error401 from "../../errors/Error401";
 import moment from "moment";
 import AssetRepository from "../../database/repositories/assetsRepository";
-
 import { v4 as uuidv4 } from "uuid";
 import { ethers } from "ethers";
 import { getConfig } from '../../config';
+
 const nonces = new Map();
 const BCRYPT_SALT_ROUNDS = 12;
 
@@ -27,34 +26,17 @@ class AuthService {
     invitationToken,
     tenantId,
     options: any = {},
-    req
+    req,
+    accountType: "real" | "demo" = "real"
   ) {
     const session = await MongooseRepository.createSession(options.database);
 
     try {
       email = email.toLowerCase();
-
       const existingUser = await UserRepository.findByEmail(email, options);
-
-      // Generates a hashed password to hide the original one.
       const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
-      const filter = {};
 
-      // const countUser = await UserRepository.CountUser(options);
-
-      // const checkrefCode = await UserRepository.checkRefcode(
-      //   invitationcode,
-      //   options
-      // );
-
-      // if (!checkrefCode) {
-      //   throw new Error400(options.language, "auth.invitationCode");
-      // }
-
-      // The user may already exist on the database in case it was invided.
       if (existingUser) {
-        // If the user already have an password,
-        // it means that it has already signed up
         const existingPassword = await UserRepository.findPassword(
           existingUser.id,
           options
@@ -64,10 +46,6 @@ class AuthService {
           throw new Error400(options.language, "auth.emailAlreadyInUse");
         }
 
-        /**
-         * In the case of the user exists on the database (was invited)
-         * it only creates the new password
-         */
         await UserRepository.updatePassword(
           existingUser.id,
           hashedPassword,
@@ -79,9 +57,6 @@ class AuthService {
           }
         );
 
-        // Handles onboarding process like
-        // invitation, creation of default tenant,
-        // or default joining the current tenant
         await this.handleOnboardMobile(
           existingUser,
           invitationToken,
@@ -92,7 +67,6 @@ class AuthService {
           }
         );
 
-        // Email may have been alreadyverified using the invitation token
         const isEmailVerified = Boolean(
           await UserRepository.count(
             {
@@ -120,22 +94,25 @@ class AuthService {
         }
 
         const token = jwt.sign(
-          { id: existingUser.id },
+          { 
+            id: existingUser.id,
+            accountType: existingUser.accountType || "real"
+          },
           getConfig().AUTH_JWT_SECRET,
           { expiresIn: getConfig().AUTH_JWT_EXPIRES_IN }
         );
 
         await MongooseRepository.commitTransaction(session);
-
         return token;
       }
 
       const newUser = await UserRepository.createFromAuthMobile(
         {
-          firstName: email,
+          firstName: email.split("@")[0],
           password: hashedPassword,
           email: email,
           phoneNumber: phoneNumber,
+          accountType,
           req,
         },
         {
@@ -144,24 +121,18 @@ class AuthService {
         }
       );
 
-      // email
+      await AssetRepository.createDefaultAssets(
+        newUser,
+        tenantId,
+        options,
+        accountType === "demo" ? 2000 : 0
+      );
 
-      // Now create assets with completeUser.tenant
-
-
-      await AssetRepository.createDefaultAssets(newUser, tenantId, options);
-
-      // email
-
-      // Handles onboarding process like
-      // invitation, creation of default tenant,
-      // or default joining the current tenant
       await this.handleOnboardMobile(newUser, invitationToken, tenantId, {
         ...options,
         session,
       });
 
-      // Email may have been alreadyverified using the invitation token
       const isEmailVerified = Boolean(
         await UserRepository.count(
           {
@@ -183,118 +154,123 @@ class AuthService {
           {
             ...options,
             session,
+            bypassPermissionValidation: true,
           }
         );
       }
 
-      const token = jwt.sign({ id: newUser.id }, getConfig().AUTH_JWT_SECRET, {
-        expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
-      });
+      const token = jwt.sign(
+        { 
+          id: newUser.id,
+          accountType: newUser.accountType || accountType
+        },
+        getConfig().AUTH_JWT_SECRET,
+        { expiresIn: getConfig().AUTH_JWT_EXPIRES_IN }
+      );
 
       await MongooseRepository.commitTransaction(session);
-
       return token;
     } catch (error) {
       await MongooseRepository.abortTransaction(session);
-
       throw error;
     }
   }
 
+  static async signupDemo(tenantId, options: any = {}, req) {
+    // Generate short random suffix (6 chars) and take last 3 for display
+    const randomSuffix = Math.random().toString(36).substring(2, 8); // 6 chars
+    const shortId = randomSuffix.substring(randomSuffix.length - 3); // last 3 chars
+    const email = `demo_...${shortId}@demo.local`;
+
+    // Generate secure random password (not used but required)
+    const password = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const phoneNumber = "";
+
+    return this.signupMobile(
+      email,
+      password,
+      phoneNumber,
+      null,
+      tenantId,
+      { ...options, bypassPermissionValidation: true },
+      req,
+      "demo"
+    );
+  }
 
   static async addressNonce(address) {
     const nonce = uuidv4();
     nonces.set(address.toLowerCase(), nonce);
-
-    return { nonce }
+    return { nonce };
   }
 
+  static async signWithWallet(req, options) {
+    const { address, signature, message, invitationToken, tenantId } = req.body;
 
-
-static async signWithWallet(req, options) {
-  const { address, signature, message, invitationToken, tenantId } = req.body;
-  
-  // Input validation
-  if (!address || !signature || !message) {
-    throw new Error400(options.language, "errors.missingRequiredFields");
-  }
-
-  const normalizedAddress = address.toLowerCase();
-  const session = await MongooseRepository.createSession(options.database);
-
-  try {
-    // Validate nonce
-    const savedNonce = nonces.get(normalizedAddress);
-    if (!savedNonce || !message.includes(savedNonce)) {
-      throw new Error400(options.language, "errors.invalidNonce");
+    if (!address || !signature || !message) {
+      throw new Error400(options.language, "errors.missingRequiredFields");
     }
 
-    // Verify signature
-    const recoveredAddress = ethers.verifyMessage(message, signature);
-    if (recoveredAddress.toLowerCase() !== normalizedAddress) {
-      throw new Error400(options.language, "errors.invalidSignature");
-    }
+    const normalizedAddress = address.toLowerCase();
+    const session = await MongooseRepository.createSession(options.database);
 
-    // Nonce must be one-time use
-    nonces.delete(normalizedAddress);
+    try {
+      const savedNonce = nonces.get(normalizedAddress);
+      if (!savedNonce || !message.includes(savedNonce)) {
+        throw new Error400(options.language, "errors.invalidNonce");
+      }
 
-    // Find or create user
-    let user = await UserRepository.findUserByEmail(normalizedAddress, req);
-    let token;
+      const recoveredAddress = ethers.verifyMessage(message, signature);
+      if (recoveredAddress.toLowerCase() !== normalizedAddress) {
+        throw new Error400(options.language, "errors.invalidSignature");
+      }
 
-    if (!user) {
-      // Create new user from wallet
-      user = await UserRepository.createFromWallet(
-        req,
-        { address: normalizedAddress },
-        {
+      nonces.delete(normalizedAddress);
+
+      let user = await UserRepository.findUserByEmail(normalizedAddress, req);
+      let token;
+
+      if (!user) {
+        user = await UserRepository.createFromWallet(
+          req,
+          { address: normalizedAddress },
+          {
+            ...options,
+            session,
+          }
+        );
+
+        await AssetRepository.createDefaultAssets(user, tenantId, options);
+
+        await this.handleOnboardMobile(user, invitationToken, tenantId, {
           ...options,
           session,
+        });
+      }
+
+      token = jwt.sign(
+        { 
+          id: user.id,
+          accountType: user.accountType || "real",
+          address: normalizedAddress 
+        }, 
+        getConfig().AUTH_JWT_SECRET, 
+        {
+          expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
         }
       );
 
-
-      
-      await AssetRepository.createDefaultAssets(user, tenantId, options);
-
-      // Handle onboarding if user was created
-      await this.handleOnboardMobile(user, invitationToken, tenantId, {
-        ...options,
-        session,
-      });
-    }
-
-    // Generate JWT token (for both new and existing users)
-    token = jwt.sign(
-      { 
-        id: user.id,
-        address: normalizedAddress 
-      }, 
-      getConfig().AUTH_JWT_SECRET, 
-      {
-        expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
+      await MongooseRepository.commitTransaction(session);
+      return token;
+    } catch (error) {
+      await MongooseRepository.abortTransaction(session);
+      if (error instanceof Error400) {
+        throw error;
       }
-    );
-
-    await MongooseRepository.commitTransaction(session);
-    
-    return token ; 
-   
-
-  } catch (error) {
-    // Rollback transaction on error
-    await MongooseRepository.abortTransaction(session);
-    
-    // Re-throw the error for higher-level handling
-    if (error instanceof Error400) {
-      throw error;
+      console.error('Wallet sign error:', error);
+      throw new Error400(options.language, "errors.walletSignFailed");
     }
-    
-    // Log unexpected errors
-    console.error('Wallet sign error:', error);
-    throw new Error400(options.language, "errors.walletSignFailed");
   }
-}
 
   static async signup(
     email,
@@ -312,28 +288,11 @@ static async signWithWallet(req, options) {
 
     try {
       email = email.toLowerCase();
-
       const existingUser = await UserRepository.findByEmail(email, options);
 
-      // Generates a hashed password to hide the original one.
       const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
-      const filter = {};
 
-      // const countUser = await UserRepository.CountUser(options);
-
-      // const checkrefCode = await UserRepository.checkRefcode(
-      //   invitationcode,
-      //   options
-      // );
-
-      // if (!checkrefCode) {
-      //   throw new Error400(options.language, "auth.invitationCode");
-      // }
-
-      // The user may already exist on the database in case it was invided.
       if (existingUser) {
-        // If the user already have an password,
-        // it means that it has already signed up
         const existingPassword = await UserRepository.findPassword(
           existingUser.id,
           options
@@ -343,10 +302,6 @@ static async signWithWallet(req, options) {
           throw new Error400(options.language, "auth.emailAlreadyInUse");
         }
 
-        /**
-         * In the case of the user exists on the database (was invited)
-         * it only creates the new password
-         */
         await UserRepository.updatePassword(
           existingUser.id,
           hashedPassword,
@@ -358,15 +313,11 @@ static async signWithWallet(req, options) {
           }
         );
 
-        // Handles onboarding process like
-        // invitation, creation of default tenant,
-        // or default joining the current tenant
         await this.handleOnboard(existingUser, invitationToken, tenantId, {
           ...options,
           session,
         });
 
-        // Email may have been alreadyverified using the invitation token
         const isEmailVerified = Boolean(
           await UserRepository.count(
             {
@@ -394,13 +345,12 @@ static async signWithWallet(req, options) {
         }
 
         const token = jwt.sign(
-          { id: existingUser.id },
+          { id: existingUser.id, accountType: existingUser.accountType || "real" },
           getConfig().AUTH_JWT_SECRET,
           { expiresIn: getConfig().AUTH_JWT_EXPIRES_IN }
         );
 
         await MongooseRepository.commitTransaction(session);
-
         return token;
       }
 
@@ -420,19 +370,11 @@ static async signWithWallet(req, options) {
         }
       );
 
-      // email
-
-      // email
-
-      // Handles onboarding process like
-      // invitation, creation of default tenant,
-      // or default joining the current tenant
       await this.handleOnboard(newUser, invitationToken, tenantId, {
         ...options,
         session,
       });
 
-      // Email may have been alreadyverified using the invitation token
       const isEmailVerified = Boolean(
         await UserRepository.count(
           {
@@ -458,16 +400,16 @@ static async signWithWallet(req, options) {
         );
       }
 
-      const token = jwt.sign({ id: newUser.id }, getConfig().AUTH_JWT_SECRET, {
-        expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
-      });
+      const token = jwt.sign(
+        { id: newUser.id, accountType: newUser.accountType || "real" },
+        getConfig().AUTH_JWT_SECRET,
+        { expiresIn: getConfig().AUTH_JWT_EXPIRES_IN }
+      );
 
       await MongooseRepository.commitTransaction(session);
-
       return token;
     } catch (error) {
       await MongooseRepository.abortTransaction(session);
-
       throw error;
     }
   }
@@ -524,37 +466,29 @@ static async signWithWallet(req, options) {
         throw new Error400(options.language, "auth.wrongPassword");
       }
 
-      // Handles onboarding process like
-      // invitation, creation of default tenant,
-      // or default joining the current tenant
       await this.handleOnboard(user, invitationToken, tenantId, {
         ...options,
         currentUser: user,
         session,
       });
 
-      const token = jwt.sign({ id: user.id }, getConfig().AUTH_JWT_SECRET, {
-        expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
-      });
-      await UserRepository
-        .SaveIp(user.id, req, options)
+      const token = jwt.sign(
+        { id: user.id, accountType: user.accountType || "real" },
+        getConfig().AUTH_JWT_SECRET,
+        { expiresIn: getConfig().AUTH_JWT_EXPIRES_IN }
+      );
+
+      await UserRepository.SaveIp(user.id, req, options);
       await MongooseRepository.commitTransaction(session);
 
       return token;
     } catch (error) {
       await MongooseRepository.abortTransaction(session);
-
       throw error;
     }
   }
 
-  static async handleOnboardMobile(
-    currentUser,
-    invitationToken,
-    tenantId,
-    options
-  ) {
-
+  static async handleOnboardMobile(currentUser, invitationToken, tenantId, options) {
     if (invitationToken) {
       try {
         await TenantUserRepository.acceptInvitation(invitationToken, {
@@ -564,8 +498,6 @@ static async signWithWallet(req, options) {
         });
       } catch (error) {
         console.error(error);
-        // In case of invitation acceptance error, does not prevent
-        // the user from sign up/in
       }
     }
 
@@ -580,7 +512,6 @@ static async signWithWallet(req, options) {
       }).joinWithDefaultRolesOrAskApproval(
         {
           tenantId,
-          // leave empty to require admin's approval
           roles: [],
         },
         options
@@ -590,21 +521,16 @@ static async signWithWallet(req, options) {
     const singleTenant = getConfig().TENANT_MODE === "single";
 
     if (singleTenant) {
-      // In case is single tenant, and the user is signing in
-      // with an invited email and for some reason doesn't have the token
-      // it auto-assigns it
       await new TenantService({
         ...options,
         currentUser,
       }).joinDefaultUsingInvitedEmail(options.session);
 
-      // Creates or join default Tenant
       await new TenantService({
         ...options,
         currentUser,
       }).createOrJoinDefaultMobile(
         {
-          // leave empty to require admin's approval
           roles: [],
         },
         options.session
@@ -622,8 +548,6 @@ static async signWithWallet(req, options) {
         });
       } catch (error) {
         console.error(error);
-        // In case of invitation acceptance error, does not prevent
-        // the user from sign up/in
       }
     }
 
@@ -638,7 +562,6 @@ static async signWithWallet(req, options) {
       }).joinWithDefaultRolesOrAskApproval(
         {
           tenantId,
-          // leave empty to require admin's approval
           roles: [],
         },
         options
@@ -648,21 +571,16 @@ static async signWithWallet(req, options) {
     const singleTenant = getConfig().TENANT_MODE === "single";
 
     if (singleTenant) {
-      // In case is single tenant, and the user is signing in
-      // with an invited email and for some reason doesn't have the token
-      // it auto-assigns it
       await new TenantService({
         ...options,
         currentUser,
       }).joinDefaultUsingInvitedEmail(options.session);
 
-      // Creates or join default Tenant
       await new TenantService({
         ...options,
         currentUser,
       }).createOrJoinDefault(
         {
-          // leave empty to require admin's approval
           roles: [],
         },
         options.session
@@ -698,8 +616,6 @@ static async signWithWallet(req, options) {
               return;
             }
 
-            // If the email sender id not configured,
-            // removes the need for email verification.
             if (user && !EmailSender.isConfigured) {
               user.emailVerified = true;
             }
@@ -734,9 +650,7 @@ static async signWithWallet(req, options) {
         email,
         options
       );
-      link = `${tenantSubdomain.frontendUrl(
-        tenant
-      )}/auth/verify-email?token=${token}`;
+      link = `${tenantSubdomain.frontendUrl(tenant)}/auth/verify-email?token=${token}`;
     } catch (error) {
       console.error(error);
       throw new Error400(language, "auth.emailAddressVerificationEmail.error");
@@ -749,9 +663,6 @@ static async signWithWallet(req, options) {
 
   static async sendPasswordResetEmail(language, email, tenantId, options) {
     let user = await UserRepository.findByEmail(email, options);
-    const currentPassword = await UserRepository.findPassword(user.id, options);
-    let link;
-
     try {
       let tenant;
 
@@ -781,7 +692,6 @@ static async signWithWallet(req, options) {
     }
 
     let link;
-
     try {
       let tenant;
 
@@ -795,9 +705,7 @@ static async signWithWallet(req, options) {
         options
       );
 
-      link = `${tenantSubdomain.frontendUrl(
-        tenant
-      )}/auth/password-reset?token=${token}`;
+      link = `${tenantSubdomain.frontendUrl(tenant)}/auth/password-reset?token=${token}`;
     } catch (error) {
       console.error(error);
       throw new Error400(language, "auth.passwordReset.error");
@@ -916,16 +824,18 @@ static async signWithWallet(req, options) {
         );
       }
 
-      const token = jwt.sign({ id: user.id }, getConfig().AUTH_JWT_SECRET, {
-        expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
-      });
+      const token = jwt.sign(
+        { id: user.id, accountType: user.accountType || "real" },
+        getConfig().AUTH_JWT_SECRET,
+        {
+          expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
+        }
+      );
 
       await MongooseRepository.commitTransaction(session);
-
       return token;
     } catch (error) {
       await MongooseRepository.abortTransaction(session);
-
       throw error;
     }
   }

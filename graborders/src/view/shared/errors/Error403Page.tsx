@@ -1,51 +1,203 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { i18n } from './../../../i18n';
+import { i18n } from './../../../i18n'
 
 function Error403Page() {
   return (
-    <div className="error-container-403">
-      <div className="error-logo-403">
-        <i className="fas fa-coins error-logo-icon-403" />
-        <div className="error-logo-text-403">NUXES</div>
-      </div>
-      <div className="error-content-403">
-        <div className="error-icon-403">
-          <i className="fas fa-exclamation-triangle" />
+    <div className="error403-container">
+      {/* Header Section - matching the other pages */}
+      <div className="header">
+        <div className="nav-bar">
+          <div className="page-title">403 Error</div>
         </div>
-        <h1 className="error-title-403">ERROR 404</h1>
-        <p className="error-message-403">{i18n('errors.404')}</p>
+      </div>
 
-        <Link to="/" className="underline">
-          <a href="#" className="error-home-button-403">
-            <i className="fas fa-home" />
-            {i18n('errors.backToHome')} 
-          </a>
-        </Link>
-      </div>
-      <div className="error-crypto-elements-403">
-        <div className="error-crypto-element-403">
-          <div className="error-crypto-icon-403">
-            <i className="fab fa-bitcoin" />
+      {/* Content Card - matching the other pages */}
+      <div className="content-card">
+        <div className="error403-content">
+          {/* Crypto Animation (replaces forex animation) */}
+          <div className="crypto-animation">
+            <div className="crypto-icon bitcoin">
+              <i className="fab fa-bitcoin" />
+            </div>
+            <div className="crypto-icon ethereum">
+              <i className="fab fa-ethereum" />
+            </div>
+            <div className="crypto-icon altcoin">
+              <i className="fas fa-coins" />
+            </div>
           </div>
-          <div className="error-crypto-name-403">Bitcoin</div>
-        </div>
-        <div className="error-crypto-element-403">
-          <div className="error-crypto-icon-403">
-            <i className="fab fa-ethereum" />
+
+          {/* Error Icon */}
+          <div className="error-icon">
+            <i className="fas fa-exclamation-triangle" />
           </div>
-          <div className="error-crypto-name-403">Ethereum</div>
-        </div>
-        <div className="error-crypto-element-403">
-          <div className="error-crypto-icon-403">
-            <i className="fas fa-coins" />
-          </div>
-          <div className="error-crypto-name-403">Altcoins</div>
+
+          {/* Error Code */}
+          <h1 className="error-code">403</h1>
+
+          {/* Error Title */}
+          <h2 className="error-title">Access Denied</h2>
+
+          {/* Error Message */}
+          <p className="error-message">
+            {i18n('errors.403')}
+          </p>
+
+          {/* Home Button */}
+          <Link to="/" className="home-button">
+            <i className="fas fa-home" /> {i18n('errors.backToHome')}
+          </Link>
         </div>
       </div>
-      <div className="error-footer-403">
-        <p>© 2023 NUXES. All rights reserved.</p>
-      </div>
+
+      <style>{`
+        /* Container – matches the 404 design */
+        .error403-container {
+          max-width: 430px;
+          margin: 0 auto;
+          min-height: 100vh;
+          background-color: #0f0f0f;
+          border-top: 2px solid #39FF14;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          color: #ffffff;
+        }
+
+        /* Header / Navigation */
+        .header {
+          padding: 16px 20px;
+          border-bottom: 1px solid #2a2a2a;
+        }
+        .nav-bar {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+        .page-title {
+          font-size: 18px;
+          font-weight: 500;
+          color: #ffffff;
+        }
+
+        /* Content Card */
+        .content-card {
+          flex: 1;
+          background-color: #1c1c1c;
+          border-top-left-radius: 24px;
+          border-top-right-radius: 24px;
+          padding: 24px 20px;
+          border-top: 2px solid #39FF14;
+        }
+
+        /* Error Content */
+        .error403-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 60vh;
+          text-align: center;
+        }
+
+        /* Crypto Animation – same floating effect */
+        .crypto-animation {
+          position: relative;
+          width: 200px;
+          height: 100px;
+          margin: 0 auto 20px;
+        }
+        .crypto-icon {
+          position: absolute;
+          font-size: 48px;
+          color: #39FF14;
+          opacity: 0.8;
+          animation: float 3s ease-in-out infinite;
+        }
+        .bitcoin {
+          left: 0;
+          top: 0;
+          animation-delay: 0s;
+        }
+        .ethereum {
+          left: 70px;
+          top: 20px;
+          animation-delay: 0.5s;
+        }
+        .altcoin {
+          left: 140px;
+          top: 0;
+          animation-delay: 1s;
+        }
+
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-15px); }
+          100% { transform: translateY(0px); }
+        }
+
+        /* Error Icon */
+        .error-icon {
+          font-size: 48px;
+          color: #ff6b6b;
+          margin-bottom: 10px;
+        }
+
+        /* Error Code */
+        .error-code {
+          font-size: 72px;
+          font-weight: bold;
+          color: #39FF14;
+          margin: 10px 0;
+          line-height: 1;
+        }
+
+        /* Error Title */
+        .error-title {
+          font-size: 24px;
+          font-weight: 600;
+          color: #ffffff;
+          margin-bottom: 12px;
+        }
+
+        /* Error Message */
+        .error-message {
+          font-size: 16px;
+          color: #aaaaaa;
+          max-width: 300px;
+          margin-bottom: 30px;
+          line-height: 1.5;
+        }
+
+        /* Home Button – matches signout button style */
+        .home-button {
+          background: none;
+          border: 1px solid #39FF14;
+          color: #39FF14;
+          padding: 12px 24px;
+          border-radius: 6px;
+          font-size: 16px;
+          font-weight: bold;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          transition: all 0.2s;
+          text-decoration: none;
+        }
+        .home-button:hover {
+          background-color: #39FF14;
+          color: #0f0f0f;
+        }
+
+        /* Remove default link underline */
+        a {
+          text-decoration: none;
+        }
+      `}</style>
     </div>
   )
 }

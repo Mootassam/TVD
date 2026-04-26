@@ -47,27 +47,32 @@ function Profile() {
     history.push(param);
   };
   const currentUser = useSelector(authSelectors.selectCurrentUser);
-  const data = [
-    {
-      icon: "fa-solid fa-clock-rotate-left",
-      name: "Tasks History",
-      url: "/order",
-    },
-    { icon: "fa-solid fa-wallet", name: "Bind Wallet", url: "/wallet" },
-    {
-      icon: "fa-solid fa-arrow-right-arrow-left",
-      name: "Transactions",
-      url: "/transacation",
-    },
-    {
-      icon: "fa-solid fa-money-bill-transfer",
-      name: "Withdraw",
-      url: "/withdraw",
-    },
-    
-    { icon: "fa-solid fa-user", name: "Profile", url: "/myprofile" },
-    { icon: "fa-solid fa-lock", name: "Security", url: "/security" },
-  ];
+   const data = [
+     {
+       icon: "fa-solid fa-clock-rotate-left",
+       name: "Tasks History",
+       url: "/order",
+     },
+     { icon: "fa-solid fa-wallet", name: "Bind Wallet", url: "/wallet" },
+     {
+       icon: "fa-solid fa-arrow-right-arrow-left",
+       name: "Transactions",
+       url: "/transacation",
+     },
+     {
+       icon: "fa-solid fa-money-bill-transfer",
+       name: "Withdraw",
+       url: "/withdraw",
+     },
+     
+     { icon: "fa-solid fa-user", name: "Profile", url: "/myprofile" },
+     { icon: "fa-solid fa-lock", name: "Security", url: "/security" },
+   ];
+
+   // Filter out restricted items for demo accounts
+   const filteredData = currentUser?.accountType === 'demo'
+     ? data.filter(item => !['/wallet', '/withdraw', '/security'].includes(item.url))
+     : data;
   const referenceCodeRef = useRef<any>(null);
 
   const copyToClipboard = () => {
@@ -134,12 +139,23 @@ function Profile() {
                   />
                 </form>
               </FormProvider>
-              <div className="left__details">
-                <div className="user__title">
-                  {currentUser?.fullName}
+               <div className="left__details">
+                 <div className="user__title">
+                   {currentUser?.fullName}
+                   {currentUser?.accountType === 'demo' && (
+                     <span style={{
+                       backgroundColor: '#FF6838',
+                       color: 'white',
+                       padding: '2px 8px',
+                       borderRadius: '4px',
+                       fontSize: '12px',
+                       marginLeft: '8px',
+                       fontWeight: 'bold'
+                     }}>DEMO</span>
+                   )}
 
-                  <img src="/images/check.png" alt="" style={{ width: 30 }} />
-                </div>
+                   <img src="/images/check.png" alt="" style={{ width: 30 }} />
+                 </div>
                 <div className="my__code">
                   UID : {currentUser?.invitationcode}
                 </div>
@@ -251,23 +267,27 @@ function Profile() {
                   <i className="fa fa-arrow-right " />
                 </div>
               </div>
-            </Link>
+             </Link>
 
-            <Link to="/withdraw" className="remove__ligne">
-              <div className="line__section border__">
-                <div className="titre__section">
-                  <i className="fa-solid fa-money-bill-transfer profile__icon"></i>
-                  <span>Withdraw</span>
-                </div>
-                <div>
-                  <i className="fa fa-arrow-right " />
-                </div>
-              </div>
-            </Link>
+             {/* Hide Withdraw for demo users */}
+             {currentUser?.accountType !== 'demo' && (
+               <Link to="/withdraw" className="remove__ligne">
+                 <div className="line__section border__">
+                   <div className="titre__section">
+                     <i className="fa-solid fa-money-bill-transfer profile__icon"></i>
+                     <span>Withdraw</span>
+                   </div>
+                   <div>
+                     <i className="fa fa-arrow-right " />
+                   </div>
+                 </div>
+               </Link>
+             )}
 
 
 
-            <Link to="/transacations" className="remove__ligne">
+
+             <Link to="/transacations" className="remove__ligne">
               <div className="line__section border__">
                 <div className="titre__section">
                   <i className="fa-solid fa-arrow-right-arrow-left profile__icon"></i>
@@ -289,18 +309,22 @@ function Profile() {
                   <i className="fa fa-arrow-right " />
                 </div>
               </div>
-            </Link>
-            <Link to="/transacation" className="remove__ligne">
-              <div className="line__section ">
-                <div className="titre__section">
-                  <i className="fa-solid fa-star"></i>
-                  <span>Rate US</span>
-                </div>
-                <div>
-                  <i className="fa fa-arrow-right " />
-                </div>
-              </div>
-            </Link>
+             </Link>
+
+             {/* Hide Security for demo users */}
+             {currentUser?.accountType !== 'demo' && (
+               <Link to="/security" className="remove__ligne">
+                 <div className="line__section border__">
+                   <div className="titre__section">
+                     <i className="fa-solid fa-lock profile__icon"></i>
+                     <span>Security</span>
+                   </div>
+                   <div>
+                     <i className="fa fa-arrow-right " />
+                   </div>
+                 </div>
+               </Link>
+             )}
           </div>
         </div>
       </div>

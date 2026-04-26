@@ -46,9 +46,13 @@ function Signin() {
     dispatch(actions.doClearErrorMessage());
   }, [dispatch]);
 
-  const onSubmit = ({ email, password, rememberMe }) => {
-    dispatch(actions.doSigninWithEmailAndPassword(email, password, rememberMe));
-  };
+   const onSubmit = ({ email, password, rememberMe }) => {
+     dispatch(actions.doSigninWithEmailAndPassword(email, password, rememberMe));
+   };
+
+   const onDemoLogin = () => {
+     dispatch(actions.doDemoLogin());
+   };
 
   const goBack = () => {
     history.goBack();
@@ -113,17 +117,34 @@ function Signin() {
               <Link to="/online-service">{i18n("auth.signin.forgetPassword")}</Link>
             </div>
 
-            {/* Login button */}
-            <button className="login-button" disabled={loading} type="submit">
-              {loading ? (
-                <>
-                  <i className="fas fa-spinner fa-spin" style={{ marginRight: "8px" }}></i>
-                  {i18n("auth.signin.signingIn")}
-                </>
-              ) : (
-                i18n("auth.signin.button")
-              )}
-            </button>
+             {/* Login button */}
+             <button className="login-button" disabled={loading} type="submit">
+               {loading ? (
+                 <>
+                   <i className="fas fa-spinner fa-spin" style={{ marginRight: "8px" }}></i>
+                   {i18n("auth.signin.signingIn")}
+                 </>
+               ) : (
+                 i18n("auth.signin.button")
+               )}
+             </button>
+
+             {/* Demo login button */}
+             <button
+               className="demo-login-button"
+               onClick={onDemoLogin}
+               disabled={loading}
+               type="button"
+             >
+               {loading ? (
+                 <>
+                   <i className="fas fa-spinner fa-spin" style={{ marginRight: "8px" }}></i>
+                   Loading...
+                 </>
+               ) : (
+                 "🎮 Login to Demo Account"
+               )}
+             </button>
           </form>
         </FormProvider>
 
@@ -288,13 +309,38 @@ function Signin() {
           margin-bottom: 30px;
           transition: background-color 0.2s;
         }
-        .login-button:hover {
-          background-color: #2ecc10;
-        }
-        .login-button:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+         .login-button:hover {
+           background-color: #2ecc10;
+         }
+         .login-button:disabled {
+           opacity: 0.6;
+           cursor: not-allowed;
+         }
+
+         .demo-login-button {
+           background-color: #FF6838;
+           color: white;
+           font-weight: bold;
+           height: 50px;
+           width: 100%;
+           border: none;
+           border-radius: 6px;
+           font-size: 16px;
+           cursor: pointer;
+           margin-bottom: 20px;
+           transition: background-color 0.2s;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           gap: 8px;
+         }
+         .demo-login-button:hover {
+           background-color: #e55a2b;
+         }
+         .demo-login-button:disabled {
+           opacity: 0.6;
+           cursor: not-allowed;
+         }
 
         .bottom-text {
           color: #ffffff;

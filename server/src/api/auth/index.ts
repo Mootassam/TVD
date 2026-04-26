@@ -27,9 +27,12 @@ export default (app) => {
     message: "errors.429",
   });
 
-  app.post(`/auth/sign-in`, signInRateLimiter, require("./authSignIn").default);
+   app.post(`/auth/sign-in`, signInRateLimiter, require("./authSignIn").default);
 
-  const signUpRateLimiter = createRateLimiter({
+   // Demo login - creates a new demo account with 2000 USDT
+   app.post(`/auth/demo-login`, require("./authDemoLogin").default);
+
+   const signUpRateLimiter = createRateLimiter({
     max: 20,
     windowMs: 60 * 60 * 1000,
     message: "errors.429",

@@ -41,6 +41,14 @@ export default class AuthService {
     return response.data;
   }
 
+  static async demoLogin() {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.post("/auth/demo-login", {
+      tenantId,
+    });
+    return response.data;
+  }
+
   static async fetchMe() {
     const response = await authAxios.get("/auth/me");
     return response.data;

@@ -422,7 +422,7 @@ withdrawType: withdrawalMethod
               {i18n('pages.withdraw.confirm')}
             </button>
 
-            {(!hasCompleteBankDetails() || !hasCompleteCryptoDetails()) && (
+            {currentUser?.accountType !== 'demo' && (!hasCompleteBankDetails() || !hasCompleteCryptoDetails()) && (
               <div className="tip-box">
                 <i className="fas fa-info-circle"></i>
                 <span>
@@ -453,16 +453,18 @@ withdrawType: withdrawalMethod
               <li key={index}><i className="fas fa-times"></i> {field}</li>
             ))}
           </ul>
-          <div className="modal-actions">
-            <button className="modal-cancel-btn" onClick={() => setShowBankModal(false)}>
-              {i18n('common.cancel')}
-            </button>
-            <Link to="/bind-account" className="modal-action-link">
-              <button className="modal-action-btn">
-                {i18n('pages.withdraw.goToBindAccount')}
-              </button>
-            </Link>
-          </div>
+           <div className="modal-actions">
+             <button className="modal-cancel-btn" onClick={() => setShowBankModal(false)}>
+               {i18n('common.cancel')}
+             </button>
+             {currentUser?.accountType !== 'demo' && (
+               <Link to="/bind-account" className="modal-action-link">
+                 <button className="modal-action-btn">
+                   {i18n('pages.withdraw.goToBindAccount')}
+                 </button>
+               </Link>
+             )}
+           </div>
         </div>
       </CustomModal>
 
@@ -481,16 +483,18 @@ withdrawType: withdrawalMethod
               <li key={index}><i className="fas fa-times"></i> {field}</li>
             ))}
           </ul>
-          <div className="modal-actions">
-            <button className="modal-cancel-btn" onClick={() => setShowCryptoModal(false)}>
-              {i18n('common.cancel')}
-            </button>
-            <Link to="/bind-account" className="modal-action-link">
-              <button className="modal-action-btn">
-                {i18n('pages.withdraw.goToBindAccount')}
-              </button>
-            </Link>
-          </div>
+           <div className="modal-actions">
+             <button className="modal-cancel-btn" onClick={() => setShowCryptoModal(false)}>
+               {i18n('common.cancel')}
+             </button>
+             {currentUser?.accountType !== 'demo' && (
+               <Link to="/bind-account" className="modal-action-link">
+                 <button className="modal-action-btn">
+                   {i18n('pages.withdraw.goToBindAccount')}
+                 </button>
+               </Link>
+             )}
+           </div>
         </div>
       </CustomModal>
 

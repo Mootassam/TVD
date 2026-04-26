@@ -27,6 +27,13 @@ export default (database) => {
       firstDepositDone: { type: Boolean, default: false },
       firstStackingDone: { type: Boolean, default: false },
 
+      // 🆕 Demo/Real account type
+      accountType: {
+        type: String,
+        enum: ["real", "demo"],
+        default: "real"
+      },
+
       phoneNumber: { type: String, maxlength: 24 },
       gender: { type: String, maxlength: 24 },
       ipAddress: { type: String },

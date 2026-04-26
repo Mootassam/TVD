@@ -683,37 +683,25 @@ class WalletRepository {
   static async createDefaultAssets(
     newUser,
     tenantId,
-    options: IRepositoryOptions
+    options: IRepositoryOptions,
+    demoBalance: number = 0
   ) {
     const cryptocurrencies = [
       { symbol: 'USDT', name: 'Tether' },
-      // { symbol: 'ETH', name: 'Ethereum' },
-      // { symbol: 'BTC', name: 'Bitcoin' },
-      // { symbol: 'USDC', name: 'USD Coin' },
-      // { symbol: 'DAI', name: 'DAI' },
-      // { symbol: 'SHIB', name: 'Shiba Inu' },
-      // { symbol: 'XRP', name: 'Ripple' },
-      // { symbol: 'TRX', name: 'TRON' },
-      // { symbol: 'SOL', name: 'Solana' },
-      // { symbol: 'BNB', name: 'Binance Coin' },
-      // { symbol: 'DOGE', name: 'Dogecoin' }
     ];
 
-    // const accountTypes = ["exchange", "trade", "perpetual"];
     const accountTypes = ["exchange"];
 
     const walletsToCreate: any[] = [];
 
-    // Generate all combinations
     for (const crypto of cryptocurrencies) {
       for (const type of accountTypes) {
         walletsToCreate.push({
           user: newUser.id,
           symbol: crypto.symbol,
           coinName: crypto.name,
-          
-          amount: 0,
-          accountType: type,        // 👈 IMPORTANT
+          amount: crypto.symbol === 'USDT' ? demoBalance : 0,
+          accountType: type,
           tenant: tenantId,
           createdBy: newUser,
           updatedBy: newUser,
@@ -721,20 +709,16 @@ class WalletRepository {
       }
     }
 
-    // Create all wallets
     const createdWallets: any[] = [];
     for (const walletData of walletsToCreate) {
       const wallet = await this.createMobile(walletData, options);
       createdWallets.push(wallet);
     }
 
-    return createdWallets;
-  }
+     return createdWallets;
+   }
 
-
-
-
-  static async transferBetweenAccounts(data, options: IRepositoryOptions) {
+   static async transferBetweenAccounts(data, options: IRepositoryOptions) {
     const currentTenant = MongooseRepository.getCurrentTenant(options);
     const currentUser = MongooseRepository.getCurrentUser(options);
 
