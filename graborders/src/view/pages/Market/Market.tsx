@@ -37,15 +37,13 @@ const categoryConfig: Record<MarketCategory, { title: string; symbols: string[] 
   },
   CFD: {
     title: "Indices",
-    symbols: [
-      "US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225",
-    ],
+    symbols: ["US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225"],
   },
   Crypto: {
     title: "Crypto",
     symbols: [
       "BTCUSD", "ETHUSD", "XRPUSD", "SOLUSD", "ADAUSD", "DOGEUSD", "DOTUSD",
-      "AVAXUSD", "LINKUSD", "MATICUSD", "UNIUSD", "ATOMUSD", "LTCUSD",
+      "AVAXUSD", "LINKUSD",  "UNIUSD", "ATOMUSD", "LTCUSD",
       "BCHUSD", "NEARUSD", "ALGOUSD", "VETUSD", "FILUSD", "THETAUSD",
       "AXSUSD", "SANDUSD", "MANAUSD", "ENJUSD", "CHZUSD", "APEUSD",
     ],
@@ -64,8 +62,7 @@ const yahooSymbolMap: Record<string, string> = {
   XAUUSD: "GC=F", XAGUSD: "SI=F", XPTUSD: "PL=F", XPDUSD: "PA=F",
   USOIL: "CL=F", UKOIL: "BZ=F", NGAS: "NG=F",
   US30: "YM=F", US500: "ES=F", NAS100: "NQ=F", US2000: "RTY=F",
-  GER40: "DAX", UK100: "FTSE", FRA40: "FCHI", EU50: "STOXX50E",
-  JP225: "N225",
+  GER40: "DAX", UK100: "FTSE", FRA40: "FCHI", EU50: "STOXX50E", JP225: "N225",
 };
 
 /* ------------------------------------------------------------------ */
@@ -164,7 +161,7 @@ const formatVolume = (vol: number): string => {
 };
 
 /* ------------------------------------------------------------------ */
-/*  Yahoo Finance REST Polling Hook (Forex, Metals, Oil, Indices)     */
+/*  Yahoo Finance REST Polling Hook (with CORS proxy)                 */
 /* ------------------------------------------------------------------ */
 
 interface YahooTickerData {
@@ -176,35 +173,44 @@ interface YahooTickerData {
   volume: number;
 }
 
+// Public CORS proxy – if it ever fails, replace with your own (see note at end)
+const CORS_PROXY = "https://corsproxy.io/?";
+
 const useYahooFinancePoll = (symbols: string[]): Record<string, YahooTickerData> => {
   const [data, setData] = useState<Record<string, YahooTickerData>>({});
 
   const fetchData = useCallback(async () => {
-    // Fetch all symbols in parallel
     const results = await Promise.allSettled(
       symbols.map(async (symbol) => {
         const yahooId = yahooSymbolMap[symbol] || symbol;
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooId}?interval=1m&range=1d`;
-        const resp = await fetch(url);
-        const json = await resp.json();
-        const result = json?.chart?.result?.[0];
-        if (!result) return null;
-        const meta = result.meta;
-        const previousClose = meta.previousClose || meta.chartPreviousClose || meta.regularMarketPrice;
-        const price = meta.regularMarketPrice;
-        const change = price - previousClose;
-        const changePercent = previousClose ? (change / previousClose) * 100 : 0;
-        return {
-          symbol,
-          data: {
-            price,
-            change,
-            changePercent,
-            dayHigh: meta.regularMarketDayHigh || price,
-            dayLow: meta.regularMarketDayLow || price,
-            volume: meta.regularMarketVolume || 0,
-          },
-        };
+        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooId}?interval=1m&range=1d`;
+        const url = CORS_PROXY + encodeURIComponent(targetUrl);
+        try {
+          const resp = await fetch(url);
+          const json = await resp.json();
+          const result = json?.chart?.result?.[0];
+          if (!result) return null;
+          const meta = result.meta;
+          const previousClose = meta.previousClose || meta.chartPreviousClose || meta.regularMarketPrice;
+          const price = meta.regularMarketPrice;
+          if (price == null) return null;
+          const change = price - previousClose;
+          const changePercent = previousClose ? (change / previousClose) * 100 : 0;
+          return {
+            symbol,
+            data: {
+              price,
+              change,
+              changePercent,
+              dayHigh: meta.regularMarketDayHigh || price,
+              dayLow: meta.regularMarketDayLow || price,
+              volume: meta.regularMarketVolume || 0,
+            },
+          };
+        } catch (e) {
+          console.warn(`Yahoo fetch failed for ${symbol}`, e);
+          return null;
+        }
       })
     );
 
@@ -220,7 +226,7 @@ const useYahooFinancePoll = (symbols: string[]): Record<string, YahooTickerData>
   useEffect(() => {
     if (symbols.length === 0) return;
     fetchData();
-    const interval = setInterval(fetchData, 5000); // poll every 5 seconds
+    const interval = setInterval(fetchData, 5000); // update every 5s
     return () => clearInterval(interval);
   }, [symbols, fetchData]);
 
@@ -228,7 +234,7 @@ const useYahooFinancePoll = (symbols: string[]): Record<string, YahooTickerData>
 };
 
 /* ------------------------------------------------------------------ */
-/*  Binance WebSocket Hook (Crypto) - kept as before                  */
+/*  Binance WebSocket Hook (Crypto)                                   */
 /* ------------------------------------------------------------------ */
 
 interface BinanceTickerData {
@@ -381,7 +387,6 @@ const ForexMarket: React.FC = () => {
     });
   }, [activeCategory, activeSymbols, binanceData, yahooData]);
 
-  // Update timestamp when data changes
   useEffect(() => {
     if (Object.keys(yahooData).length > 0 || Object.keys(binanceData).length > 0) {
       setLastUpdate(Date.now());
@@ -415,12 +420,11 @@ const ForexMarket: React.FC = () => {
         ))}
       </div>
 
-      {/* Live update indicator */}
+      {/* Live indicator */}
       <div className="live-indicator">
         <span className="live-dot" />
         <span className="live-text">
-          {activeCategory === "Crypto" ? "Live" : "Real-time"} · Updated{" "}
-          {formatTime(lastUpdate)}
+          {activeCategory === "Crypto" ? "Live" : "Real-time"} · Updated {formatTime(lastUpdate)}
         </span>
       </div>
 
@@ -442,7 +446,6 @@ const ForexMarket: React.FC = () => {
                 className="market-row-link"
               >
                 <div className="market-row">
-                  {/* Icon & Name */}
                   <div className="asset-cell">
                     <div className="asset-icon">
                       {item.symbol.slice(0, 3).toUpperCase()}
@@ -453,18 +456,12 @@ const ForexMarket: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Price & Volume */}
                   <div className="price-cell">
                     <span className="last-price">${item.price}</span>
                     <span className="volume">{item.volume}</span>
                   </div>
 
-                  {/* Change */}
-                  <div
-                    className={`change-cell ${
-                      item.isPositive ? "positive" : "negative"
-                    }`}
-                  >
+                  <div className={`change-cell ${item.isPositive ? "positive" : "negative"}`}>
                     <span className="change-percent">{item.changePercent}%</span>
                     <span className="change-abs">{item.change}</span>
                   </div>
@@ -533,7 +530,6 @@ const ForexMarket: React.FC = () => {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.3; }
         }
-        .live-text { letter-spacing: 0.3px; }
         .market-list {
           display: flex;
           flex-direction: column;

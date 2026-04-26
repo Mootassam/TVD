@@ -1850,6 +1850,15 @@ const en = {
       },
     },
 
+    kyc: {
+      create: {
+        success: "KYC application submitted successfully.",
+      },
+      update: {
+        success: "KYC information updated successfully.",
+      },
+    },
+
     category: {
       name: "category",
       label: "Categories",
