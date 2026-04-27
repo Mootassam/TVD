@@ -1,663 +1,739 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { Link } from "react-router-dom";
+// market.tsx
+import React, { useEffect, useState, useCallback } from 'react';
+import axios from 'axios';
 
-/* ------------------------------------------------------------------ */
-/*  Types & Config                                                    */
-/* ------------------------------------------------------------------ */
+// ----------------------------------------------------------------------
+// Inline styles
+// ----------------------------------------------------------------------
+const styles = `
+  :root {
+    --bg-row: #2a2a2a;
+    --green: #36f936;
+    --red: #ff4d4d;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --neon-green: #39FF14;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: var(--text-primary);
+  }
+
+  .market-page {
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    min-height: 100vh;
+    background-color: #0f0f0f;
+    border-top: 2px solid var(--neon-green);
+    max-width: 430px;
+    margin: auto;
+  }
+
+  .market-container {
+    width: 100%;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .market-header {
+    margin-bottom: 12px;
+    padding: 0 4px;
+  }
+
+  .market-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  .market-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+    margin-bottom: 4px;
+  }
+
+  .filter-bar::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .filter-bar::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+  }
+
+  .filter-tab {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: #2a2a2a;
+    color: #aaa;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+
+  .filter-tab.active {
+    background: #333;
+    color: #fff;
+    border-color: var(--neon-green);
+    font-weight: 600;
+  }
+
+  .filter-tab:hover {
+    background: #383838;
+    color: #ddd;
+  }
+
+  .skeleton-row {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 4px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: shimmer 1.4s infinite linear;
+    background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+    background-size: 200% 100%;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .skeleton-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+  }
+  .skeleton-flags {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #3a3a3a;
+  }
+  .skeleton-symbol {
+    width: 70px;
+    height: 12px;
+    border-radius: 6px;
+    background: #3a3a3a;
+  }
+  .skeleton-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .skeleton-price {
+    width: 60px;
+    height: 12px;
+    border-radius: 6px;
+    background: #3a3a3a;
+  }
+  .skeleton-change {
+    width: 50px;
+    height: 12px;
+    border-radius: 6px;
+    background: #3a3a3a;
+  }
+
+  .currency-row {
+    background: var(--bg-row);
+    border-radius: 8px;
+    padding: 4px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .currency-row:hover {
+    background: #333;
+    transform: translateY(-1px);
+  }
+
+  .left-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .flag-container {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+  }
+
+  .flag-single {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #1e1e1e;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .flag-base {
+    border-radius: 50%;
+    object-fit: cover;
+    background: #1e1e1e;
+    border: 1px solid rgba(255,255,255,0.15);
+    display: block;
+  }
+
+  .flag-quote {
+    position: absolute;
+    top: 22%;
+    left: 15%;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #1e1e1e;
+    border: 1px solid rgba(255,255,255,0.15);
+    z-index: 2;
+  }
+
+  .symbol-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .right-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .price-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    min-width: 70px;
+    text-align: right;
+  }
+
+  .change-percent {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .arrow {
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .green { color: var(--green); }
+  .red { color: var(--red); }
+
+  .error-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .error-box {
+    background: #2a1a1a;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #ff4d4d33;
+  }
+
+  .error-title {
+    color: var(--red);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .error-message {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .retry-btn {
+    background: #ff4d4d22;
+    color: var(--red);
+    border: 1px solid var(--red);
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+`;
+
+// ----------------------------------------------------------------------
+// Market categories configuration
+// ----------------------------------------------------------------------
+interface MarketCategory {
+  key: string;
+  label: string;
+  table_id: string;
+  version: string;
+  columnset_id: string;
+  payload: any;
+  extraParams?: Record<string, string>;
+}
+
+const MARKET_CATEGORIES: MarketCategory[] = [
+  {
+    key: 'forex',
+    label: 'Forex',
+    table_id: 'currencies_rates.americas',
+    version: '54',
+    columnset_id: 'overview',
+    payload: { lang: 'en', range: [0, 300], scanner_product_label: 'markets-screener' },
+  },
+  {
+    key: 'stocks',
+    label: 'Stocks',
+    table_id: 'stocks_market_movers.active',
+    version: '54',
+    columnset_id: 'performance',
+    payload: {
+      lang: 'en',
+      range: [0, 92],
+      sort: { sortBy: { id: 'TickerUniversal', params: {} }, sortOrder: 'asc', nullsFirst: false },
+      scanner_product_label: 'markets-screener',
+    },
+    extraParams: { market: 'america' },
+  },
+  {
+    key: 'crypto',
+    label: 'Crypto',
+    table_id: 'crypto_coins.all',
+    version: '54',
+    columnset_id: 'overview',
+    payload: {
+      columns: [
+        'base_currency_desc',
+        'base_currency_logoid',
+        'type',
+        'typespecs',
+        'exchange',
+        'fundamental_currency_code',
+        'market_cap_calc',
+      ],
+      ignore_unknown_fields: false,
+      options: { lang: 'en' },
+      range: [0, 60],
+      preset: 'coin_market_cap_rank',
+    },
+  },
+  {
+    key: 'gold_etf',
+    label: 'Gold ETFs',
+    table_id: 'etfs_funds.gold',
+    version: '54',
+    columnset_id: 'performance',
+    payload: {
+      lang: 'en',
+      range: [0, 100],
+      sort: { sortBy: { id: 'AssetsUnderManagement', params: {} }, sortOrder: 'desc', nullsFirst: false },
+      scanner_product_label: 'markets-screener',
+    },
+  },
+  {
+    key: 'agricultural',
+    label: 'Agricultural',
+    table_id: 'futures.quotes_agricultural',
+    version: '54',
+    columnset_id: 'performance',
+    payload: {
+      lang: 'en',
+      range: [0, 92],
+      sort: { sortBy: { id: 'TickerUniversal', params: {} }, sortOrder: 'asc', nullsFirst: false },
+      scanner_product_label: 'markets-screener',
+    },
+  },
+  {
+    key: 'energy',
+    label: 'Energy',
+    table_id: 'futures.quotes_energy',
+    version: '54',
+    columnset_id: 'performance',
+    payload: {
+      lang: 'en',
+      range: [0, 50],
+      sort: { sortBy: { id: 'TickerUniversal', params: {} }, sortOrder: 'asc', nullsFirst: false },
+      scanner_product_label: 'markets-screener',
+    },
+  },
+  {
+    key: 'futures',
+    label: 'Futures',
+    table_id: 'futures.quotes_world_indices',
+    version: '54',
+    columnset_id: 'performance',
+    payload: {
+      lang: 'en',
+      range: [0, 100],
+      sort: { sortBy: { id: 'TickerUniversal', params: {} }, sortOrder: 'asc', nullsFirst: false },
+      scanner_product_label: 'markets-screener',
+    },
+  },
+];
+
+// ----------------------------------------------------------------------
+// Types
+// ----------------------------------------------------------------------
+interface RawTicker {
+  name: string;
+  description?: string;
+  'base-currency-logoid'?: string | null;
+  'currency-logoid'?: string | null;
+  logoid?: string | null;
+  logo?: { logoid?: string };
+}
 
 interface MarketItem {
   symbol: string;
-  name: string;
-  fullName: string;
-  price: string;
-  change: string;
-  changePercent: string;
-  isPositive: boolean;
-  volume: string;
+  price: number | null;
+  changePercent: number | null;
+  baseLogoId?: string;
+  currencyLogoId?: string;
 }
 
-type MarketCategory = "Forex" | "Metal" | "Oil" | "CFD" | "Crypto";
-
-const categoryConfig: Record<MarketCategory, { title: string; symbols: string[] }> = {
-  Forex: {
-    title: "Forex",
-    symbols: [
-      "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
-      "EURGBP", "EURJPY", "GBPJPY", "AUDJPY", "EURAUD", "GBPAUD", "USDMXN",
-      "USDTRY", "USDZAR", "USDSGD", "USDHKD", "USDKRW", "USDINR",
-    ],
-  },
-  Metal: {
-    title: "Metals",
-    symbols: ["XAUUSD", "XAGUSD", "XPTUSD", "XPDUSD"],
-  },
-  Oil: {
-    title: "Oil & Gas",
-    symbols: ["USOIL", "UKOIL", "NGAS"],
-  },
-  CFD: {
-    title: "Indices",
-    symbols: ["US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225"],
-  },
-  Crypto: {
-    title: "Crypto",
-    symbols: [
-      "BTCUSD", "ETHUSD", "XRPUSD", "SOLUSD", "ADAUSD", "DOGEUSD", "DOTUSD",
-      "AVAXUSD", "LINKUSD",  "UNIUSD", "ATOMUSD", "LTCUSD",
-      "BCHUSD", "NEARUSD", "ALGOUSD", "VETUSD", "FILUSD", "THETAUSD",
-      "AXSUSD", "SANDUSD", "MANAUSD", "ENJUSD", "CHZUSD", "APEUSD",
-    ],
-  },
-};
-
-// Mapping your symbols to Yahoo Finance tickers
-const yahooSymbolMap: Record<string, string> = {
-  EURUSD: "EURUSD=X", GBPUSD: "GBPUSD=X", USDJPY: "USDJPY=X",
-  AUDUSD: "AUDUSD=X", USDCAD: "USDCAD=X", USDCHF: "USDCHF=X",
-  NZDUSD: "NZDUSD=X", EURGBP: "EURGBP=X", EURJPY: "EURJPY=X",
-  GBPJPY: "GBPJPY=X", AUDJPY: "AUDJPY=X", EURAUD: "EURAUD=X",
-  GBPAUD: "GBPAUD=X", USDMXN: "USDMXN=X", USDTRY: "USDTRY=X",
-  USDZAR: "USDZAR=X", USDSGD: "USDSGD=X", USDHKD: "USDHKD=X",
-  USDKRW: "USDKRW=X", USDINR: "USDINR=X",
-  XAUUSD: "GC=F", XAGUSD: "SI=F", XPTUSD: "PL=F", XPDUSD: "PA=F",
-  USOIL: "CL=F", UKOIL: "BZ=F", NGAS: "NG=F",
-  US30: "YM=F", US500: "ES=F", NAS100: "NQ=F", US2000: "RTY=F",
-  GER40: "DAX", UK100: "FTSE", FRA40: "FCHI", EU50: "STOXX50E", JP225: "N225",
-};
-
-/* ------------------------------------------------------------------ */
-/*  Utility functions                                                 */
-/* ------------------------------------------------------------------ */
-
-const getDisplayName = (symbol: string): { short: string; full: string } => {
-  const map: Record<string, { short: string; full: string }> = {
-    EURUSD: { short: "EUR/USD", full: "Euro / US Dollar" },
-    GBPUSD: { short: "GBP/USD", full: "British Pound / US Dollar" },
-    USDJPY: { short: "USD/JPY", full: "US Dollar / Japanese Yen" },
-    AUDUSD: { short: "AUD/USD", full: "Australian Dollar / US Dollar" },
-    USDCAD: { short: "USD/CAD", full: "US Dollar / Canadian Dollar" },
-    USDCHF: { short: "USD/CHF", full: "US Dollar / Swiss Franc" },
-    NZDUSD: { short: "NZD/USD", full: "New Zealand Dollar / US Dollar" },
-    EURGBP: { short: "EUR/GBP", full: "Euro / British Pound" },
-    EURJPY: { short: "EUR/JPY", full: "Euro / Japanese Yen" },
-    GBPJPY: { short: "GBP/JPY", full: "British Pound / Japanese Yen" },
-    AUDJPY: { short: "AUD/JPY", full: "Australian Dollar / Japanese Yen" },
-    EURAUD: { short: "EUR/AUD", full: "Euro / Australian Dollar" },
-    GBPAUD: { short: "GBP/AUD", full: "British Pound / Australian Dollar" },
-    USDMXN: { short: "USD/MXN", full: "US Dollar / Mexican Peso" },
-    USDTRY: { short: "USD/TRY", full: "US Dollar / Turkish Lira" },
-    USDZAR: { short: "USD/ZAR", full: "US Dollar / South African Rand" },
-    USDSGD: { short: "USD/SGD", full: "US Dollar / Singapore Dollar" },
-    USDHKD: { short: "USD/HKD", full: "US Dollar / Hong Kong Dollar" },
-    USDKRW: { short: "USD/KRW", full: "US Dollar / South Korean Won" },
-    USDINR: { short: "USD/INR", full: "US Dollar / Indian Rupee" },
-    XAUUSD: { short: "Gold", full: "Gold Spot" },
-    XAGUSD: { short: "Silver", full: "Silver Spot" },
-    XPTUSD: { short: "Platinum", full: "Platinum Spot" },
-    XPDUSD: { short: "Palladium", full: "Palladium Spot" },
-    USOIL: { short: "Crude Oil", full: "WTI Crude Oil" },
-    UKOIL: { short: "Brent Oil", full: "Brent Crude Oil" },
-    NGAS: { short: "Nat Gas", full: "Natural Gas" },
-    US30: { short: "US 30", full: "Dow Jones 30" },
-    US500: { short: "US 500", full: "S&P 500" },
-    NAS100: { short: "NAS 100", full: "Nasdaq 100" },
-    US2000: { short: "Russell 2000", full: "Russell 2000" },
-    GER40: { short: "DAX", full: "DAX 40" },
-    UK100: { short: "FTSE 100", full: "FTSE 100" },
-    FRA40: { short: "CAC 40", full: "CAC 40" },
-    EU50: { short: "Euro Stoxx 50", full: "Euro Stoxx 50" },
-    JP225: { short: "Nikkei 225", full: "Nikkei 225" },
-    BTCUSD: { short: "BTC/USD", full: "Bitcoin" },
-    ETHUSD: { short: "ETH/USD", full: "Ethereum" },
-    XRPUSD: { short: "XRP/USD", full: "Ripple" },
-    SOLUSD: { short: "SOL/USD", full: "Solana" },
-    ADAUSD: { short: "ADA/USD", full: "Cardano" },
-    DOGEUSD: { short: "DOGE/USD", full: "Dogecoin" },
-    DOTUSD: { short: "DOT/USD", full: "Polkadot" },
-    AVAXUSD: { short: "AVAX/USD", full: "Avalanche" },
-    LINKUSD: { short: "LINK/USD", full: "Chainlink" },
-    MATICUSD: { short: "MATIC/USD", full: "Polygon" },
-    UNIUSD: { short: "UNI/USD", full: "Uniswap" },
-    ATOMUSD: { short: "ATOM/USD", full: "Cosmos" },
-    LTCUSD: { short: "LTC/USD", full: "Litecoin" },
-    BCHUSD: { short: "BCH/USD", full: "Bitcoin Cash" },
-    NEARUSD: { short: "NEAR/USD", full: "Near Protocol" },
-    ALGOUSD: { short: "ALGO/USD", full: "Algorand" },
-    VETUSD: { short: "VET/USD", full: "VeChain" },
-    FILUSD: { short: "FIL/USD", full: "Filecoin" },
-    THETAUSD: { short: "THETA/USD", full: "Theta Network" },
-    AXSUSD: { short: "AXS/USD", full: "Axie Infinity" },
-    SANDUSD: { short: "SAND/USD", full: "The Sandbox" },
-    MANAUSD: { short: "MANA/USD", full: "Decentraland" },
-    ENJUSD: { short: "ENJ/USD", full: "Enjin Coin" },
-    CHZUSD: { short: "CHZ/USD", full: "Chiliz" },
-    APEUSD: { short: "APE/USD", full: "ApeCoin" },
-  };
-  return map[symbol] ?? { short: symbol, full: symbol };
-};
-
-const formatPriceValue = (symbol: string, price: number): string => {
-  if (["XAUUSD", "GC=F"].includes(symbol)) return price.toFixed(2);
-  if (["XAGUSD", "SI=F"].includes(symbol)) return price.toFixed(2);
-  if (["XPTUSD", "PL=F", "XPDUSD", "PA=F"].includes(symbol)) return price.toFixed(2);
-  if (["USOIL", "CL=F", "UKOIL", "BZ=F"].includes(symbol)) return price.toFixed(2);
-  if (["NGAS", "NG=F"].includes(symbol)) return price.toFixed(3);
-  if (["BTCUSD", "ETHUSD"].includes(symbol)) return price.toFixed(2);
-  if (["XRPUSD", "ADAUSD", "DOGEUSD", "MATICUSD", "UNIUSD", "THETAUSD", "CHZUSD", "APEUSD"].includes(symbol)) return price.toFixed(4);
-  if (["LTCUSD", "BCHUSD", "FILUSD", "AXSUSD", "SANDUSD", "MANAUSD", "ENJUSD"].includes(symbol)) return price.toFixed(2);
-  if (["DOTUSD", "AVAXUSD", "LINKUSD", "ATOMUSD", "NEARUSD"].includes(symbol)) return price.toFixed(2);
-  if (["ALGOUSD", "VETUSD"].includes(symbol)) return price.toFixed(4);
-  if (["US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225"].includes(symbol)) return price.toFixed(0);
-  if (symbol.endsWith("JPY")) return price.toFixed(3);
-  if (symbol.includes("USD") && !symbol.startsWith("USD")) return price.toFixed(5);
-  return price.toFixed(2);
-};
-
-const formatVolume = (vol: number): string => {
-  if (vol >= 1e9) return `${(vol / 1e9).toFixed(2)}B`;
-  if (vol >= 1e6) return `${(vol / 1e6).toFixed(2)}M`;
-  if (vol >= 1e3) return `${(vol / 1e3).toFixed(2)}K`;
-  return vol.toFixed(2);
-};
-
-/* ------------------------------------------------------------------ */
-/*  Yahoo Finance REST Polling Hook (with CORS proxy)                 */
-/* ------------------------------------------------------------------ */
-
-interface YahooTickerData {
-  price: number;
-  change: number;
-  changePercent: number;
-  dayHigh: number;
-  dayLow: number;
-  volume: number;
+// ----------------------------------------------------------------------
+// Parsing helpers
+// ----------------------------------------------------------------------
+function getColumnById(columns: any[], id: string) {
+  return columns.find((c: any) => c.id === id);
 }
 
-// Public CORS proxy – if it ever fails, replace with your own (see note at end)
-const CORS_PROXY = "https://corsproxy.io/?";
+function extractLogo(ticker: RawTicker): { baseLogoId?: string; currencyLogoId?: string } {
+  if (ticker['base-currency-logoid'] && ticker['currency-logoid']) {
+    return { baseLogoId: ticker['base-currency-logoid'], currencyLogoId: ticker['currency-logoid'] };
+  }
+  const singleId = ticker.logoid || ticker.logo?.logoid;
+  if (singleId) {
+    return { baseLogoId: singleId, currencyLogoId: undefined };
+  }
+  return {};
+}
 
-const useYahooFinancePoll = (symbols: string[]): Record<string, YahooTickerData> => {
-  const [data, setData] = useState<Record<string, YahooTickerData>>({});
+function parseResponse(data: any, categoryKey: string): MarketItem[] {
+  const columns = data?.data;
+  if (!columns || !Array.isArray(columns)) return [];
 
-  const fetchData = useCallback(async () => {
-    const results = await Promise.allSettled(
-      symbols.map(async (symbol) => {
-        const yahooId = yahooSymbolMap[symbol] || symbol;
-        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooId}?interval=1m&range=1d`;
-        const url = CORS_PROXY + encodeURIComponent(targetUrl);
-        try {
-          const resp = await fetch(url);
-          const json = await resp.json();
-          const result = json?.chart?.result?.[0];
-          if (!result) return null;
-          const meta = result.meta;
-          const previousClose = meta.previousClose || meta.chartPreviousClose || meta.regularMarketPrice;
-          const price = meta.regularMarketPrice;
-          if (price == null) return null;
-          const change = price - previousClose;
-          const changePercent = previousClose ? (change / previousClose) * 100 : 0;
-          return {
-            symbol,
-            data: {
-              price,
-              change,
-              changePercent,
-              dayHigh: meta.regularMarketDayHigh || price,
-              dayLow: meta.regularMarketDayLow || price,
-              volume: meta.regularMarketVolume || 0,
-            },
-          };
-        } catch (e) {
-          console.warn(`Yahoo fetch failed for ${symbol}`, e);
-          return null;
-        }
-      })
-    );
+  let tickerColId = 'TickerUniversal';
+  let priceColId: string | null = 'Price';
+  let changeColId: string | null = 'Change';
 
-    const newData: Record<string, YahooTickerData> = {};
-    results.forEach((r) => {
-      if (r.status === "fulfilled" && r.value) {
-        newData[r.value.symbol] = r.value.data;
-      }
+  if (categoryKey === 'crypto') {
+    tickerColId = 'TickerInstrumentUniversal';
+    priceColId = 'Price';
+    changeColId = 'ChangeCrypto';
+  } else if (['agricultural', 'energy', 'futures'].includes(categoryKey)) {
+    priceColId = null;
+    changeColId = 'Change';
+  }
+
+  const tickerCol = getColumnById(columns, tickerColId);
+  const priceCol = priceColId ? getColumnById(columns, priceColId) : null;
+  const changeCol = changeColId ? getColumnById(columns, changeColId) : null;
+
+  if (!tickerCol) return [];
+
+  const count = tickerCol.rawValues.length;
+  const result: MarketItem[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const ticker: RawTicker = tickerCol.rawValues[i];
+    const price = priceCol ? priceCol.rawValues[i] ?? null : null;
+    const changePercent = changeCol ? changeCol.rawValues[i] ?? null : null;
+    const logos = extractLogo(ticker);
+
+    result.push({
+      symbol: ticker.name,
+      price,
+      changePercent,
+      baseLogoId: logos.baseLogoId,
+      currencyLogoId: logos.currencyLogoId,
     });
-    setData((prev) => ({ ...prev, ...newData }));
-  }, [symbols]);
+  }
 
-  useEffect(() => {
-    if (symbols.length === 0) return;
-    fetchData();
-    const interval = setInterval(fetchData, 5000); // update every 5s
-    return () => clearInterval(interval);
-  }, [symbols, fetchData]);
-
-  return data;
-};
-
-/* ------------------------------------------------------------------ */
-/*  Binance WebSocket Hook (Crypto)                                   */
-/* ------------------------------------------------------------------ */
-
-interface BinanceTickerData {
-  price: number;
-  change: number;
-  changePercent: number;
-  high: number;
-  low: number;
-  volume: number;
+  return result;
 }
 
-const useBinanceStream = (symbols: string[], enabled: boolean): Record<string, BinanceTickerData> => {
-  const [data, setData] = useState<Record<string, BinanceTickerData>>({});
-  const wsRef = useRef<WebSocket | null>(null);
+// ----------------------------------------------------------------------
+// Custom hook (used inside MarketList, which remounts on category change)
+// ----------------------------------------------------------------------
+function useMarketData(category: MarketCategory) {
+  const [items, setItems] = useState<MarketItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    if (!enabled || symbols.length === 0) {
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
+  const fetchData = useCallback(async (signal: AbortSignal) => {
+    try {
+      const response = await axios.post(
+        '/api/tv/screener-facade/api/v1/screener-table/scan',
+        category.payload,
+        {
+          params: {
+            table_id: category.table_id,
+            version: category.version,
+            columnset_id: category.columnset_id,
+            ...(category.extraParams || {}),
+          },
+          headers: { 'Content-Type': 'application/json' },
+          signal,
+        }
+      );
+      const parsed = parseResponse(response.data, category.key);
+      setItems(parsed);
+      setError(null);
+    } catch (err: any) {
+      if (!axios.isCancel(err) && err.name !== 'AbortError' && err.code !== 'ERR_CANCELED') {
+        setError(err.message);
+        setItems([]);
       }
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    const streams = symbols.map((s) => `${s.toLowerCase()}@ticker`).join("/");
-    const url = `wss://stream.binance.com:9443/stream?streams=${streams}`;
-
-    const ws = new WebSocket(url);
-    wsRef.current = ws;
-
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg?.data) {
-        const t = msg.data;
-        const binanceSymbol: string = t.s;
-        const ourSymbol = binanceSymbol.replace("USDT", "USD");
-        const price = parseFloat(t.c);
-        const change = parseFloat(t.p);
-        const changePercent = parseFloat(t.P);
-        const high = parseFloat(t.h);
-        const low = parseFloat(t.l);
-        const volume = parseFloat(t.q);
-
-        if (!isNaN(price)) {
-          setData((prev) => ({
-            ...prev,
-            [ourSymbol]: { price, change, changePercent, high, low, volume },
-          }));
-        }
-      }
-    };
-
-    ws.onerror = (err) => console.error("Binance WS error", err);
-
-    return () => {
-      ws.close();
-      wsRef.current = null;
-    };
-  }, [symbols, enabled]);
-
-  return data;
-};
-
-/* ------------------------------------------------------------------ */
-/*  Main Market Component                                             */
-/* ------------------------------------------------------------------ */
-
-const ForexMarket: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState<MarketCategory>("Forex");
-  const [lastUpdate, setLastUpdate] = useState(Date.now());
-
-  const activeSymbols = useMemo(() => {
-    return categoryConfig[activeCategory].symbols;
-  }, [activeCategory]);
-
-  // Real data hooks
-  const yahooData = useYahooFinancePoll(
-    activeCategory !== "Crypto" ? activeSymbols : []
-  );
-  const cryptoBinanceSymbols = useMemo(
-    () => categoryConfig.Crypto.symbols.map((s) => s.replace("USD", "USDT")),
-    []
-  );
-  const binanceData = useBinanceStream(
-    cryptoBinanceSymbols,
-    activeCategory === "Crypto"
-  );
-
-  // Build display items
-  const marketItems = useMemo<MarketItem[]>(() => {
-    return activeSymbols.map((symbol) => {
-      if (activeCategory === "Crypto") {
-        const ticker = binanceData[symbol];
-        if (ticker) {
-          const price = ticker.price;
-          const change = ticker.change;
-          const changePercent = ticker.changePercent;
-          const isPositive = changePercent >= 0;
-          return {
-            symbol,
-            name: getDisplayName(symbol).short,
-            fullName: getDisplayName(symbol).full,
-            price: formatPriceValue(symbol, price),
-            change: `${change >= 0 ? "+" : ""}${change.toFixed(2)}`,
-            changePercent: `${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(2)}`,
-            isPositive,
-            volume: formatVolume(ticker.volume),
-          };
-        }
-        return {
-          symbol,
-          name: getDisplayName(symbol).short,
-          fullName: getDisplayName(symbol).full,
-          price: "—",
-          change: "—",
-          changePercent: "—",
-          isPositive: true,
-          volume: "—",
-        };
-      }
-
-      // Non‑crypto: Yahoo
-      const ticker = yahooData[symbol];
-      if (ticker) {
-        const price = ticker.price;
-        const change = ticker.change;
-        const changePercent = ticker.changePercent;
-        const isPositive = changePercent >= 0;
-        return {
-          symbol,
-          name: getDisplayName(symbol).short,
-          fullName: getDisplayName(symbol).full,
-          price: formatPriceValue(symbol, price),
-          change: `${change >= 0 ? "+" : ""}${change.toFixed(2)}`,
-          changePercent: `${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(2)}`,
-          isPositive,
-          volume: formatVolume(ticker.volume),
-        };
-      }
-      return {
-        symbol,
-        name: getDisplayName(symbol).short,
-        fullName: getDisplayName(symbol).full,
-        price: "—",
-        change: "—",
-        changePercent: "—",
-        isPositive: true,
-        volume: "—",
-      };
-    });
-  }, [activeCategory, activeSymbols, binanceData, yahooData]);
+  }, [category]);
 
   useEffect(() => {
-    if (Object.keys(yahooData).length > 0 || Object.keys(binanceData).length > 0) {
-      setLastUpdate(Date.now());
-    }
-  }, [yahooData, binanceData]);
+    setItems([]);
+    setLoading(true);
+    setError(null);
+    const abortController = new AbortController();
+    fetchData(abortController.signal);
+    return () => abortController.abort();
+  }, [fetchData, retryCount]);
 
-  const formatTime = (timestamp: number) =>
-    new Date(timestamp).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
+  const refetch = useCallback(() => setRetryCount(c => c + 1), []);
 
-  const isLoading =
-    activeCategory === "Crypto"
-      ? Object.keys(binanceData).length === 0
-      : Object.keys(yahooData).length === 0;
+  return { items, loading, error, refetch };
+}
+
+// ----------------------------------------------------------------------
+// Formatting
+// ----------------------------------------------------------------------
+function formatPair(symbol: string, isForex: boolean) {
+  if (isForex && symbol.length >= 6) {
+    return symbol.slice(0, 3) + '/' + symbol.slice(3);
+  }
+  return symbol;
+}
+
+function fmtPrice(value: number | null, symbol: string): string {
+  if (value == null) return '—';
+  if (symbol.endsWith('JPY') || symbol.endsWith('KRW') || symbol.endsWith('HUF')) {
+    return value.toFixed(2);
+  }
+  return value.toFixed(4);
+}
+
+function fmtChangePercent(value: number | null): string {
+  if (value == null) return '—';
+  const sign = value >= 0 ? '+' : '';
+  return `${sign}${value.toFixed(2)}%`;
+}
+
+// ----------------------------------------------------------------------
+// Skeleton Row
+// ----------------------------------------------------------------------
+const SkeletonRow: React.FC = () => (
+  <div className="skeleton-row">
+    <div className="skeleton-left">
+      <div className="skeleton-flags" />
+      <div className="skeleton-symbol" />
+    </div>
+    <div className="skeleton-right">
+      <div className="skeleton-price" />
+      <div className="skeleton-change" />
+    </div>
+  </div>
+);
+
+// ----------------------------------------------------------------------
+// Logo Component
+// ----------------------------------------------------------------------
+const LogoCell: React.FC<{ baseId?: string; quoteId?: string }> = ({ baseId, quoteId }) => {
+  const hasPair = baseId && quoteId;
 
   return (
-    <div className="market-app">
-      {/* Category Tabs */}
-      <div className="category-tabs">
-        {(Object.keys(categoryConfig) as MarketCategory[]).map((cat) => (
-          <button
-            key={cat}
-            className={`tab-btn ${activeCategory === cat ? "active" : ""}`}
-            onClick={() => setActiveCategory(cat)}
-          >
-            {categoryConfig[cat].title}
-          </button>
-        ))}
-      </div>
-
-      {/* Live indicator */}
-      <div className="live-indicator">
-        <span className="live-dot" />
-        <span className="live-text">
-          {activeCategory === "Crypto" ? "Live" : "Real-time"} · Updated {formatTime(lastUpdate)}
-        </span>
-      </div>
-
-      {/* Market List */}
-      <div className="market-list">
-        {isLoading
-          ? Array.from({ length: 8 }).map((_, i) => (
-              <div className="skeleton-row" key={i}>
-                <div className="skeleton-box icon" />
-                <div className="skeleton-box name" />
-                <div className="skeleton-box price" />
-                <div className="skeleton-box change" />
-              </div>
-            ))
-          : marketItems.map((item) => (
-              <Link
-                to={`/market/detail/${item.symbol}`}
-                key={item.symbol}
-                className="market-row-link"
-              >
-                <div className="market-row">
-                  <div className="asset-cell">
-                    <div className="asset-icon">
-                      {item.symbol.slice(0, 3).toUpperCase()}
-                    </div>
-                    <div className="asset-text">
-                      <span className="symbol">{item.name}</span>
-                      <span className="full-name">{item.fullName}</span>
-                    </div>
-                  </div>
-
-                  <div className="price-cell">
-                    <span className="last-price">${item.price}</span>
-                    <span className="volume">{item.volume}</span>
-                  </div>
-
-                  <div className={`change-cell ${item.isPositive ? "positive" : "negative"}`}>
-                    <span className="change-percent">{item.changePercent}%</span>
-                    <span className="change-abs">{item.change}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-      </div>
-
-      <style>{`
-        .market-app {
-          max-width: 480px;
-          margin: 0 auto;
-          background: #0a0b0d;
-          min-height: 100vh;
-          color: #eaeaea;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-          padding: 20px 16px;
-          box-sizing: border-box;
-        }
-        .category-tabs {
-          display: flex;
-          gap: 8px;
-          overflow-x: auto;
-          padding-bottom: 12px;
-          scrollbar-width: none;
-        }
-        .category-tabs::-webkit-scrollbar { display: none; }
-        .tab-btn {
-          background: #1a1d21;
-          border: 1px solid #2a2d31;
-          border-radius: 24px;
-          padding: 10px 18px;
-          font-size: 14px;
-          font-weight: 500;
-          color: #aaa;
-          white-space: nowrap;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .tab-btn.active {
-          background: #00e676;
-          color: #000;
-          border-color: #00e676;
-          font-weight: 600;
-        }
-        .tab-btn:not(.active):hover {
-          border-color: #00e676;
-          color: #fff;
-        }
-        .live-indicator {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 18px;
-          font-size: 12px;
-          color: #999;
-        }
-        .live-dot {
-          width: 8px;
-          height: 8px;
-          background: #00e676;
-          border-radius: 50%;
-          animation: pulse-dot 2s infinite;
-        }
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-        .market-list {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .market-row-link {
-          text-decoration: none;
-          color: inherit;
-        }
-        .market-row {
-          display: flex;
-          align-items: center;
-          background: #111318;
-          border: 1px solid #1e2025;
-          border-radius: 12px;
-          padding: 12px 14px;
-          transition: border-color 0.2s, background 0.2s;
-        }
-        .market-row:hover {
-          border-color: #00e676;
-          background: #16181d;
-        }
-        .asset-cell {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex: 1.5;
-        }
-        .asset-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #1e2a33, #0f1419);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          font-size: 12px;
-          color: #00e676;
-          letter-spacing: 0.5px;
-          border: 1px solid #2a2d31;
-        }
-        .asset-text {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-        .symbol {
-          font-weight: 600;
-          font-size: 15px;
-          color: #f0f0f0;
-        }
-        .full-name {
-          font-size: 12px;
-          color: #888;
-        }
-        .price-cell {
-          flex: 1.2;
-          text-align: right;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 2px;
-        }
-        .last-price {
-          font-size: 16px;
-          font-weight: 600;
-          color: #fff;
-          font-family: 'JetBrains Mono', monospace;
-        }
-        .volume {
-          font-size: 11px;
-          color: #666;
-        }
-        .change-cell {
-          flex: 1;
-          text-align: right;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 2px;
-          font-weight: 600;
-          font-size: 15px;
-        }
-        .change-percent {
-          font-family: 'JetBrains Mono', monospace;
-        }
-        .change-abs {
-          font-size: 12px;
-          font-weight: 500;
-          color: #999;
-        }
-        .positive .change-percent {
-          color: #00e676;
-        }
-        .negative .change-percent {
-          color: #ff4d4d;
-        }
-        .skeleton-row {
-          display: flex;
-          align-items: center;
-          padding: 12px 14px;
-          border-radius: 12px;
-          background: #111318;
-          border: 1px solid #1e2025;
-          gap: 12px;
-        }
-        .skeleton-box {
-          background: #1e2025;
-          border-radius: 8px;
-          animation: shimmer 1.5s infinite;
-        }
-        .skeleton-box.icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-        }
-        .skeleton-box.name { flex: 1; height: 16px; }
-        .skeleton-box.price { width: 80px; height: 16px; }
-        .skeleton-box.change { width: 60px; height: 16px; }
-        @keyframes shimmer {
-          0% { opacity: 0.4; }
-          50% { opacity: 0.8; }
-          100% { opacity: 0.4; }
-        }
-      `}</style>
+    <div className="flag-container">
+      {hasPair ? (
+        <>
+          <img
+            className="flag-base"
+            src={`https://s3-symbol-logo.tradingview.com/${baseId}.svg`}
+            alt=""
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+          <img
+            className="flag-quote"
+            src={`https://s3-symbol-logo.tradingview.com/${quoteId}.svg`}
+            alt=""
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        </>
+      ) : baseId ? (
+        <img
+          className="flag-single"
+          src={`https://s3-symbol-logo.tradingview.com/${baseId}.svg`}
+          alt=""
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+        />
+      ) : (
+        <div
+          className="flag-single"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#333',
+            fontSize: '12px',
+            color: '#aaa',
+          }}
+        >
+          ?
+        </div>
+      )}
     </div>
   );
 };
 
-export default ForexMarket;
+// ----------------------------------------------------------------------
+// Row component
+// ----------------------------------------------------------------------
+const MarketRow: React.FC<{ item: MarketItem; isForex: boolean }> = ({ item, isForex }) => {
+  const positive = (item.changePercent ?? 0) >= 0;
+  const changeClass = positive ? 'green' : 'red';
+  const arrow = positive ? '▲' : '▼';
+
+  return (
+    <div className="currency-row">
+      <div className="left-section">
+        <LogoCell baseId={item.baseLogoId} quoteId={item.currencyLogoId} />
+        <span className="symbol-name">{formatPair(item.symbol, isForex)}</span>
+      </div>
+      <div className="right-section">
+        {item.price != null && (
+          <span className="price-value">{fmtPrice(item.price, item.symbol)}</span>
+        )}
+        <span className={`change-percent ${changeClass}`}>
+          <span className="arrow">{arrow}</span>
+          {fmtChangePercent(item.changePercent)}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// ----------------------------------------------------------------------
+// Market List – completely unmounted on category change via key
+// ----------------------------------------------------------------------
+const MarketList: React.FC<{ category: MarketCategory }> = ({ category }) => {
+  const { items, loading, error, refetch } = useMarketData(category);
+  const isForex = category.key === 'forex';
+
+  if (loading) {
+    return <>{Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)}</>;
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <div className="error-box">
+          <p className="error-title">Connection Error</p>
+          <p className="error-message">{error}</p>
+          <button className="retry-btn" onClick={refetch}>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {items.map(item => (
+        <MarketRow key={item.symbol} item={item} isForex={isForex} />
+      ))}
+    </>
+  );
+};
+
+// ----------------------------------------------------------------------
+// Main Page
+// ----------------------------------------------------------------------
+const MarketPage: React.FC = () => {
+  const [activeKey, setActiveKey] = useState<string>('forex');
+  const activeCategory = MARKET_CATEGORIES.find(c => c.key === activeKey) || MARKET_CATEGORIES[0];
+
+  return (
+    <>
+      <style>{styles}</style>
+      <div className="market-page">
+        <div className="market-container">
+          <header className="market-header">
+            <h1 className="market-title">Forex Market</h1>
+            <p className="market-date">
+              {new Date().toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </p>
+          </header>
+
+          <div className="filter-bar">
+            {MARKET_CATEGORIES.map(cat => (
+              <div
+                key={cat.key}
+                className={`filter-tab ${activeKey === cat.key ? 'active' : ''}`}
+                onClick={() => setActiveKey(cat.key)}
+              >
+                {cat.label}
+              </div>
+            ))}
+          </div>
+
+          {/* Key forces unmount/remount when category changes */}
+          <MarketList key={activeCategory.key} category={activeCategory} />
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default MarketPage;

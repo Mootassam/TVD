@@ -2,10 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // server:{host:"192.168.1.21",port:80},
   resolve: {
     alias: {
       "@component": path.resolve(__dirname, "src/component"),
@@ -19,7 +17,16 @@ export default defineConfig({
       "@i18n": path.relative(__dirname, "../../i18n"),
     },
   },
-  // server: {
-  //   host: "192.168.90.76",
-  // },
+  server: {
+    proxy: {
+      '/api/tv': {
+        target: 'https://screener-facade.tradingview.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/tv/, ''),
+        headers: {
+          'Origin': 'https://www.tradingview.com',
+        },
+      },
+    },
+  },
 });
