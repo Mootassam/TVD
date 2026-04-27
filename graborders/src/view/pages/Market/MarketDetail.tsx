@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useHistory, useParams } from "react-router-dom";
-import FuturesChart from "../Futures/FuturesChart";
+import TradingViewChart from "./TradingViewChart";
 import { i18n } from "../../../i18n";
 import CoinSelectorSidebar from "src/view/shared/modals/CoinSelectorSidebar";
-import { fetchAllCryptoPrices, cryptoCoinIds, MarketProvider } from "./MarketContext";
 
 // ----------------------------------------------------------------------
 // Types
@@ -22,31 +21,18 @@ interface ForexOrderBook {
   lastUpdateId: number;
 }
 
+interface MarketData {
+  symbol: string;
+  ask: number;
+  bid: number;
+}
+
 interface Coin {
   symbol: string;
   name: string;
   baseCurrency: string;
   quoteCurrency: string;
 }
-
-// Grouped market stats for atomic updates (reduces renders)
-interface MarketStats {
-  price: number | null;
-  changePercent: number | null;
-  high: number | null;
-  low: number | null;
-  volume: number | null;
-  quoteVolume: number | null;
-}
-
-// ----------------------------------------------------------------------
-// Helper: map currency to country code for flag (ISO 3166-1 alpha-2)
-// ----------------------------------------------------------------------
-const currencyToCountry: Record<string, string> = {
-  EUR: 'eu', USD: 'us', GBP: 'gb', JPY: 'jp', AUD: 'au', CAD: 'ca',
-  CHF: 'ch', NZD: 'nz', MXN: 'mx', TRY: 'tr', ZAR: 'za', SGD: 'sg',
-  HKD: 'hk', KRW: 'kr', INR: 'in',
-};
 
 // ----------------------------------------------------------------------
 // Main Component
@@ -55,47 +41,285 @@ function MarketDetail() {
   const history = useHistory();
   const { id } = useParams<{ id: string }>();
 
-  // Grouped stats – single object to batch updates
-  const [marketStats, setMarketStats] = useState<MarketStats>({
-    price: null,
-    changePercent: null,
-    high: null,
-    low: null,
-    volume: null,
-    quoteVolume: null,
-  });
+  // ----- WebSocket real market data -----
+  const wsRef = useRef<WebSocket | null>(null);
+  const sessionRef = useRef<string | null>(null);
+  const [markets, setMarkets] = useState<MarketData[]>([]);
 
-  const [recentTrades, setRecentTrades] = useState<ForexTrade[]>([]);
-  const [orderBook, setOrderBook] = useState<ForexOrderBook | null>(null);
+  // ----- Derived price & change (real data) -----
+  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
+  const [priceChangePercent, setPriceChangePercent] = useState<number | null>(null);
+  const initialPriceRef = useRef<{ [symbol: string]: number }>({});
+
+  // ----- UI state -----
   const [selectedCoin, setSelectedCoin] = useState(id || "EURUSD");
-  const [isLoading, setIsLoading] = useState(true);
+  const [orderBook, setOrderBook] = useState<ForexOrderBook | null>(null);
+  const [recentTrades, setRecentTrades] = useState<ForexTrade[]>([]);
   const [activeTab, setActiveTab] = useState<'orderBook' | 'transactions'>('orderBook');
   const [showCoinSelector, setShowCoinSelector] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Refs for intervals and current coin
-  const updateInterval = useRef<NodeJS.Timeout | null>(null);
-  const currentCoinRef = useRef<string>(selectedCoin);
-  const isComponentMounted = useRef(true);
-  const cryptoCache = useRef<{ [key: string]: { price: number; change: number; timestamp: number } }>({});
+  // ----- Helper: encode TradingView messages -----
+  const encode = (msg: string) => `~m~${msg.length}~m~${msg}`;
 
-  // Crypto coin IDs for CoinGecko API
-  const cryptoCoinIds: Record<string, string> = {
-    BTCUSD: "bitcoin", ETHUSD: "ethereum", XRPUSD: "ripple", SOLUSD: "solana",
-    ADAUSD: "cardano", DOGEUSD: "dogecoin", DOTUSD: "polkadot", AVAXUSD: "avalanche-2",
-    LINKUSD: "chainlink", MATICUSD: "matic-network", UNIUSD: "uniswap", ATOMUSD: "cosmos",
-    LTCUSD: "litecoin", BCHUSD: "bitcoin-cash", NEARUSD: "near-protocol", ALGOUSD: "algorand",
-    VETUSD: "vechain", FILUSD: "filecoin", THETAUSD: "theta-token", AXSUSD: "axie-infinity",
-    SANDUSD: "the-sandbox", MANAUSD: "decentraland", ENJUSD: "enjincoin", CHZUSD: "chiliz", APEUSD: "apecoin",
+  const parseMessages = (data: string): string[] => {
+    const result: string[] = [];
+    let buffer = data;
+    while (buffer.length > 0) {
+      if (!buffer.startsWith("~m~")) break;
+      const second = buffer.indexOf("~m~", 3);
+      const length = parseInt(buffer.substring(3, second));
+      const message = buffer.substr(second + 3, length);
+      result.push(message);
+      buffer = buffer.substr(second + 3 + length);
+    }
+    return result;
   };
 
-  // Use shared crypto prices from MarketContext
-  const fetchCryptoPrices = useCallback(async () => {
-    await fetchAllCryptoPrices();
+  const extractSymbol = (raw: string): string => {
+    try {
+      const cleaned = raw.replace(/^=\{/, "{");
+      const obj = JSON.parse(cleaned);
+      return obj.symbol || "UNKNOWN";
+    } catch {
+      return raw;
+    }
+  };
+
+  // ----- WebSocket connection (once) -----
+useEffect(() => {
+    const ws = new WebSocket(
+      "wss://widgetdata.tradingview.com/socket.io/websocket"
+    );
+
+    wsRef.current = ws;
+
+    const session = "qs_" + Math.random().toString(36).substring(2, 12);
+
+    ws.onopen = () => {
+      console.log("✅ Connected");
+
+      // Create session
+      ws.send(
+        encode(
+          JSON.stringify({
+            m: "quote_create_session",
+            p: [session],
+          })
+        )
+      );
+
+      // Fields we want
+      ws.send(
+        encode(
+          JSON.stringify({
+            m: "quote_set_fields",
+            p: [
+              session,
+              "ask",
+              "bid",
+              "ask_size",
+              "bid_size",
+            ],
+          })
+        )
+      );
+
+      // Add symbols (EDIT HERE)
+      const symbols = [
+       selectedCoin
+      ];
+
+      symbols.forEach((symbol) => {
+        ws.send(
+          encode(
+            JSON.stringify({
+              m: "quote_add_symbols",
+              p: [session, symbol],
+            })
+          )
+        );
+      });
+    };
+
+    ws.onmessage = (event) => {
+      const raw = event.data;
+
+      // Handle heartbeat
+      if (raw.startsWith("~h~")) {
+        ws.send(raw);
+        return;
+      }
+
+      const messages = parseMessages(raw);
+
+      messages.forEach((msg) => {
+        try {
+          const json = JSON.parse(msg);
+
+          if (json.m === "qsd") {
+            const payload = json.p[1];
+
+            const symbol = extractSymbol(payload.n);
+            const values = payload.v;
+
+            if (!values) return;
+
+            const market: MarketData = {
+              symbol,
+              ask: values.ask ?? 0,
+              bid: values.bid ?? 0,
+            };
+
+            setMarkets((prev) => {
+              const filtered = prev.filter((m) => m.symbol !== symbol);
+              return [...filtered, market];
+            });
+          }
+        } catch (err) {
+          // ignore non-json frames
+        }
+      });
+    };
+
+    ws.onclose = () => {
+      console.log("❌ Disconnected");
+    };
+
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+    };
+
+    return () => {
+      ws.close();
+    };
   }, []);
 
-  // ----------------------------------------------------------------------
-  // All available pairs (Forex, Metal, Oil, CFD, Crypto)
-  // ----------------------------------------------------------------------
+  // ----- Dynamic subscription to the current symbol -----
+  useEffect(() => {
+    const ws = wsRef.current;
+    const session = sessionRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN || !session) return;
+
+    // First, remove any existing symbols (optional: keep only current one)
+    ws.send(encode(JSON.stringify({ m: "quote_remove_all_symbols", p: [session] })));
+    // Add the new symbol
+    ws.send(encode(JSON.stringify({ m: "quote_add_symbols", p: [session, selectedCoin] })));
+
+    // Reset price & change when symbol changes
+    setCurrentPrice(null);
+    setPriceChangePercent(null);
+    setIsLoading(true);
+  }, [selectedCoin]);
+
+  // ----- Derive price & change from real market data -----
+  useEffect(() => {
+    const market = markets.find((m) => m.symbol === selectedCoin);
+    if (!market || !market.ask || !market.bid) return;
+
+    const midPrice = (market.ask + market.bid) / 2;
+    setCurrentPrice(midPrice);
+    setIsLoading(false);
+
+    // Store initial price for change calculation
+    if (initialPriceRef.current[selectedCoin] === undefined) {
+      initialPriceRef.current[selectedCoin] = midPrice;
+      setPriceChangePercent(0);
+    } else {
+      const initial = initialPriceRef.current[selectedCoin];
+      const change = ((midPrice - initial) / initial) * 100;
+      setPriceChangePercent(change);
+    }
+  }, [markets, selectedCoin]);
+
+  // ----- Mock order book & trades (keep UI lively) -----
+  const getDecimalPlaces = useCallback((symbol: string): number => {
+    if (["XAUUSD", "XAUEUR", "XAUGBP"].includes(symbol)) return 2;
+    if (["XAGUSD", "XAGEUR", "XAGGBP"].includes(symbol)) return 2;
+    if (["XPTUSD", "XPTEUR"].includes(symbol)) return 2;
+    if (["XPDUSD"].includes(symbol)) return 2;
+    if (["USOIL", "UKOIL", "BRENT", "WTI", "CRUDE"].includes(symbol)) return 2;
+    if (["NGAS", "HEAT", "GAS"].includes(symbol)) return 3;
+    if (["BTCUSD", "ETHUSD"].includes(symbol)) return 2;
+    if (["XRPUSD", "ADAUSD", "DOGEUSD", "MATICUSD", "UNIUSD", "THETAUSD", "CHZUSD", "APEUSD"].includes(symbol)) return 4;
+    if (["LTCUSD", "BCHUSD", "FILUSD", "AXSUSD", "SANDUSD", "MANAUSD", "ENJUSD"].includes(symbol)) return 2;
+    if (["DOTUSD", "AVAXUSD", "LINKUSD", "ATOMUSD", "NEARUSD"].includes(symbol)) return 2;
+    if (["ALGOUSD", "VETUSD"].includes(symbol)) return 4;
+    if (["US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225", "HK50", "AUS200", "TWII", "KR100", "IN50", "TECH100"].includes(symbol)) return 0;
+    if (symbol.endsWith("JPY")) return 3;
+    if (symbol.includes("USD") && !symbol.startsWith("USD")) return 5;
+    return 2;
+  }, []);
+
+  const formatNumber = useCallback((num: number, symbol?: string): string => {
+    if (num === null || isNaN(num)) return "0.00000";
+    const decimals = symbol ? getDecimalPlaces(symbol) : 5;
+    return num.toFixed(decimals);
+  }, [getDecimalPlaces]);
+
+  const formatVolume = useCallback((vol: number): string => {
+    if (vol === null || isNaN(vol)) return "0.00";
+    if (vol >= 1000000) return (vol / 1000000).toFixed(2) + "M";
+    if (vol >= 1000) return (vol / 1000).toFixed(2) + "K";
+    return vol.toFixed(2);
+  }, []);
+
+  const generateOrderBook = useCallback((price: number, symbol: string): ForexOrderBook => {
+    const decimals = getDecimalPlaces(symbol);
+    const spread = price * 0.0002;
+    const bids: [number, number][] = [];
+    const asks: [number, number][] = [];
+    for (let i = 1; i <= 10; i++) {
+      const bidPrice = price - spread * i * (0.5 + Math.random() * 0.5);
+      const askPrice = price + spread * i * (0.5 + Math.random() * 0.5);
+      const quantity = Math.random() * 1000000 + 500000;
+      bids.push([Number(bidPrice.toFixed(decimals)), Number(quantity.toFixed(2))]);
+      asks.push([Number(askPrice.toFixed(decimals)), Number(quantity.toFixed(2))]);
+    }
+    bids.sort((a, b) => b[0] - a[0]);
+    asks.sort((a, b) => a[0] - b[0]);
+    return { lastUpdateId: Date.now(), bids, asks };
+  }, [getDecimalPlaces]);
+
+  const generateTrades = useCallback((price: number, symbol: string, count: number = 10): ForexTrade[] => {
+    const trades: ForexTrade[] = [];
+    const decimals = getDecimalPlaces(symbol);
+    const now = Date.now();
+    for (let i = 0; i < count; i++) {
+      const side = Math.random() > 0.5 ? 'buy' : 'sell';
+      const variation = (Math.random() * 2 - 1) * 0.0001 * price;
+      const tradePrice = price + variation;
+      const quantity = Math.random() * 100000 + 50000;
+      trades.push({
+        id: `${now - i * 1000}-${i}`,
+        price: Number(tradePrice.toFixed(decimals)),
+        quantity: Number(quantity.toFixed(2)),
+        time: now - i * 1000,
+        side,
+      });
+    }
+    return trades.sort((a, b) => b.time - a.time);
+  }, [getDecimalPlaces]);
+
+  // Update mock order book & trades every 2 seconds using the real current price
+  useEffect(() => {
+    if (currentPrice === null) return;
+    const interval = setInterval(() => {
+      setOrderBook(generateOrderBook(currentPrice, selectedCoin));
+      setRecentTrades(generateTrades(currentPrice, selectedCoin, 10));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [currentPrice, selectedCoin, generateOrderBook, generateTrades]);
+
+  // Initial order book/trades on price change
+  useEffect(() => {
+    if (currentPrice !== null) {
+      setOrderBook(generateOrderBook(currentPrice, selectedCoin));
+      setRecentTrades(generateTrades(currentPrice, selectedCoin, 10));
+    }
+  }, [currentPrice, selectedCoin, generateOrderBook, generateTrades]);
+
+  // ----- Available pairs (unchanged) -----
   const availableCoins: Coin[] = [
     // Forex
     { symbol: "EURUSD", name: "EUR / USD", baseCurrency: "EUR", quoteCurrency: "USD" },
@@ -191,245 +415,18 @@ function MarketDetail() {
     { symbol: "APEUSD", name: "ApeCoin", baseCurrency: "APE", quoteCurrency: "USD" },
   ];
 
-  // ----------------------------------------------------------------------
-  // Base prices for all pairs
-  // ----------------------------------------------------------------------
-  const getBasePrice = useCallback((symbol: string): number => {
-    const basePrices: Record<string, number> = {
-      // Forex
-      EURUSD: 1.0842, GBPUSD: 1.2635, USDJPY: 148.65, AUDUSD: 0.6532, USDCAD: 1.3580, USDCHF: 0.8795, NZDUSD: 0.6025, EURGBP: 0.8590, EURJPY: 161.15, GBPJPY: 187.65, AUDJPY: 97.15, EURAUD: 1.6590, GBPAUD: 1.9340, USDMXN: 17.25, USDTRY: 32.15, USDZAR: 18.95, USDSGD: 1.3420, USDHKD: 7.8185, USDKRW: 1335.00, USDINR: 83.25, EURCHF: 0.9530, EURNZD: 1.7990, GBPEUR: 1.1645, AUDNZD: 1.0845, CADJPY: 109.50, CHFJPY: 169.05, NZDJPY: 91.25, SGDJPY: 110.75, HKDJPY: 19.02, ZARJPY: 7.85,
-      // Metals
-      XAUUSD: 2345.80, XAGUSD: 28.25, XPTUSD: 985.50, XPDUSD: 1045.00, XAUEUR: 2165.00, XAGEUR: 26.05, XPTEUR: 908.00, XAUGBP: 1855.00, XAGGBP: 22.35,
-      // Oil
-      USOIL: 84.25, UKOIL: 87.85, BRENT: 87.15, WTI: 84.35, CRUDE: 84.50, NGAS: 2.85, HEAT: 2.65, GAS: 2.75,
-      // CFD
-      US30: 38550, US500: 5125, NAS100: 18450, US2000: 2185, GER40: 18485, UK100: 8075, FRA40: 7525, EU50: 4895, JP225: 39750, HK50: 16750, AUS200: 7850, TWII: 20750, KR100: 2850, IN50: 22450, TECH100: 8450,
-      // Crypto
-      BTCUSD: 67450, ETHUSD: 3425, XRPUSD: 0.515, SOLUSD: 142.50, ADAUSD: 0.445, DOGEUSD: 0.0825, DOTUSD: 7.15, AVAXUSD: 34.85, LINKUSD: 14.25, MATICUSD: 0.585, UNIUSD: 6.85, ATOMUSD: 8.45, LTCUSD: 84.50, BCHUSD: 485.00, NEARUSD: 5.25, ALGOUSD: 0.185, VETUSD: 0.0225, FILUSD: 5.85, THETAUSD: 0.985, AXSUSD: 6.85, SANDUSD: 0.425, MANAUSD: 0.385, ENJUSD: 0.285, CHZUSD: 0.085, APEUSD: 1.25,
-    };
-    return basePrices[symbol] || 1.0;
-  }, []);
-
-  // ----------------------------------------------------------------------
-  // Decimal places for each pair type
-  // ----------------------------------------------------------------------
-  const getDecimalPlaces = useCallback((symbol: string): number => {
-    if (["XAUUSD", "XAUEUR", "XAUGBP"].includes(symbol)) return 2;
-    if (["XAGUSD", "XAGEUR", "XAGGBP"].includes(symbol)) return 2;
-    if (["XPTUSD", "XPTEUR"].includes(symbol)) return 2;
-    if (["XPDUSD"].includes(symbol)) return 2;
-    if (["USOIL", "UKOIL", "BRENT", "WTI", "CRUDE"].includes(symbol)) return 2;
-    if (["NGAS", "HEAT", "GAS"].includes(symbol)) return 3;
-    if (["BTCUSD", "ETHUSD"].includes(symbol)) return 2;
-    if (["XRPUSD", "ADAUSD", "DOGEUSD", "MATICUSD", "UNIUSD", "THETAUSD", "CHZUSD", "APEUSD"].includes(symbol)) return 4;
-    if (["LTCUSD", "BCHUSD", "FILUSD", "AXSUSD", "SANDUSD", "MANAUSD", "ENJUSD"].includes(symbol)) return 2;
-    if (["DOTUSD", "AVAXUSD", "LINKUSD", "ATOMUSD", "NEARUSD"].includes(symbol)) return 2;
-    if (["ALGOUSD", "VETUSD"].includes(symbol)) return 4;
-    if (["US30", "US500", "NAS100", "US2000", "GER40", "UK100", "FRA40", "EU50", "JP225", "HK50", "AUS200", "TWII", "KR100", "IN50", "TECH100"].includes(symbol)) return 0;
-    if (symbol.endsWith("JPY")) return 3;
-    if (symbol.includes("USD") && !symbol.startsWith("USD")) return 5;
-    return 2;
-  }, []);
-
-  const formatNumber = useCallback((num: number, symbol?: string): string => {
-    if (num === null || isNaN(num)) return "0.00000";
-    const decimals = symbol ? getDecimalPlaces(symbol) : 5;
-    return num.toFixed(decimals);
-  }, [getDecimalPlaces]);
-
-  const formatVolume = useCallback((vol: number): string => {
-    if (vol === null || isNaN(vol)) return "0.00";
-    if (vol >= 1000000) return (vol / 1000000).toFixed(2) + "M";
-    if (vol >= 1000) return (vol / 1000).toFixed(2) + "K";
-    return vol.toFixed(2);
-  }, []);
-
-  // ----------------------------------------------------------------------
-  // Random walk – use same volatility as chart's 1m (0.01% per tick)
-  // ----------------------------------------------------------------------
-  const randomWalk = useCallback((current: number): number => {
-    const volatility = 0.0001; // 0.01% – matches FuturesChart 1m
-    const change = (Math.random() * 2 - 1) * volatility;
-    return current * (1 + change);
-  }, []);
-
-  // ----------------------------------------------------------------------
-  // Generate order book mock data
-  // ----------------------------------------------------------------------
-  const generateOrderBook = useCallback((price: number, symbol: string): ForexOrderBook => {
-    const decimals = getDecimalPlaces(symbol);
-    const spread = price * 0.0002; // 0.02% spread
-    const bids: [number, number][] = [];
-    const asks: [number, number][] = [];
-
-    for (let i = 0; i < 10; i++) {
-      const bidPrice = price - spread * (i + 1) * (0.5 + Math.random() * 0.5);
-      const askPrice = price + spread * (i + 1) * (0.5 + Math.random() * 0.5);
-      const quantity = Math.random() * 1000000 + 500000;
-      bids.push([Number(bidPrice.toFixed(decimals)), Number(quantity.toFixed(2))]);
-      asks.push([Number(askPrice.toFixed(decimals)), Number(quantity.toFixed(2))]);
-    }
-    bids.sort((a, b) => b[0] - a[0]);
-    asks.sort((a, b) => a[0] - b[0]);
-
-    return { lastUpdateId: Date.now(), bids, asks };
-  }, [getDecimalPlaces]);
-
-  // ----------------------------------------------------------------------
-  // Generate recent trades
-  // ----------------------------------------------------------------------
-  const generateTrades = useCallback((price: number, symbol: string, count: number = 10): ForexTrade[] => {
-    const trades: ForexTrade[] = [];
-    const decimals = getDecimalPlaces(symbol);
-    const now = Date.now();
-    for (let i = 0; i < count; i++) {
-      const side = Math.random() > 0.5 ? 'buy' : 'sell';
-      const variation = (Math.random() * 2 - 1) * 0.0001 * price;
-      const tradePrice = price + variation;
-      const quantity = Math.random() * 100000 + 50000;
-      trades.push({
-        id: `${now - i * 1000}-${i}`,
-        price: Number(tradePrice.toFixed(decimals)),
-        quantity: Number(quantity.toFixed(2)),
-        time: now - i * 1000,
-        side,
-      });
-    }
-    return trades.sort((a, b) => b.time - a.time);
-  }, [getDecimalPlaces]);
-
-  // ----------------------------------------------------------------------
-  // Update all market data in a single batch
-  // ----------------------------------------------------------------------
-  const updateMarketData = useCallback(async (symbol: string) => {
-    // Fetch crypto prices if needed
-    if (cryptoCoinIds[symbol]) {
-      await fetchCryptoPrices();
-    }
-
-    setMarketStats(prev => {
-      let basePrice = prev.price ?? getBasePrice(symbol);
-      let newPrice: number;
-      let changePercent: number;
-
-      // Use real crypto price if available
-      if (cryptoCoinIds[symbol] && cryptoCache.current[symbol] && cryptoCache.current[symbol].price) {
-        newPrice = cryptoCache.current[symbol].price;
-        changePercent = cryptoCache.current[symbol].change;
-      } else {
-        newPrice = randomWalk(basePrice);
-        changePercent = ((newPrice - basePrice) / basePrice) * 100;
-      }
-
-      // Approximate 24h high/low using a simple multiplier
-      const volatility = cryptoCoinIds[symbol] ? 0.01 : 0.002;
-      const high = newPrice * (1 + volatility);
-      const low = newPrice * (1 - volatility);
-      const volume = 1000000 + Math.random() * 500000;
-      const quoteVolume = newPrice * volume;
-
-      // Update order book and trades (separate state, but that's fine)
-      setOrderBook(generateOrderBook(newPrice, symbol));
-      setRecentTrades(generateTrades(newPrice, symbol, 10));
-
-      return {
-        price: newPrice,
-        changePercent,
-        high,
-        low,
-        volume,
-        quoteVolume,
-      };
-    });
-  }, [randomWalk, generateOrderBook, generateTrades, getBasePrice, fetchCryptoPrices]);
-
-  // ----------------------------------------------------------------------
-  // Initialize data for a symbol
-  // ----------------------------------------------------------------------
-  const initializeData = useCallback(async (symbol: string) => {
-    // Fetch crypto prices if needed
-    if (cryptoCoinIds[symbol]) {
-      await fetchCryptoPrices();
-    }
-
-    let basePrice = getBasePrice(symbol);
-    let changePercent = 0;
-
-    // Use cached crypto price if available
-    if (cryptoCoinIds[symbol] && cryptoCache.current[symbol] && cryptoCache.current[symbol].price) {
-      basePrice = cryptoCache.current[symbol].price;
-      changePercent = cryptoCache.current[symbol].change;
-    }
-
-    setMarketStats({
-      price: basePrice,
-      changePercent,
-      high: basePrice * 1.002,
-      low: basePrice * 0.998,
-      volume: 1000000,
-      quoteVolume: basePrice * 1000000,
-    });
-    setOrderBook(generateOrderBook(basePrice, symbol));
-    setRecentTrades(generateTrades(basePrice, symbol, 10));
-    setIsLoading(false);
-  }, [getBasePrice, generateOrderBook, generateTrades, fetchCryptoPrices]);
-
-  // ----------------------------------------------------------------------
-  // Handle coin change from URL
-  // ----------------------------------------------------------------------
-  useEffect(() => {
-    if (id && id !== selectedCoin) {
-      setSelectedCoin(id);
-      currentCoinRef.current = id;
-      setIsLoading(true);
-      initializeData(id);
-    }
-  }, [id, selectedCoin, initializeData]);
-
-  // ----------------------------------------------------------------------
-  // Main effect: set up data and interval updates (now every 1 second)
-  // ----------------------------------------------------------------------
-  useEffect(() => {
-    const coin = selectedCoin;
-    if (!coin) return;
-
-    isComponentMounted.current = true;
-    currentCoinRef.current = coin;
-
-    initializeData(coin);
-
-    if (updateInterval.current) clearInterval(updateInterval.current);
-    updateInterval.current = setInterval(async () => {
-      if (isComponentMounted.current && currentCoinRef.current === coin) {
-        await updateMarketData(coin);
-      }
-    }, 2000);
-
-    return () => {
-      isComponentMounted.current = false;
-      if (updateInterval.current) {
-        clearInterval(updateInterval.current);
-        updateInterval.current = null;
-      }
-    };
-  }, [selectedCoin, initializeData, updateMarketData]);
-
-  // ----------------------------------------------------------------------
-  // Handlers
-  // ----------------------------------------------------------------------
+  // ----- Navigation & coin selection -----
   const goBack = useCallback(() => history.goBack(), [history]);
-
   const handleCoinSelect = (coinSymbol: string) => {
     if (coinSymbol === selectedCoin) {
       setShowCoinSelector(false);
       return;
     }
+    setSelectedCoin(coinSymbol);
     history.push(`/market/detail/${coinSymbol}`);
   };
-
   const toggleCoinSelector = () => setShowCoinSelector(prev => !prev);
 
-  // Derive current coin object
   const currentCoin = useMemo(() => {
     return availableCoins.find(c => c.symbol === selectedCoin) || {
       symbol: selectedCoin,
@@ -439,27 +436,21 @@ function MarketDetail() {
     };
   }, [selectedCoin]);
 
-  // ----------------------------------------------------------------------
-  // Loading placeholder component
-  // ----------------------------------------------------------------------
-  const LoadingPlaceholder = useCallback(({ width = "100%", height = "1em" }: { width?: string; height?: string }) => (
+  // ----- Loading placeholder -----
+  const LoadingPlaceholder = ({ width = "100%", height = "1em" }) => (
     <div className="loading-placeholder" style={{ width, height }} />
-  ), []);
+  );
 
-  // ----------------------------------------------------------------------
-  // Memoized order book data with heat map intensities
-  // ----------------------------------------------------------------------
+  // ----- Order book display data (heatmap) -----
   const orderBookData = useMemo(() => {
     if (!orderBook || !orderBook.bids.length || !orderBook.asks.length) {
       return { buySide: [], sellSide: [] };
     }
-
     const calculateIntensity = (orders: [number, number][]) => {
       if (!orders.length) return [];
       const quantities = orders.map(o => o[1]);
       const maxQty = Math.max(...quantities);
       const minQty = Math.min(...quantities);
-
       return orders.slice(0, 10).map(order => {
         const qty = order[1];
         let intensity = maxQty > minQty ? ((qty - minQty) / (maxQty - minQty)) * 100 : 0;
@@ -471,32 +462,25 @@ function MarketDetail() {
         };
       });
     };
-
     const buySide = calculateIntensity(orderBook.bids);
     const sellSide = calculateIntensity(orderBook.asks);
-
     while (buySide.length < 10) buySide.push({ amount: "0.00", price: "0.00000", intensity: 10 });
     while (sellSide.length < 10) sellSide.push({ amount: "0.00", price: "0.00000", intensity: 10 });
-
     return { buySide, sellSide };
   }, [orderBook, selectedCoin, formatNumber, formatVolume]);
 
-  // Destructure marketStats for easier use in JSX
-  const { price, changePercent, high, low, volume, quoteVolume } = marketStats;
-
   // ----------------------------------------------------------------------
-  // Render (identical JSX, only reading from grouped stats)
+  // Render
   // ----------------------------------------------------------------------
   return (
     <div className="market-detail-container">
-      {/* Header Section */}
+      {/* Header */}
       <div className="header">
         <div className="nav-bar">
           <div className="back-arrow" onClick={goBack}>
             <i className="fas fa-arrow-left"></i>
           </div>
           <div className="trading-pair" onClick={toggleCoinSelector}>
-            
             {currentCoin.name}
             <i className={`fas fa-chevron-down dropdown-arrow ${showCoinSelector ? 'rotate' : ''}`}></i>
           </div>
@@ -516,14 +500,14 @@ function MarketDetail() {
         title={i18n("pages.marketDetail.coinSelector.title")}
       />
 
-      {/* Price Section */}
+      {/* Price Section – now driven by live WebSocket data */}
       <div className="price-section">
         <div className="price-main-row">
           <div className="price-left-section">
             <div className="current-price">
-              {price !== null ? (
-                <span style={{ color: changePercent !== null && changePercent < 0 ? '#f56c6c' : '#37b66a' }}>
-                  {formatNumber(price, selectedCoin)}
+              {currentPrice !== null ? (
+                <span style={{ color: priceChangePercent !== null && priceChangePercent < 0 ? '#f56c6c' : '#37b66a' }}>
+                  {formatNumber(currentPrice, selectedCoin)}
                 </span>
               ) : (
                 <LoadingPlaceholder width="120px" height="28px" />
@@ -531,51 +515,16 @@ function MarketDetail() {
             </div>
             <div className="price-info-row">
               <div className="usd-price">
-                {price !== null ? `$${price.toFixed(2)}` : '$0.00'}
+                {currentPrice !== null ? `$${currentPrice.toFixed(2)}` : '$0.00'}
               </div>
               <div className="price-change" style={{
-                color: changePercent !== null && changePercent < 0 ? '#f56c6c' : '#37b66a'
+                color: priceChangePercent !== null && priceChangePercent < 0 ? '#f56c6c' : '#37b66a'
               }}>
-                {changePercent !== null ? (
-                  `${changePercent < 0 ? '−' : '+'}${Math.abs(changePercent).toFixed(2)}%`
+                {priceChangePercent !== null ? (
+                  `${priceChangePercent < 0 ? '−' : '+'}${Math.abs(priceChangePercent).toFixed(2)}%`
                 ) : (
                   <LoadingPlaceholder width="60px" height="16px" />
                 )}
-              </div>
-            </div>
-          </div>
-
-          <div className="stats-grid">
-            <div className="stat-row">
-              <div className="stat-item">
-                <div className="stat-label">{i18n("pages.marketDetail.stats.high")}</div>
-                <div className="stat-value">
-                  {high !== null ? formatNumber(high, selectedCoin) : <LoadingPlaceholder width="60px" height="12px" />}
-                </div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-label">
-                  {i18n("pages.marketDetail.stats.volume")}({currentCoin.baseCurrency})
-                </div>
-                <div className="stat-value">
-                  {volume !== null ? formatVolume(volume) : <LoadingPlaceholder width="60px" height="12px" />}
-                </div>
-              </div>
-            </div>
-            <div className="stat-row">
-              <div className="stat-item">
-                <div className="stat-label">{i18n("pages.marketDetail.stats.low")}</div>
-                <div className="stat-value">
-                  {low !== null ? formatNumber(low, selectedCoin) : <LoadingPlaceholder width="60px" height="12px" />}
-                </div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-label">
-                  {i18n("pages.marketDetail.stats.volume")}({currentCoin.quoteCurrency})
-                </div>
-                <div className="stat-value">
-                  {quoteVolume !== null ? formatVolume(quoteVolume) : <LoadingPlaceholder width="60px" height="12px" />}
-                </div>
               </div>
             </div>
           </div>
@@ -584,10 +533,10 @@ function MarketDetail() {
 
       {/* Chart Section */}
       <div className="chart-section">
-        <FuturesChart key={selectedCoin} symbol={selectedCoin} />
+        <TradingViewChart key={selectedCoin} symbol={selectedCoin} height={400} />
       </div>
 
-      {/* Tabs Section (unchanged) */}
+      {/* Tabs (Order Book / Transactions) */}
       <div className="tabs-section">
         <div className="tabs-header">
           <div
@@ -605,7 +554,6 @@ function MarketDetail() {
         </div>
 
         <div className="tab-content">
-          {/* Order Book Content */}
           {activeTab === 'orderBook' && (
             <div className="modern-order-book">
               <div className="order-book-table">
@@ -623,7 +571,6 @@ function MarketDetail() {
                     </div>
                   </div>
                 </div>
-
                 <div className="table-body">
                   {orderBookData.buySide.map((buyOrder, index) => {
                     const sellOrder = orderBookData.sellSide[index] || { amount: '0.00', price: '0.00000', intensity: 10 };
@@ -653,7 +600,6 @@ function MarketDetail() {
             </div>
           )}
 
-          {/* Latest Transactions Content */}
           {activeTab === 'transactions' && (
             <div className="transactions-container">
               <div className="transactions-header">
@@ -689,9 +635,8 @@ function MarketDetail() {
         </div>
       </div>
 
-
+      {/* Styles – kept exactly as original */}
       <style>{`
-        /* Market Detail Container – matches login/profile containers */
         .market-detail-container {
           max-width: 430px;
           margin: 0 auto;
@@ -703,8 +648,6 @@ function MarketDetail() {
           box-sizing: border-box;
           color: #ffffff;
         }
-
-        /* Header / Navigation */
         .header {
           padding: 16px 20px;
           border-bottom: 1px solid #2a2a2a;
@@ -734,21 +677,6 @@ function MarketDetail() {
         .trading-pair:hover {
           color: #39FF14;
         }
-        .pair-flag {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          overflow: hidden;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          background-color: #2a2a2a;
-        }
-        .pair-flag img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
         .dropdown-arrow {
           font-size: 14px;
           transition: transform 0.2s;
@@ -764,8 +692,6 @@ function MarketDetail() {
         .header-icon:hover {
           color: #39FF14;
         }
-
-        /* Price Section */
         .price-section {
           padding: 16px 20px;
           background-color: #0f0f0f;
@@ -797,47 +723,11 @@ function MarketDetail() {
           font-size: 14px;
           font-weight: 500;
         }
-
-        /* Stats Grid */
-        .stats-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          background-color: #1c1c1c;
-          border-radius: 12px;
-          padding: 16px;
-          border: 1px solid #2a2a2a;
-        }
-        .stat-row {
-          display: flex;
-          justify-content: space-between;
-        }
-        .stat-item {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .stat-label {
-          font-size: 12px;
-          color: #777777;
-        }
-        .stat-value {
-          font-size: 14px;
-          font-weight: 500;
-          color: #ffffff;
-        }
-
-        /* Chart Section */
         .chart-section {
           margin: 0 20px 20px;
           background-color: #1c1c1c;
-          border-radius: 12px;
-          border: 1px solid #2a2a2a;
           overflow: hidden;
         }
-
-        /* Tabs Section */
         .tabs-section {
           margin: 0 20px 20px;
           background-color: #1c1c1c;
@@ -869,8 +759,6 @@ function MarketDetail() {
         .tab-content {
           padding: 16px;
         }
-
-        /* Order Book Table */
         .modern-order-book {
           width: 100%;
         }
@@ -946,8 +834,6 @@ function MarketDetail() {
           color: #777777;
           font-size: 11px;
         }
-
-        /* Transactions */
         .transactions-container {
           width: 100%;
         }
@@ -995,8 +881,6 @@ function MarketDetail() {
           text-align: right;
           color: #ffffff;
         }
-
-        /* Loading Placeholder */
         .loading-placeholder {
           animation: pulse 1.5s ease-in-out infinite;
           background-color: #2a2a2a;

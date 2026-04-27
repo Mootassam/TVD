@@ -1,6 +1,7 @@
 // market.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';   // v5 import
 
 // ----------------------------------------------------------------------
 // Inline styles
@@ -39,7 +40,7 @@ const styles = `
 
   .market-container {
     width: 100%;
-    padding: 0 20px;
+    padding: 0 10px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -107,6 +108,7 @@ const styles = `
     color: #ddd;
   }
 
+  /* Skeleton (unchanged) */
   .skeleton-row {
     background: #2a2a2a;
     border-radius: 8px;
@@ -158,6 +160,13 @@ const styles = `
     height: 12px;
     border-radius: 6px;
     background: #3a3a3a;
+  }
+
+  /* Row link – remove default link styles */
+  .row-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
   }
 
   .currency-row {
@@ -298,7 +307,7 @@ const styles = `
 `;
 
 // ----------------------------------------------------------------------
-// Market categories configuration
+// Market categories (unchanged)
 // ----------------------------------------------------------------------
 interface MarketCategory {
   key: string;
@@ -340,15 +349,7 @@ const MARKET_CATEGORIES: MarketCategory[] = [
     version: '54',
     columnset_id: 'overview',
     payload: {
-      columns: [
-        'base_currency_desc',
-        'base_currency_logoid',
-        'type',
-        'typespecs',
-        'exchange',
-        'fundamental_currency_code',
-        'market_cap_calc',
-      ],
+      columns: ['base_currency_desc','base_currency_logoid','type','typespecs','exchange','fundamental_currency_code','market_cap_calc'],
       ignore_unknown_fields: false,
       options: { lang: 'en' },
       range: [0, 60],
@@ -410,7 +411,7 @@ const MARKET_CATEGORIES: MarketCategory[] = [
 ];
 
 // ----------------------------------------------------------------------
-// Types
+// Types & parsing
 // ----------------------------------------------------------------------
 interface RawTicker {
   name: string;
@@ -429,9 +430,6 @@ interface MarketItem {
   currencyLogoId?: string;
 }
 
-// ----------------------------------------------------------------------
-// Parsing helpers
-// ----------------------------------------------------------------------
 function getColumnById(columns: any[], id: string) {
   return columns.find((c: any) => c.id === id);
 }
@@ -492,7 +490,7 @@ function parseResponse(data: any, categoryKey: string): MarketItem[] {
 }
 
 // ----------------------------------------------------------------------
-// Custom hook (used inside MarketList, which remounts on category change)
+// Custom hook (unchanged)
 // ----------------------------------------------------------------------
 function useMarketData(category: MarketCategory) {
   const [items, setItems] = useState<MarketItem[]>([]);
@@ -633,7 +631,7 @@ const LogoCell: React.FC<{ baseId?: string; quoteId?: string }> = ({ baseId, quo
 };
 
 // ----------------------------------------------------------------------
-// Row component
+// Row component – now wrapped in a Link
 // ----------------------------------------------------------------------
 const MarketRow: React.FC<{ item: MarketItem; isForex: boolean }> = ({ item, isForex }) => {
   const positive = (item.changePercent ?? 0) >= 0;
@@ -641,33 +639,35 @@ const MarketRow: React.FC<{ item: MarketItem; isForex: boolean }> = ({ item, isF
   const arrow = positive ? '▲' : '▼';
 
   return (
-    <div className="currency-row">
-      <div className="left-section">
-        <LogoCell baseId={item.baseLogoId} quoteId={item.currencyLogoId} />
-        <span className="symbol-name">{formatPair(item.symbol, isForex)}</span>
+    <Link to={`/market/detail/${item.symbol}`} className="row-link">
+      <div className="currency-row">
+        <div className="left-section">
+          <LogoCell baseId={item.baseLogoId} quoteId={item.currencyLogoId} />
+          <span className="symbol-name">{formatPair(item.symbol, isForex)}</span>
+        </div>
+        <div className="right-section">
+          {item.price != null && (
+            <span className="price-value">{fmtPrice(item.price, item.symbol)}</span>
+          )}
+          <span className={`change-percent ${changeClass}`}>
+            <span className="arrow">{arrow}</span>
+            {fmtChangePercent(item.changePercent)}
+          </span>
+        </div>
       </div>
-      <div className="right-section">
-        {item.price != null && (
-          <span className="price-value">{fmtPrice(item.price, item.symbol)}</span>
-        )}
-        <span className={`change-percent ${changeClass}`}>
-          <span className="arrow">{arrow}</span>
-          {fmtChangePercent(item.changePercent)}
-        </span>
-      </div>
-    </div>
+    </Link>
   );
 };
 
 // ----------------------------------------------------------------------
-// Market List – completely unmounted on category change via key
+// Market List (remounts on category change)
 // ----------------------------------------------------------------------
 const MarketList: React.FC<{ category: MarketCategory }> = ({ category }) => {
   const { items, loading, error, refetch } = useMarketData(category);
   const isForex = category.key === 'forex';
 
   if (loading) {
-    return <>{Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)}</>;
+    return <>{Array.from({ length: 15 }).map((_, i) => <SkeletonRow key={i} />)}</>;
   }
 
   if (error) {
@@ -728,7 +728,6 @@ const MarketPage: React.FC = () => {
             ))}
           </div>
 
-          {/* Key forces unmount/remount when category changes */}
           <MarketList key={activeCategory.key} category={activeCategory} />
         </div>
       </div>

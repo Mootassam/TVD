@@ -350,7 +350,7 @@ const publicRoutes = [
   },
     {
     path: "/get-started",
-    loader: () => import("src/view/pages/Auth/getStarted"),
+    loader: () => import("src/view/pages/Auth/GetStarted"),
   },
   {
     path: "/terms-of-uses",
