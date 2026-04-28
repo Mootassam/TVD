@@ -44,6 +44,7 @@ function MarketDetail() {
   // ----- WebSocket real market data -----
   const wsRef = useRef<WebSocket | null>(null);
   const sessionRef = useRef<string | null>(null);
+  const subscribedSymbolRef = useRef<string | null>(null); // Track current subscription
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const selectedCoinRef = useRef(id || "EURUSD");
   const [markets, setMarkets] = useState<MarketData[]>([]);
@@ -93,9 +94,34 @@ function MarketDetail() {
     }
   }, []);
 
-  // ----- WebSocket connection with auto‑reconnect -----
+  // ----- Core subscription logic (fixed) -----
+  const subscribeToSymbol = useCallback((symbol: string) => {
+    const ws = wsRef.current;
+    const session = sessionRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN || !session) return;
+
+    // If already subscribed to the same symbol, do nothing
+    if (subscribedSymbolRef.current === symbol) return;
+
+    // Unsubscribe from old symbol if any
+    if (subscribedSymbolRef.current) {
+      ws.send(encode(JSON.stringify({ m: "quote_remove_symbols", p: [session, subscribedSymbolRef.current] })));
+    }
+
+    // Subscribe to new symbol
+    ws.send(encode(JSON.stringify({ m: "quote_add_symbols", p: [session, symbol] })));
+    subscribedSymbolRef.current = symbol;
+
+    // Reset all derived data for the new symbol
+    setMarkets([]);
+    setCurrentPrice(null);
+    setPriceChangePercent(null);
+    setIsLoading(true);
+    delete initialPriceRef.current[symbol];
+  }, [encode]);
+
+  // WebSocket connection with auto‑reconnect
   const connectWebSocket = useCallback(() => {
-    // Close any existing connection
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
@@ -108,44 +134,28 @@ function MarketDetail() {
       const session = "qs_" + Math.random().toString(36).substring(2, 12);
       sessionRef.current = session;
 
-      // Create session
       ws.send(encode(JSON.stringify({ m: "quote_create_session", p: [session] })));
+      ws.send(encode(JSON.stringify({ m: "quote_set_fields", p: [session, "ask", "bid", "ask_size", "bid_size"] })));
 
-      // Fields we want
-      ws.send(
-        encode(
-          JSON.stringify({
-            m: "quote_set_fields",
-            p: [session, "ask", "bid", "ask_size", "bid_size"],
-          })
-        )
-      );
-
-      // Subscribe to the current symbol
-      const symbol = selectedCoinRef.current;
-      ws.send(encode(JSON.stringify({ m: "quote_add_symbols", p: [session, symbol] })));
+      // Subscribe to the current symbol (using ref for latest value)
+      subscribeToSymbol(selectedCoinRef.current);
     };
 
     ws.onmessage = (event) => {
       const raw = event.data;
-
-      // Handle heartbeat
       if (raw.startsWith("~h~")) {
         ws.send(raw);
         return;
       }
 
       const messages = parseMessages(raw);
-
       messages.forEach((msg) => {
         try {
           const json = JSON.parse(msg);
-
           if (json.m === "qsd") {
             const payload = json.p[1];
             const symbol = extractSymbol(payload.n);
             const values = payload.v;
-
             if (!values) return;
 
             const market: MarketData = {
@@ -166,7 +176,7 @@ function MarketDetail() {
     };
 
     ws.onclose = (event) => {
-      // Attempt to reconnect if the closure was unexpected
+      subscribedSymbolRef.current = null; // Reset on disconnect
       if (!event.wasClean) {
         reconnectTimeoutRef.current = setTimeout(() => {
           connectWebSocket();
@@ -177,16 +187,13 @@ function MarketDetail() {
     ws.onerror = (err) => {
       console.error("WebSocket error:", err);
     };
-  }, [encode, parseMessages, extractSymbol]);
+  }, [encode, parseMessages, extractSymbol, subscribeToSymbol]);
 
   useEffect(() => {
     connectWebSocket();
 
     return () => {
-      // Cleanup
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
@@ -194,21 +201,10 @@ function MarketDetail() {
     };
   }, [connectWebSocket]);
 
-  // ----- Subscription update when the selected symbol changes -----
+  // Subscribe to new symbol when selectedCoin changes
   useEffect(() => {
-    const ws = wsRef.current;
-    const session = sessionRef.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN || !session) return;
-
-    // Remove all existing symbols and add the new one
-    ws.send(encode(JSON.stringify({ m: "quote_remove_all_symbols", p: [session] })));
-    ws.send(encode(JSON.stringify({ m: "quote_add_symbols", p: [session, selectedCoin] })));
-
-    // Reset price & change for the new symbol
-    setCurrentPrice(null);
-    setPriceChangePercent(null);
-    setIsLoading(true);
-  }, [selectedCoin, encode]);
+    subscribeToSymbol(selectedCoin);
+  }, [selectedCoin, subscribeToSymbol]);
 
   // ----- Derive price & change from real market data -----
   useEffect(() => {
@@ -219,7 +215,6 @@ function MarketDetail() {
     setCurrentPrice(midPrice);
     setIsLoading(false);
 
-    // Store initial price for change calculation
     if (initialPriceRef.current[selectedCoin] === undefined) {
       initialPriceRef.current[selectedCoin] = midPrice;
       setPriceChangePercent(0);
