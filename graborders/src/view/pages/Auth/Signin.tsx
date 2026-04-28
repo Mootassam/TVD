@@ -46,13 +46,13 @@ function Signin() {
     dispatch(actions.doClearErrorMessage());
   }, [dispatch]);
 
-   const onSubmit = ({ email, password, rememberMe }) => {
-     dispatch(actions.doSigninWithEmailAndPassword(email, password, rememberMe));
-   };
+  const onSubmit = ({ email, password, rememberMe }) => {
+    dispatch(actions.doSigninWithEmailAndPassword(email, password, rememberMe));
+  };
 
-   const onDemoLogin = () => {
-     dispatch(actions.doDemoLogin());
-   };
+  const onDemoLogin = () => {
+    dispatch(actions.doDemoLogin());
+  };
 
   const goBack = () => {
     history.goBack();
@@ -68,7 +68,7 @@ function Signin() {
 
   return (
     <div className="login-container">
-      {/* Top bar - stays at top */}
+      {/* Top bar */}
       <div className="top-bar">
         <button className="back-button" onClick={goBack}>
           <span className="back-arrow">←</span> Back
@@ -78,20 +78,16 @@ function Signin() {
         </button>
       </div>
 
-      {/* Main content - vertically centered */}
+      {/* Main content */}
       <div className="main-content">
-        {/* Logo */}
         <div className="logo">
-          
           <span className="neon">IC</span>
           <span className="white">Markets</span>
           <span className="neon">Global</span>
         </div>
 
-        {/* Heading */}
         <div className="heading">Sign in to Secure Client Area</div>
 
-        {/* Form */}
         <FormProvider {...form}>
           {externalErrorMessage && (
             <div className="error-message">{externalErrorMessage}</div>
@@ -112,46 +108,50 @@ function Signin() {
               autoComplete="current-password"
             />
 
-            {/* Forgot password link */}
             <div className="forgot-link">
-              <Link to="/online-service">{i18n("auth.signin.forgetPassword")}</Link>
+              <Link to="/online-service">
+                {i18n("auth.signin.forgetPassword")}
+              </Link>
             </div>
 
-             {/* Login button */}
-             <button className="login-button" disabled={loading} type="submit">
-               {loading ? (
-                 <>
-                   <i className="fas fa-spinner fa-spin" style={{ marginRight: "8px" }}></i>
-                   {i18n("auth.signin.signingIn")}
-                 </>
-               ) : (
-                 i18n("auth.signin.button")
-               )}
-             </button>
+            <button className="login-button" disabled={loading} type="submit">
+              {loading ? (
+                <>
+                  <i
+                    className="fas fa-spinner fa-spin"
+                    style={{ marginRight: "8px" }}
+                  ></i>
+                  {i18n("auth.signin.signingIn")}
+                </>
+              ) : (
+                i18n("auth.signin.button")
+              )}
+            </button>
 
-             {/* Demo login button */}
-             <button
-               className="demo-login-button"
-               onClick={onDemoLogin}
-               disabled={loading}
-               type="button"
-             >
-               {loading ? (
-                 <>
-                   <i className="fas fa-spinner fa-spin" style={{ marginRight: "8px" }}></i>
-                   Loading...
-                 </>
-               ) : (
-                 "🎮 Login to Demo Account"
-               )}
-             </button>
+            {/* Redesigned Demo Login Button */}
+            <button
+              className="demo-login-button"
+              onClick={onDemoLogin}
+              disabled={loading}
+              type="button"
+            >
+              {loading ? (
+                <>
+                  <i
+                    className="fas fa-spinner fa-spin"
+                    style={{ marginRight: "8px" }}
+                  ></i>
+                  Loading...
+                </>
+              ) : (
+                " Login to Demo Account"
+              )}
+            </button>
           </form>
         </FormProvider>
 
-        {/* Bottom links */}
         <Link to="/auth/signup" className="bottom-text remove_blue">
           <p>Don't have an account?</p>
-      
         </Link>
       </div>
 
@@ -165,7 +165,9 @@ function Signin() {
             <div className="modal-header-bottom">
               <div className="modal-drag-handle"></div>
               <div className="modal-title-wrapper">
-                <div className="modal-title">{i18n("auth.common.selectLanguage")}</div>
+                <div className="modal-title">
+                  {i18n("auth.common.selectLanguage")}
+                </div>
                 <button
                   className="modal-close-btn-bottom"
                   onClick={closeLanguageModal}
@@ -239,7 +241,7 @@ function Signin() {
           flex-direction: column;
           justify-content: center;
           padding: 20px;
-          padding-top: 0; /* already have top bar padding */
+          padding-top: 0;
         }
 
         .logo {
@@ -309,38 +311,43 @@ function Signin() {
           margin-bottom: 30px;
           transition: background-color 0.2s;
         }
-         .login-button:hover {
-           background-color: #2ecc10;
-         }
-         .login-button:disabled {
-           opacity: 0.6;
-           cursor: not-allowed;
-         }
+        .login-button:hover {
+          background-color: #2ecc10;
+        }
+        .login-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
 
-         .demo-login-button {
-           background-color: #FF6838;
-           color: white;
-           font-weight: bold;
-           height: 50px;
-           width: 100%;
-           border: none;
-           border-radius: 6px;
-           font-size: 16px;
-           cursor: pointer;
-           margin-bottom: 20px;
-           transition: background-color 0.2s;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           gap: 8px;
-         }
-         .demo-login-button:hover {
-           background-color: #e55a2b;
-         }
-         .demo-login-button:disabled {
-           opacity: 0.6;
-           cursor: not-allowed;
-         }
+        /* New Demo Login Button Style */
+        .demo-login-button {
+          background: linear-gradient(135deg, #FF6838 0%, #FF8C42 100%);
+          color: white;
+          font-weight: bold;
+          height: 50px;
+          width: 100%;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          cursor: pointer;
+          margin-bottom: 20px;
+          transition: transform 0.2s, box-shadow 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          box-shadow: 0 4px 12px rgba(255, 104, 56, 0.3);
+        }
+        .demo-login-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(255, 104, 56, 0.4);
+        }
+        .demo-login-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+        }
 
         .bottom-text {
           color: #ffffff;
@@ -428,7 +435,6 @@ function Signin() {
           color: #39FF14;
         }
         .modal-content-bottom {
-          max-height: 60vh;
           overflow-y: auto;
         }
       `}</style>
