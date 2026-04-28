@@ -1,3 +1,5 @@
+import Profile from "src/view/pages/profile/profile";
+
 const en = {
 
 
@@ -1769,10 +1771,11 @@ const en = {
 
 
     tabBottomNavigator: {
-      home: "home",
+      home: "Home",
       grap: "grap",
-      records: "records",
-      starting: "starting",
+      records: "Records",
+      starting: "Starting",
+      profile : "Profile"
 
     },
 
@@ -2244,7 +2247,8 @@ const en = {
       trade: "Trade",
       futures: "Futures",
       history: "history",
-      wallets: "Assets"
+      wallets: "Assets", 
+      profile: "Profile"
     },
     coinListModal: {
       title: "Select Cryptocurrency",

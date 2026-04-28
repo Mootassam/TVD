@@ -1,97 +1,43 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import CoinSelectorSidebar from "src/view/shared/modals/CoinSelectorSidebar";
 import FuturesModal from "src/shared/modal/FuturesModal";
-import FuturesChart from "./FuturesChart";
 import futuresListAction from "src/modules/futures/list/futuresListActions";
 import futuresListSelectors from "src/modules/futures/list/futuresListSelectors";
 import assetsListAction from "src/modules/assets/list/assetsListActions";
 import selector from "src/modules/assets/list/assetsListSelectors";
-import { useDispatch, useSelector } from "react-redux";
 import FutureList from "./FutureList";
 import { i18n } from '../../../i18n';
+import TradingViewChart from "../Market/TradingViewChart";
 
 // ----------------------------------------------------------------------
 // Types & Helpers
 // ----------------------------------------------------------------------
-interface ForexTicker {
+interface MarketData {
   symbol: string;
-  price: number;
-  changePercent: number;
-  high: number;
-  low: number;
-  volume: number;
-  quoteVolume: number;
+  ask: number;
+  bid: number;
 }
 
-// Base prices for forex pairs
-const basePrices: Record<string, number> = {
-  EURUSD: 1.0850,
-  GBPUSD: 1.2650,
-  USDJPY: 148.50,
-  AUDUSD: 0.6550,
-  USDCAD: 1.3550,
-  USDCHF: 0.8750,
-  NZDUSD: 0.6050,
-  EURGBP: 0.8570,
-  EURJPY: 161.20,
-  GBPJPY: 188.30,
-  AUDJPY: 97.20,
-  EURAUD: 1.6550,
-  GBPAUD: 1.9300,
-  USDMXN: 17.20,
-  USDRY: 30.50,
-  USDZAR: 18.90,
-  USDSGD: 1.3450,
-  USDHKD: 7.8200,
-  USDKRW: 1330.00,
-  USDINR: 83.20,
-};
-
-// Currency to country mapping for flags
 const currencyToCountry: Record<string, string> = {
   EUR: 'eu', USD: 'us', GBP: 'gb', JPY: 'jp', AUD: 'au', CAD: 'ca',
   CHF: 'ch', NZD: 'nz', MXN: 'mx', TRY: 'tr', ZAR: 'za', SGD: 'sg',
-  HKD: 'hk', KRW: 'kr', INR: 'in',
+  HKD: 'hk', KRW: 'kr', INR: 'in', XAU: 'au', XAG: 'au', XPT: 'au',
+  XPD: 'au', USOIL: 'us', UKOIL: 'gb', BRENT: 'gb', WTI: 'us',
+  CRUDE: 'us', NGAS: 'us', HEAT: 'us', GAS: 'us', US30: 'us',
+  US500: 'us', NAS100: 'us', US2000: 'us', GER40: 'de', UK100: 'gb',
+  FRA40: 'fr', EU50: 'eu', JP225: 'jp', HK50: 'hk', AUS200: 'au',
+  TWII: 'tw', KR100: 'kr', IN50: 'in', TECH100: 'us', BTC: 'generic',
+  ETH: 'generic', XRP: 'generic', SOL: 'generic', ADA: 'generic',
+  DOGE: 'generic', DOT: 'generic', AVAX: 'generic', LINK: 'generic',
+  MATIC: 'generic', UNI: 'generic', ATOM: 'generic', LTC: 'generic',
+  BCH: 'generic', NEAR: 'generic', ALGO: 'generic', VET: 'generic',
+  FIL: 'generic', THETA: 'generic', AXS: 'generic', SAND: 'generic',
+  MANA: 'generic', ENJ: 'generic', CHZ: 'generic', APE: 'generic',
 };
 
-// Get decimal places for a symbol (forex convention)
-const getDecimalPlaces = (symbol: string): number => {
-  if (symbol.includes("JPY") && !symbol.startsWith("JPY")) return 3;
-  return 5;
-};
-
-// Random walk price change
-const randomChange = (current: number, volatility: number = 0.0005): number => {
-  const change = (Math.random() * 2 - 1) * volatility;
-  return current * (1 + change);
-};
-
-// Generate a simulated ticker update
-const generateTickerUpdate = (
-  symbol: string,
-  currentPrice: number
-): ForexTicker => {
-  const volatility = 0.001; // 0.1% per update
-  const newPrice = randomChange(currentPrice, volatility);
-  const changePercent = ((newPrice - currentPrice) / currentPrice) * 100;
-  const high = Math.max(currentPrice, newPrice) * 1.002;
-  const low = Math.min(currentPrice, newPrice) * 0.998;
-  const volume = 1000000 + Math.random() * 500000;
-  const quoteVolume = newPrice * volume;
-
-  return {
-    symbol,
-    price: newPrice,
-    changePercent,
-    high,
-    low,
-    volume,
-    quoteVolume,
-  };
-};
-
-// Forex pairs list (for sidebar)
-const forexPairs = [
+const availableCoins = [
+  // ... (your full availableCoins array, unchanged)
   { symbol: "EURUSD", name: "EUR / USD" },
   { symbol: "GBPUSD", name: "GBP / USD" },
   { symbol: "USDJPY", name: "USD / JPY" },
@@ -106,15 +52,81 @@ const forexPairs = [
   { symbol: "EURAUD", name: "EUR / AUD" },
   { symbol: "GBPAUD", name: "GBP / AUD" },
   { symbol: "USDMXN", name: "USD / MXN" },
-  { symbol: "USDRY", name: "USD / TRY" },
+  { symbol: "USDTRY", name: "USD / TRY" },
   { symbol: "USDZAR", name: "USD / ZAR" },
   { symbol: "USDSGD", name: "USD / SGD" },
   { symbol: "USDHKD", name: "USD / HKD" },
   { symbol: "USDKRW", name: "USD / KRW" },
   { symbol: "USDINR", name: "USD / INR" },
+  { symbol: "EURCHF", name: "EUR / CHF" },
+  { symbol: "EURNZD", name: "EUR / NZD" },
+  { symbol: "GBPEUR", name: "GBP / EUR" },
+  { symbol: "AUDNZD", name: "AUD / NZD" },
+  { symbol: "CADJPY", name: "CAD / JPY" },
+  { symbol: "CHFJPY", name: "CHF / JPY" },
+  { symbol: "NZDJPY", name: "NZD / JPY" },
+  { symbol: "SGDJPY", name: "SGD / JPY" },
+  { symbol: "HKDJPY", name: "HKD / JPY" },
+  { symbol: "ZARJPY", name: "ZAR / JPY" },
+  { symbol: "XAUUSD", name: "Gold" },
+  { symbol: "XAGUSD", name: "Silver" },
+  { symbol: "XPTUSD", name: "Platinum" },
+  { symbol: "XPDUSD", name: "Palladium" },
+  { symbol: "XAUEUR", name: "Gold / EUR" },
+  { symbol: "XAGEUR", name: "Silver / EUR" },
+  { symbol: "XPTEUR", name: "Platinum / EUR" },
+  { symbol: "XAUGBP", name: "Gold / GBP" },
+  { symbol: "XAGGBP", name: "Silver / GBP" },
+  { symbol: "USOIL", name: "US Oil" },
+  { symbol: "UKOIL", name: "UK Oil" },
+  { symbol: "BRENT", name: "Brent" },
+  { symbol: "WTI", name: "WTI" },
+  { symbol: "CRUDE", name: "Crude" },
+  { symbol: "NGAS", name: "Natural Gas" },
+  { symbol: "HEAT", name: "Heating Oil" },
+  { symbol: "GAS", name: "Gasoline" },
+  { symbol: "US30", name: "Dow 30" },
+  { symbol: "US500", name: "S&P 500" },
+  { symbol: "NAS100", name: "Nasdaq 100" },
+  { symbol: "US2000", name: "Russell 2000" },
+  { symbol: "GER40", name: "DAX" },
+  { symbol: "UK100", name: "FTSE 100" },
+  { symbol: "FRA40", name: "CAC 40" },
+  { symbol: "EU50", name: "Euro Stoxx 50" },
+  { symbol: "JP225", name: "Nikkei 225" },
+  { symbol: "HK50", name: "Hang Seng" },
+  { symbol: "AUS200", name: "ASX 200" },
+  { symbol: "TWII", name: "Taiwan" },
+  { symbol: "KR100", name: "KOSPI" },
+  { symbol: "IN50", name: "Nifty 50" },
+  { symbol: "TECH100", name: "Tech 100" },
+  { symbol: "BTCUSD", name: "Bitcoin" },
+  { symbol: "ETHUSD", name: "Ethereum" },
+  { symbol: "XRPUSD", name: "Ripple" },
+  { symbol: "SOLUSD", name: "Solana" },
+  { symbol: "ADAUSD", name: "Cardano" },
+  { symbol: "DOGEUSD", name: "Dogecoin" },
+  { symbol: "DOTUSD", name: "Polkadot" },
+  { symbol: "AVAXUSD", name: "Avalanche" },
+  { symbol: "LINKUSD", name: "Chainlink" },
+  { symbol: "MATICUSD", name: "Polygon" },
+  { symbol: "UNIUSD", name: "Uniswap" },
+  { symbol: "ATOMUSD", name: "Cosmos" },
+  { symbol: "LTCUSD", name: "Litecoin" },
+  { symbol: "BCHUSD", name: "Bitcoin Cash" },
+  { symbol: "NEARUSD", name: "Near" },
+  { symbol: "ALGOUSD", name: "Algorand" },
+  { symbol: "VETUSD", name: "VeChain" },
+  { symbol: "FILUSD", name: "Filecoin" },
+  { symbol: "THETAUSD", name: "Theta" },
+  { symbol: "AXSUSD", name: "Axie Infinity" },
+  { symbol: "SANDUSD", name: "The Sandbox" },
+  { symbol: "MANAUSD", name: "Decentraland" },
+  { symbol: "ENJUSD", name: "Enjin Coin" },
+  { symbol: "CHZUSD", name: "Chiliz" },
+  { symbol: "APEUSD", name: "ApeCoin" },
 ];
 
-// Interface for Order data (from Redux)
 interface Order {
   id: number;
   pair: string;
@@ -138,9 +150,8 @@ interface Order {
 function Futures() {
   const dispatch = useDispatch();
 
-  // Redux selectors
+  // Redux
   const listAssets = useSelector(selector.selectRows);
-  const loadingList = useSelector(selector.selectLoading);
   const listFutures = useSelector(futuresListSelectors.selectRows);
   const pendingList = useSelector(futuresListSelectors.pendingRows);
   const pendingCount = useSelector(futuresListSelectors.pendingcount);
@@ -148,21 +159,25 @@ function Futures() {
   const futuretLoading = useSelector(futuresListSelectors.selectLoading);
   const countFutures = useSelector(futuresListSelectors.selectCount);
 
-  // State declarations
+  // ----- WebSocket real‑time data -----
+  const wsRef = useRef<WebSocket | null>(null);
+  const sessionRef = useRef<string | null>(null);
+  const subscribedSymbolRef = useRef<string | null>(null); // Track active subscription
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [markets, setMarkets] = useState<MarketData[]>([]);
+  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
+  const [priceChangePercent, setPriceChangePercent] = useState<number | null>(null);
+  const initialPriceRef = useRef<{ [symbol: string]: number }>({});
+  const highRef = useRef<{ [symbol: string]: number }>({});
+  const lowRef = useRef<{ [symbol: string]: number }>({});
+
+  // UI state
+  const [selectedCoin, setSelectedCoin] = useState("EURUSD");
+  const [activeTab, setActiveTab] = useState<"openOrders" | "recentOrders">("openOrders");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tradeDirection, setTradeDirection] = useState<string | null>(null);
   const [isCoinModalOpen, setIsCoinModalOpen] = useState(false);
-  const [selectedCoin, setSelectedCoin] = useState("EURUSD");
-  const [ticker, setTicker] = useState<ForexTicker>({
-    symbol: "EURUSD",
-    price: basePrices.EURUSD,
-    changePercent: 0,
-    high: basePrices.EURUSD * 1.002,
-    low: basePrices.EURUSD * 0.998,
-    volume: 1000000,
-    quoteVolume: basePrices.EURUSD * 1000000,
-  });
-  const [activeTab, setActiveTab] = useState<"openOrders" | "recentOrders">("openOrders");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -170,91 +185,181 @@ function Futures() {
   const [USDBalance, setUSDBalance] = useState<number>(0);
   const [openingOrders, setOpeningOrders] = useState<any[]>([]);
 
-  // Refs
-  const tickerInterval = useRef<NodeJS.Timeout | null>(null);
-  const currentCoinRef = useRef(selectedCoin);
-
-  // Memoized utility functions
-  const safeToFixed = useCallback((value: any, decimals: number = 2): string => {
-    if (value === null || value === undefined) return "0.00";
-    const num = typeof value === "string" ? parseFloat(value) : value;
-    return isNaN(num) ? "0.00" : num.toFixed(decimals);
+  // ----- Helpers -----
+  const encode = useCallback((msg: string) => `~m~${msg.length}~m~${msg}`, []);
+  const parseMessages = useCallback((data: string): string[] => {
+    const result: string[] = [];
+    let buffer = data;
+    while (buffer.length > 0) {
+      if (!buffer.startsWith("~m~")) break;
+      const second = buffer.indexOf("~m~", 3);
+      const length = parseInt(buffer.substring(3, second));
+      const message = buffer.substr(second + 3, length);
+      result.push(message);
+      buffer = buffer.substr(second + 3 + length);
+    }
+    return result;
   }, []);
 
-  const formatNumber = useCallback((num: any, decimals?: number): string => {
-    if (num === null || num === undefined) return "0.00";
-    const numValue = typeof num === "string" ? parseFloat(num) : num;
-    if (isNaN(numValue)) return "0.00";
+  const extractSymbol = useCallback((raw: string): string => {
+    try {
+      const cleaned = raw.replace(/^=\{/, "{");
+      const obj = JSON.parse(cleaned);
+      return obj.symbol || "UNKNOWN";
+    } catch {
+      return raw;
+    }
+  }, []);
 
-    const dec = decimals ?? getDecimalPlaces(selectedCoin);
-    return numValue.toLocaleString(undefined, {
-      minimumFractionDigits: dec,
-      maximumFractionDigits: dec,
-    });
+  // ----- Core subscription logic -----
+  const subscribeToSymbol = useCallback((symbol: string) => {
+    const ws = wsRef.current;
+    const session = sessionRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN || !session) return;
+
+    // If already subscribed to the same symbol, do nothing
+    if (subscribedSymbolRef.current === symbol) return;
+
+    // Unsubscribe from old symbol if any
+    if (subscribedSymbolRef.current) {
+      ws.send(encode(JSON.stringify({ m: "quote_remove_symbols", p: [session, subscribedSymbolRef.current] })));
+    }
+
+    // Subscribe to new symbol
+    ws.send(encode(JSON.stringify({ m: "quote_add_symbols", p: [session, symbol] })));
+    subscribedSymbolRef.current = symbol;
+
+    // Reset all derived data for the new symbol
+    setMarkets([]);
+    setCurrentPrice(null);
+    setPriceChangePercent(null);
+    setIsLoading(true);
+    delete highRef.current[symbol];
+    delete lowRef.current[symbol];
+    delete initialPriceRef.current[symbol];
+  }, [encode]);
+
+  // WebSocket connection & initial subscription
+  const connectWebSocket = useCallback(() => {
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+
+    const ws = new WebSocket("wss://widgetdata.tradingview.com/socket.io/websocket");
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      const session = "qs_" + Math.random().toString(36).substring(2, 12);
+      sessionRef.current = session;
+
+      ws.send(encode(JSON.stringify({ m: "quote_create_session", p: [session] })));
+      ws.send(encode(JSON.stringify({ m: "quote_set_fields", p: [session, "ask", "bid", "ask_size", "bid_size"] })));
+
+      // Subscribe to the current symbol (using ref to always have the latest)
+      const currentSymbol = selectedCoinRef.current;
+      subscribeToSymbol(currentSymbol);
+    };
+
+    ws.onmessage = (event) => {
+      const raw = event.data;
+      if (raw.startsWith("~h~")) {
+        ws.send(raw);
+        return;
+      }
+
+      const messages = parseMessages(raw);
+      messages.forEach((msg) => {
+        try {
+          const json = JSON.parse(msg);
+          if (json.m === "qsd") {
+            const payload = json.p[1];
+            const symbol = extractSymbol(payload.n);
+            const values = payload.v;
+            if (!values) return;
+
+            const market: MarketData = {
+              symbol,
+              ask: values.ask ?? 0,
+              bid: values.bid ?? 0,
+            };
+
+            setMarkets((prev) => {
+              const filtered = prev.filter((m) => m.symbol !== symbol);
+              return [...filtered, market];
+            });
+          }
+        } catch (err) {
+          // ignore non-json frames
+        }
+      });
+    };
+
+    ws.onclose = (event) => {
+      subscribedSymbolRef.current = null;
+      if (!event.wasClean) {
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connectWebSocket();
+        }, 3000);
+      }
+    };
+
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+    };
+  }, [encode, parseMessages, extractSymbol, subscribeToSymbol]);
+
+  // Keep selectedCoinRef in sync
+  const selectedCoinRef = useRef(selectedCoin);
+  useEffect(() => {
+    selectedCoinRef.current = selectedCoin;
   }, [selectedCoin]);
 
-  const formatVolume = useCallback((vol: any): string => {
-    if (vol === null || vol === undefined) return "0";
-    const volumeNum = typeof vol === "string" ? parseFloat(vol) : vol;
-    if (isNaN(volumeNum)) return "0";
+  // Mount / unmount connection
+  useEffect(() => {
+    connectWebSocket();
 
-    if (volumeNum >= 1e9) {
-      return (volumeNum / 1e9).toFixed(2) + i18n('pages.marketDetail.volume.billion');
-    } else if (volumeNum >= 1e6) {
-      return (volumeNum / 1e6).toFixed(2) + i18n('pages.marketDetail.volume.million');
-    } else {
-      return formatNumber(volumeNum, 0);
-    }
-  }, [formatNumber]);
-
-  const formatDateTime = useCallback((dateString: string): string => {
-    if (!dateString) return i18n('pages.assetsDetail.status.pending');
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return dateString;
-
-      const now = new Date();
-      const isToday = date.toDateString() === now.toDateString();
-
-      if (isToday) {
-        return i18n('pages.history.dateFormats.today', date.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }));
-      } else {
-        return i18n('pages.history.dateFormats.yesterday', date.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }));
+    return () => {
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
       }
-    } catch (error) {
-      console.error("Error formatting date:", error, dateString);
-      return dateString;
+    };
+  }, [connectWebSocket]);
+
+  // When selectedCoin changes, update the subscription
+  useEffect(() => {
+    subscribeToSymbol(selectedCoin);
+  }, [selectedCoin, subscribeToSymbol]);
+
+  // Derive current price, high, low, and change percent
+  useEffect(() => {
+    const market = markets.find((m) => m.symbol === selectedCoin);
+    if (!market || !market.ask || !market.bid) return;
+
+    const midPrice = (market.ask + market.bid) / 2;
+    setCurrentPrice(midPrice);
+    setIsLoading(false);
+
+    if (initialPriceRef.current[selectedCoin] === undefined) {
+      initialPriceRef.current[selectedCoin] = midPrice;
+      setPriceChangePercent(0);
+    } else {
+      const initial = initialPriceRef.current[selectedCoin];
+      const change = ((midPrice - initial) / initial) * 100;
+      setPriceChangePercent(change);
     }
-  }, []);
 
-  const formatDateTimeDetailed = useCallback((dateString: string): string => {
-    if (!dateString) return i18n('pages.assetsDetail.status.pending');
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return dateString;
-
-      return `${date.toLocaleDateString([], {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })} ${date.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })}`;
-    } catch (error) {
-      console.error("Error formatting date:", error, dateString);
-      return dateString;
+    if (!highRef.current[selectedCoin] || midPrice > highRef.current[selectedCoin]) {
+      highRef.current[selectedCoin] = midPrice;
     }
-  }, []);
+    if (!lowRef.current[selectedCoin] || midPrice < lowRef.current[selectedCoin]) {
+      lowRef.current[selectedCoin] = midPrice;
+    }
+  }, [markets, selectedCoin]);
 
-  // Calculate USD balance from assets
+  // Balance & orders
   const calculateBalances = useCallback(() => {
     if (listAssets?.length > 0) {
       const USDAsset = listAssets.find((asset: any) => asset.symbol === 'USDT');
@@ -262,7 +367,29 @@ function Futures() {
     }
   }, [listAssets]);
 
-  // Current tab data - memoized
+  useEffect(() => { calculateBalances(); }, [calculateBalances]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsOrdersLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      try {
+        await Promise.all([
+          dispatch(futuresListAction.doFetchPending()),
+          dispatch(assetsListAction.doFetch())
+        ]);
+      } catch (error) {
+        if (isMounted) console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+    return () => { isMounted = false; };
+  }, [dispatch]);
+
   const currentTabData = useMemo(() => {
     if (activeTab === "openOrders") {
       return {
@@ -279,105 +406,60 @@ function Futures() {
     }
   }, [activeTab, pendingCount, pendingLoading, pendingList, countFutures, futuretLoading, listFutures]);
 
-  // Flag icon for selected coin
+  // Formatting
+  const formatNumber = useCallback((num: any, decimals?: number): string => {
+    if (num === null || num === undefined) return "0.00";
+    const numValue = typeof num === "string" ? parseFloat(num) : num;
+    if (isNaN(numValue)) return "0.00";
+    return numValue.toFixed(decimals ?? 5);
+  }, []);
+
+  const formatDateTime = useCallback((dateString: string): string => {
+    if (!dateString) return i18n('pages.assetsDetail.status.pending');
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      const now = new Date();
+      const isToday = date.toDateString() === now.toDateString();
+      if (isToday) {
+        return i18n('pages.history.dateFormats.today', date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+      }
+      return i18n('pages.history.dateFormats.yesterday', date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+    } catch (error) {
+      console.error("Error formatting date:", error, dateString);
+      return dateString;
+    }
+  }, []);
+
+  const formatDateTimeDetailed = useCallback((dateString: string): string => {
+    if (!dateString) return i18n('pages.assetsDetail.status.pending');
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      return `${date.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" })} ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
+    } catch (error) {
+      console.error("Error formatting date:", error, dateString);
+      return dateString;
+    }
+  }, []);
+
+  const safeToFixed = useCallback((value: any, decimals: number = 2): string => {
+    if (value === null || value === undefined) return "0.00";
+    const num = typeof value === "string" ? parseFloat(value) : value;
+    return isNaN(num) ? "0.00" : num.toFixed(decimals);
+  }, []);
+
   const flagUrl = useMemo(() => {
     const baseCurrency = selectedCoin.slice(0, 3);
     const countryCode = currencyToCountry[baseCurrency] || baseCurrency.toLowerCase();
     return `https://flagcdn.com/w40/${countryCode}.png`;
   }, [selectedCoin]);
 
-  // Simulate real‑time ticker updates
-  useEffect(() => {
-    if (!selectedCoin) return;
-
-    let isMounted = true;
-    currentCoinRef.current = selectedCoin;
-
-    // Initialize ticker with base price
-    const basePrice = basePrices[selectedCoin] || 1.0;
-    setTicker({
-      symbol: selectedCoin,
-      price: basePrice,
-      changePercent: 0,
-      high: basePrice * 1.002,
-      low: basePrice * 0.998,
-      volume: 1000000,
-      quoteVolume: basePrice * 1000000,
-    });
-
-    if (tickerInterval.current) clearInterval(tickerInterval.current);
-
-    tickerInterval.current = setInterval(() => {
-      if (!isMounted || currentCoinRef.current !== selectedCoin) return;
-
-      setTicker(prev => generateTickerUpdate(selectedCoin, prev.price));
-    }, 3000);
-
-    return () => {
-      isMounted = false;
-      if (tickerInterval.current) clearInterval(tickerInterval.current);
-    };
-  }, [selectedCoin]);
-
-  // Simulate loading orders data
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsOrdersLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Fetch data on component mount (Redux)
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchData = async () => {
-      try {
-        await Promise.all([
-          dispatch(futuresListAction.doFetchPending()),
-          dispatch(assetsListAction.doFetch())
-        ]);
-      } catch (error) {
-        if (isMounted) console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [dispatch]);
-
-  // Calculate balances when assets data changes
-  useEffect(() => {
-    calculateBalances();
-  }, [calculateBalances]);
-
-  // Event handlers
-  const handleOpenCoinModal = useCallback(() => {
-    setIsCoinModalOpen(true);
-  }, []);
-
-  const handleCloseCoinModal = useCallback(() => {
-    setIsCoinModalOpen(false);
-  }, []);
-
+  const handleOpenCoinModal = useCallback(() => setIsCoinModalOpen(true), []);
+  const handleCloseCoinModal = useCallback(() => setIsCoinModalOpen(false), []);
   const handleSelectCoin = useCallback((coin: string) => {
-    setIsLoading(true);
-    const basePrice = basePrices[coin] || 1.0;
-    setTicker({
-      symbol: coin,
-      price: basePrice,
-      changePercent: 0,
-      high: basePrice * 1.002,
-      low: basePrice * 0.998,
-      volume: 1000000,
-      quoteVolume: basePrice * 1000000,
-    });
     setSelectedCoin(coin);
     setIsCoinModalOpen(false);
-    setIsLoading(false);
   }, []);
 
   const handleOpenModal = useCallback((direction: string) => {
@@ -411,20 +493,21 @@ function Futures() {
     }
   }, [dispatch]);
 
-  // Loading placeholder component
-  const LoadingPlaceholder = useCallback(({
-    width = "100%",
-    height = "1em"
-  }: {
-    width?: string;
-    height?: string;
-  }) => (
+  const LoadingPlaceholder = ({ width = "100%", height = "1em" }) => (
     <div className="loading-placeholder" style={{ width, height }} />
-  ), []);
+  );
+
+  const displayName = useMemo(() => {
+    const coin = availableCoins.find(c => c.symbol === selectedCoin);
+    return coin?.name || selectedCoin.replace(/(.{3})(.{3})/, "$1 / $2");
+  }, [selectedCoin]);
+
+  const high = highRef.current[selectedCoin] ?? (currentPrice ?? 0);
+  const low = lowRef.current[selectedCoin] ?? (currentPrice ?? 0);
 
   return (
     <div className="container">
-      {/* Header Section */}
+      {/* Header, unchanged */}
       <div className="header">
         <div className="header-top">
           <div className="market-info">
@@ -433,20 +516,13 @@ function Futures() {
                 src={flagUrl}
                 style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover' }}
                 alt={selectedCoin}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             </div>
-            <div className="market-name">{selectedCoin}</div>
-            <div
-              className="market-change"
-              style={{
-                color: ticker.changePercent < 0 ? "#FF6838" : "#00C076",
-              }}
-            >
-              {ticker ? (
-                `${ticker.changePercent > 0 ? '+' : ''}${ticker.changePercent.toFixed(2)}%`
+            <div className="market-name">{displayName}</div>
+            <div className="market-change" style={{ color: (priceChangePercent ?? 0) < 0 ? "#FF6838" : "#00C076" }}>
+              {currentPrice !== null ? (
+                `${(priceChangePercent ?? 0) > 0 ? '+' : ''}${(priceChangePercent ?? 0).toFixed(2)}%`
               ) : (
                 <LoadingPlaceholder width="50px" height="16px" />
               )}
@@ -456,77 +532,45 @@ function Futures() {
             <i className="fas fa-filter" />
           </div>
         </div>
-        <div className="market-price">
-          {ticker ? (
-            `$${formatNumber(ticker.price)}`
+        <div className="market-price" style={{ color: (priceChangePercent ?? 0) < 0 ? "#FF6838" : "#39FF14" }}>
+          {currentPrice !== null ? (
+            `$${formatNumber(currentPrice)}`
           ) : (
             <LoadingPlaceholder width="120px" height="28px" />
           )}
         </div>
         <div className="market-stats">
           <span>
-            {i18n('pages.marketDetail.stats.high')}:{" "}
-            {ticker ? (
-              `$${formatNumber(ticker.high)}`
-            ) : (
-              <LoadingPlaceholder width="80px" height="12px" />
-            )}
+            {i18n('pages.marketDetail.stats.high')}: {" "}
+            {currentPrice !== null ? `$${formatNumber(high)}` : <LoadingPlaceholder width="80px" height="12px" />}
           </span>
           <span>
-            {i18n('pages.marketDetail.stats.volume')}:{" "}
-            {ticker ? (
-              `${formatVolume(ticker.volume)} ${selectedCoin.slice(0,3)}`
-            ) : (
-              <LoadingPlaceholder width="80px" height="12px" />
-            )}
-          </span>
-          <span>
-            {i18n('pages.marketDetail.stats.low')}:{" "}
-            {ticker ? (
-              `$${formatNumber(ticker.low)}`
-            ) : (
-              <LoadingPlaceholder width="80px" height="12px" />
-            )}
+            {i18n('pages.marketDetail.stats.low')}: {" "}
+            {currentPrice !== null ? `$${formatNumber(low)}` : <LoadingPlaceholder width="80px" height="12px" />}
           </span>
         </div>
       </div>
 
-      {/* Chart */}
-      <FuturesChart symbol={selectedCoin} />
+      <TradingViewChart key={selectedCoin} symbol={selectedCoin} height={400} />
 
-      {/* Action Buttons */}
       <div className="future-action-buttons">
-        <button
-          className="action-button buy-button"
-          onClick={() => handleOpenModal("up")}
-        >
+        <button className="action-button buy-button" onClick={() => handleOpenModal("up")}>
           {i18n('pages.futures.actions.buyUp')}
         </button>
-        <button
-          className="action-button sell-button"
-          onClick={() => handleOpenModal("down")}
-        >
+        <button className="action-button sell-button" onClick={() => handleOpenModal("down")}>
           {i18n('pages.futures.actions.buyDown')}
         </button>
       </div>
 
-      {/* Tabs */}
       <div className="section-tabs">
-        <div
-          className={`tab ${activeTab === "openOrders" ? "active" : ""}`}
-          onClick={() => FetchTab("openOrders")}
-        >
+        <div className={`tab ${activeTab === "openOrders" ? "active" : ""}`} onClick={() => FetchTab("openOrders")}>
           {i18n('pages.futures.tabs.openOrders')} ({pendingCount || 0})
         </div>
-        <div
-          className={`tab ${activeTab === "recentOrders" ? "active" : ""}`}
-          onClick={() => FetchTab("recentOrders")}
-        >
+        <div className={`tab ${activeTab === "recentOrders" ? "active" : ""}`} onClick={() => FetchTab("recentOrders")}>
           {i18n('pages.futures.tabs.recentOrders')} ({countFutures || 0})
         </div>
       </div>
 
-      {/* Orders List */}
       <FutureList
         countFutures={currentTabData.count}
         futuretLoading={currentTabData.loading}
@@ -536,7 +580,6 @@ function Futures() {
         formatDateTime={formatDateTime}
       />
 
-      {/* Order Detail Modal */}
       {isOrderModalOpen && selectedOrder && (
         <OrderDetailModal
           selectedOrder={selectedOrder}
@@ -546,7 +589,6 @@ function Futures() {
         />
       )}
 
-      {/* Futures Modal with coin icon */}
       <FuturesModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -554,23 +596,21 @@ function Futures() {
         dispatch={dispatch}
         listAssets={listAssets}
         selectedCoin={selectedCoin}
-        marketPrice={ticker.price.toString()}
+        marketPrice={currentPrice?.toString() ?? "0"}
         availableBalance={USDBalance}
         setOpeningOrders={setOpeningOrders}
-        coinIcon={flagUrl} // pass flag URL for the coin image
+        coinIcon={flagUrl}
       />
 
-      {/* Coin Selector Sidebar (replaces CoinListModal) */}
       <CoinSelectorSidebar
         isOpen={isCoinModalOpen}
         onClose={handleCloseCoinModal}
         selectedCoin={selectedCoin}
         onCoinSelect={handleSelectCoin}
-        availableCoins={forexPairs}
+        availableCoins={availableCoins.map(c => ({ symbol: c.symbol, name: c.name }))}
         title={i18n('pages.marketDetail.coinSelector.title')}
       />
 
-      {/* Styles */}
       <style>{`
         * {
           margin: 0;
@@ -647,7 +687,6 @@ function Futures() {
           font-size: 24px;
           font-weight: bold;
           margin-bottom: 5px;
-          color: #39FF14;
         }
 
         .market-stats {
@@ -1010,7 +1049,7 @@ function Futures() {
   );
 }
 
-// Extracted Order Detail Modal Component
+// Order Detail Modal (unchanged)
 const OrderDetailModal = ({
   selectedOrder,
   onClose,

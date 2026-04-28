@@ -307,7 +307,7 @@ const styles = `
 `;
 
 // ----------------------------------------------------------------------
-// Market categories (unchanged)
+// Market categories
 // ----------------------------------------------------------------------
 interface MarketCategory {
   key: string;
@@ -374,7 +374,7 @@ const MARKET_CATEGORIES: MarketCategory[] = [
     label: 'Agricultural',
     table_id: 'futures.quotes_agricultural',
     version: '54',
-    columnset_id: 'performance',
+    columnset_id: 'overview',
     payload: {
       lang: 'en',
       range: [0, 92],
@@ -387,7 +387,7 @@ const MARKET_CATEGORIES: MarketCategory[] = [
     label: 'Energy',
     table_id: 'futures.quotes_energy',
     version: '54',
-    columnset_id: 'performance',
+    columnset_id: 'overview',
     payload: {
       lang: 'en',
       range: [0, 50],
@@ -400,7 +400,7 @@ const MARKET_CATEGORIES: MarketCategory[] = [
     label: 'Futures',
     table_id: 'futures.quotes_world_indices',
     version: '54',
-    columnset_id: 'performance',
+    columnset_id: 'overview',
     payload: {
       lang: 'en',
       range: [0, 100],
@@ -470,9 +470,16 @@ function parseResponse(data: any, categoryKey: string): MarketItem[] {
 
   const count = tickerCol.rawValues.length;
   const result: MarketItem[] = [];
+  const seenSymbols = new Set<string>(); // Track seen symbols to avoid duplicates
 
   for (let i = 0; i < count; i++) {
     const ticker: RawTicker = tickerCol.rawValues[i];
+    // Skip if we've already seen this symbol
+    if (seenSymbols.has(ticker.name)) {
+      continue;
+    }
+    seenSymbols.add(ticker.name);
+
     const price = priceCol ? priceCol.rawValues[i] ?? null : null;
     const changePercent = changeCol ? changeCol.rawValues[i] ?? null : null;
     const logos = extractLogo(ticker);
@@ -490,7 +497,7 @@ function parseResponse(data: any, categoryKey: string): MarketItem[] {
 }
 
 // ----------------------------------------------------------------------
-// Custom hook (unchanged)
+// Custom hook
 // ----------------------------------------------------------------------
 function useMarketData(category: MarketCategory) {
   const [items, setItems] = useState<MarketItem[]>([]);
@@ -511,7 +518,6 @@ function useMarketData(category: MarketCategory) {
             ...(category.extraParams || {}),
           },
           headers: { 'Content-Type': 'application/json' },
-          signal,
         }
       );
       const parsed = parseResponse(response.data, category.key);
@@ -684,6 +690,7 @@ const MarketList: React.FC<{ category: MarketCategory }> = ({ category }) => {
     );
   }
 
+  // Items are already deduplicated by parseResponse, so keys are now unique
   return (
     <>
       {items.map(item => (

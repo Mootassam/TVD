@@ -44,6 +44,8 @@ function MarketDetail() {
   // ----- WebSocket real market data -----
   const wsRef = useRef<WebSocket | null>(null);
   const sessionRef = useRef<string | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const selectedCoinRef = useRef(id || "EURUSD");
   const [markets, setMarkets] = useState<MarketData[]>([]);
 
   // ----- Derived price & change (real data) -----
@@ -59,10 +61,15 @@ function MarketDetail() {
   const [showCoinSelector, setShowCoinSelector] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // ----- Helper: encode TradingView messages -----
-  const encode = (msg: string) => `~m~${msg.length}~m~${msg}`;
+  // Keep selectedCoinRef in sync with state
+  useEffect(() => {
+    selectedCoinRef.current = selectedCoin;
+  }, [selectedCoin]);
 
-  const parseMessages = (data: string): string[] => {
+  // ----- Helper: encode TradingView messages -----
+  const encode = useCallback((msg: string) => `~m~${msg.length}~m~${msg}`, []);
+
+  const parseMessages = useCallback((data: string): string[] => {
     const result: string[] = [];
     let buffer = data;
     while (buffer.length > 0) {
@@ -74,9 +81,9 @@ function MarketDetail() {
       buffer = buffer.substr(second + 3 + length);
     }
     return result;
-  };
+  }, []);
 
-  const extractSymbol = (raw: string): string => {
+  const extractSymbol = useCallback((raw: string): string => {
     try {
       const cleaned = raw.replace(/^=\{/, "{");
       const obj = JSON.parse(cleaned);
@@ -84,62 +91,39 @@ function MarketDetail() {
     } catch {
       return raw;
     }
-  };
+  }, []);
 
-  // ----- WebSocket connection (once) -----
-useEffect(() => {
-    const ws = new WebSocket(
-      "wss://widgetdata.tradingview.com/socket.io/websocket"
-    );
+  // ----- WebSocket connection with auto‑reconnect -----
+  const connectWebSocket = useCallback(() => {
+    // Close any existing connection
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
 
+    const ws = new WebSocket("wss://widgetdata.tradingview.com/socket.io/websocket");
     wsRef.current = ws;
 
-    const session = "qs_" + Math.random().toString(36).substring(2, 12);
-
     ws.onopen = () => {
-      console.log("✅ Connected");
+      const session = "qs_" + Math.random().toString(36).substring(2, 12);
+      sessionRef.current = session;
 
       // Create session
-      ws.send(
-        encode(
-          JSON.stringify({
-            m: "quote_create_session",
-            p: [session],
-          })
-        )
-      );
+      ws.send(encode(JSON.stringify({ m: "quote_create_session", p: [session] })));
 
       // Fields we want
       ws.send(
         encode(
           JSON.stringify({
             m: "quote_set_fields",
-            p: [
-              session,
-              "ask",
-              "bid",
-              "ask_size",
-              "bid_size",
-            ],
+            p: [session, "ask", "bid", "ask_size", "bid_size"],
           })
         )
       );
 
-      // Add symbols (EDIT HERE)
-      const symbols = [
-       selectedCoin
-      ];
-
-      symbols.forEach((symbol) => {
-        ws.send(
-          encode(
-            JSON.stringify({
-              m: "quote_add_symbols",
-              p: [session, symbol],
-            })
-          )
-        );
-      });
+      // Subscribe to the current symbol
+      const symbol = selectedCoinRef.current;
+      ws.send(encode(JSON.stringify({ m: "quote_add_symbols", p: [session, symbol] })));
     };
 
     ws.onmessage = (event) => {
@@ -159,7 +143,6 @@ useEffect(() => {
 
           if (json.m === "qsd") {
             const payload = json.p[1];
-
             const symbol = extractSymbol(payload.n);
             const values = payload.v;
 
@@ -182,35 +165,50 @@ useEffect(() => {
       });
     };
 
-    ws.onclose = () => {
-      console.log("❌ Disconnected");
+    ws.onclose = (event) => {
+      // Attempt to reconnect if the closure was unexpected
+      if (!event.wasClean) {
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connectWebSocket();
+        }, 3000);
+      }
     };
 
     ws.onerror = (err) => {
       console.error("WebSocket error:", err);
     };
+  }, [encode, parseMessages, extractSymbol]);
+
+  useEffect(() => {
+    connectWebSocket();
 
     return () => {
-      ws.close();
+      // Cleanup
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
     };
-  }, []);
+  }, [connectWebSocket]);
 
-  // ----- Dynamic subscription to the current symbol -----
+  // ----- Subscription update when the selected symbol changes -----
   useEffect(() => {
     const ws = wsRef.current;
     const session = sessionRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN || !session) return;
 
-    // First, remove any existing symbols (optional: keep only current one)
+    // Remove all existing symbols and add the new one
     ws.send(encode(JSON.stringify({ m: "quote_remove_all_symbols", p: [session] })));
-    // Add the new symbol
     ws.send(encode(JSON.stringify({ m: "quote_add_symbols", p: [session, selectedCoin] })));
 
-    // Reset price & change when symbol changes
+    // Reset price & change for the new symbol
     setCurrentPrice(null);
     setPriceChangePercent(null);
     setIsLoading(true);
-  }, [selectedCoin]);
+  }, [selectedCoin, encode]);
 
   // ----- Derive price & change from real market data -----
   useEffect(() => {
@@ -319,7 +317,7 @@ useEffect(() => {
     }
   }, [currentPrice, selectedCoin, generateOrderBook, generateTrades]);
 
-  // ----- Available pairs (unchanged) -----
+  // ----- Available pairs -----
   const availableCoins: Coin[] = [
     // Forex
     { symbol: "EURUSD", name: "EUR / USD", baseCurrency: "EUR", quoteCurrency: "USD" },
