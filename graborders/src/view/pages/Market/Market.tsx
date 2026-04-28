@@ -1,10 +1,10 @@
 // market.tsx
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';   // v5 import
+import { Link } from 'react-router-dom';
 
 // ----------------------------------------------------------------------
-// Inline styles
+// Inline styles (unchanged)
 // ----------------------------------------------------------------------
 const styles = `
   :root {
@@ -107,7 +107,6 @@ const styles = `
     color: #ddd;
   }
 
-  /* Skeleton (unchanged) */
   .skeleton-row {
     background: #2a2a2a;
     border-radius: 8px;
@@ -161,7 +160,6 @@ const styles = `
     background: #3a3a3a;
   }
 
-  /* Row link – remove default link styles */
   .row-link {
     text-decoration: none;
     color: inherit;
@@ -306,7 +304,7 @@ const styles = `
 `;
 
 // ----------------------------------------------------------------------
-// Market categories
+// Market categories (Futures removed)
 // ----------------------------------------------------------------------
 interface MarketCategory {
   key: string;
@@ -394,23 +392,10 @@ const MARKET_CATEGORIES: MarketCategory[] = [
       scanner_product_label: 'markets-screener',
     },
   },
-  {
-    key: 'futures',
-    label: 'Futures',
-    table_id: 'futures.quotes_world_indices',
-    version: '54',
-    columnset_id: 'overview',
-    payload: {
-      lang: 'en',
-      range: [0, 100],
-      sort: { sortBy: { id: 'TickerUniversal', params: {} }, sortOrder: 'asc', nullsFirst: false },
-      scanner_product_label: 'markets-screener',
-    },
-  },
 ];
 
 // ----------------------------------------------------------------------
-// Types & parsing
+// Types & parsing (fixed to always include Price column)
 // ----------------------------------------------------------------------
 interface RawTicker {
   name: string;
@@ -429,6 +414,38 @@ interface MarketItem {
   currencyLogoId?: string;
 }
 
+// ----------------------------------------------------------------------
+// WebSocket helpers
+// ----------------------------------------------------------------------
+const encode = (msg: string) => `~m~${msg.length}~m~${msg}`;
+
+const parseMessages = (data: string): string[] => {
+  const result: string[] = [];
+  let buffer = data;
+  while (buffer.length > 0) {
+    if (!buffer.startsWith("~m~")) break;
+    const second = buffer.indexOf("~m~", 3);
+    const length = parseInt(buffer.substring(3, second));
+    const message = buffer.substr(second + 3, length);
+    result.push(message);
+    buffer = buffer.substr(second + 3 + length);
+  }
+  return result;
+};
+
+const extractSymbol = (raw: string): string => {
+  try {
+    const cleaned = raw.replace(/^=\{/, "{");
+    const obj = JSON.parse(cleaned);
+    return obj.symbol || "UNKNOWN";
+  } catch {
+    return raw;
+  }
+};
+
+// ----------------------------------------------------------------------
+// Parsing API response (priceColId is never null now)
+// ----------------------------------------------------------------------
 function getColumnById(columns: any[], id: string) {
   return columns.find((c: any) => c.id === id);
 }
@@ -449,34 +466,27 @@ function parseResponse(data: any, categoryKey: string): MarketItem[] {
   if (!columns || !Array.isArray(columns)) return [];
 
   let tickerColId = 'TickerUniversal';
-  let priceColId: string | null = 'Price';
-  let changeColId: string | null = 'Change';
+  const priceColId = 'Price';            // always present for these table_ids
+  let changeColId = 'Change';
 
   if (categoryKey === 'crypto') {
     tickerColId = 'TickerInstrumentUniversal';
-    priceColId = 'Price';
-    changeColId = 'ChangeCrypto';
-  } else if (['agricultural', 'energy', 'futures'].includes(categoryKey)) {
-    priceColId = null;
-    changeColId = 'Change';
+    changeColId = 'ChangeCrypto';        // crypto uses a different change column
   }
 
   const tickerCol = getColumnById(columns, tickerColId);
-  const priceCol = priceColId ? getColumnById(columns, priceColId) : null;
-  const changeCol = changeColId ? getColumnById(columns, changeColId) : null;
+  const priceCol = getColumnById(columns, priceColId);
+  const changeCol = getColumnById(columns, changeColId);
 
   if (!tickerCol) return [];
 
   const count = tickerCol.rawValues.length;
   const result: MarketItem[] = [];
-  const seenSymbols = new Set<string>(); // Track seen symbols to avoid duplicates
+  const seenSymbols = new Set<string>();
 
   for (let i = 0; i < count; i++) {
     const ticker: RawTicker = tickerCol.rawValues[i];
-    // Skip if we've already seen this symbol
-    if (seenSymbols.has(ticker.name)) {
-      continue;
-    }
+    if (seenSymbols.has(ticker.name)) continue;
     seenSymbols.add(ticker.name);
 
     const price = priceCol ? priceCol.rawValues[i] ?? null : null;
@@ -496,7 +506,7 @@ function parseResponse(data: any, categoryKey: string): MarketItem[] {
 }
 
 // ----------------------------------------------------------------------
-// Custom hook
+// Custom hook with resilient WebSocket live prices
 // ----------------------------------------------------------------------
 function useMarketData(category: MarketCategory) {
   const [items, setItems] = useState<MarketItem[]>([]);
@@ -504,6 +514,134 @@ function useMarketData(category: MarketCategory) {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
+  const [livePrices, setLivePrices] = useState<Record<string, number>>({});
+
+  const wsRef = useRef<WebSocket | null>(null);
+  const sessionRef = useRef<string | null>(null);
+  const subscribedSymbolsRef = useRef<Set<string>>(new Set());
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Subscribe / unsubscribe helper
+  const subscribeSymbols = useCallback((symbols: string[]) => {
+    const ws = wsRef.current;
+    const session = sessionRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN || !session) return;
+
+    const currentSubs = subscribedSymbolsRef.current;
+    const toRemove: string[] = [];
+    currentSubs.forEach(s => {
+      if (!symbols.includes(s)) toRemove.push(s);
+    });
+    const toAdd: string[] = [];
+    symbols.forEach(s => {
+      if (!currentSubs.has(s)) toAdd.push(s);
+    });
+
+    if (toRemove.length > 0) {
+      ws.send(encode(JSON.stringify({ m: "quote_remove_symbols", p: [session, ...toRemove] })));
+    }
+    if (toAdd.length > 0) {
+      ws.send(encode(JSON.stringify({ m: "quote_add_symbols", p: [session, ...toAdd] })));
+    }
+
+    subscribedSymbolsRef.current = new Set(symbols);
+  }, []);
+
+  // Connect WebSocket when component mounts
+  useEffect(() => {
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+
+    subscribedSymbolsRef.current = new Set();
+    setLivePrices({});
+
+    const ws = new WebSocket("wss://widgetdata.tradingview.com/socket.io/websocket");
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      const session = "qs_" + Math.random().toString(36).substring(2, 12);
+      sessionRef.current = session;
+
+      ws.send(encode(JSON.stringify({ m: "quote_create_session", p: [session] })));
+      ws.send(encode(JSON.stringify({ m: "quote_set_fields", p: [session, "ask", "bid", "lp"] })));
+
+      // If we already have items, subscribe to them
+      if (items.length > 0) {
+        subscribeSymbols(items.map(item => item.symbol));
+      }
+    };
+
+    ws.onmessage = (event) => {
+      const raw = event.data;
+      if (raw.startsWith("~h~")) {
+        ws.send(raw);
+        return;
+      }
+      const messages = parseMessages(raw);
+      messages.forEach(msg => {
+        try {
+          const json = JSON.parse(msg);
+          if (json.m === "qsd") {
+            const payload = json.p[1];
+            const symbol = extractSymbol(payload.n);
+            const values = payload.v;
+            if (!values) return;
+
+            // Use last price if positive, else fall back to mid of ask/bid
+            let price: number | null = null;
+            if (typeof values.lp === 'number' && values.lp > 0) {
+              price = values.lp;
+            } else if (typeof values.ask === 'number' && typeof values.bid === 'number' && values.ask > 0 && values.bid > 0) {
+              price = (values.ask + values.bid) / 2;
+            }
+
+            if (price !== null && price > 0) {
+              setLivePrices(prev => {
+                if (prev[symbol] === price) return prev;
+                return { ...prev, [symbol]: price };
+              });
+            }
+          }
+        } catch (e) {
+          // ignore non-json frames
+        }
+      });
+    };
+
+    ws.onclose = (event) => {
+      subscribedSymbolsRef.current = new Set();
+      if (!event.wasClean) {
+        reconnectTimeoutRef.current = setTimeout(() => {
+          setRetryCount(c => c + 1);
+        }, 3000);
+      }
+    };
+
+    ws.onerror = (err) => {
+      console.error("Market WebSocket error:", err);
+    };
+
+    return () => {
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once per mount (MarketList remounts on category change)
+
+  // When items list changes, update subscriptions
+  useEffect(() => {
+    if (items.length > 0) {
+      subscribeSymbols(items.map(item => item.symbol));
+    }
+  }, [items, subscribeSymbols]);
+
+  // Fetch data
   const fetchData = useCallback(async (signal: AbortSignal) => {
     try {
       const response = await axios.post(
@@ -543,7 +681,16 @@ function useMarketData(category: MarketCategory) {
 
   const refetch = useCallback(() => setRetryCount(c => c + 1), []);
 
-  return { items, loading, error, refetch };
+  // Enrich items with live price, only if live price exists and is valid
+  const enrichedItems = items.map(item => {
+    const livePrice = livePrices[item.symbol];
+    const displayPrice = (livePrice !== undefined && livePrice !== null && livePrice > 0)
+      ? livePrice
+      : item.price;
+    return { ...item, currentPrice: displayPrice };
+  });
+
+  return { items: enrichedItems, loading, error, refetch };
 }
 
 // ----------------------------------------------------------------------
@@ -636,12 +783,13 @@ const LogoCell: React.FC<{ baseId?: string; quoteId?: string }> = ({ baseId, quo
 };
 
 // ----------------------------------------------------------------------
-// Row component – now wrapped in a Link
+// Row component
 // ----------------------------------------------------------------------
-const MarketRow: React.FC<{ item: MarketItem; isForex: boolean }> = ({ item, isForex }) => {
+const MarketRow: React.FC<{ item: MarketItem & { currentPrice?: number | null }; isForex: boolean }> = ({ item, isForex }) => {
   const positive = (item.changePercent ?? 0) >= 0;
   const changeClass = positive ? 'green' : 'red';
   const arrow = positive ? '▲' : '▼';
+  const displayPrice = item.currentPrice ?? item.price;
 
   return (
     <Link to={`/market/detail/${item.symbol}`} className="row-link">
@@ -651,9 +799,7 @@ const MarketRow: React.FC<{ item: MarketItem; isForex: boolean }> = ({ item, isF
           <span className="symbol-name">{formatPair(item.symbol, isForex)}</span>
         </div>
         <div className="right-section">
-          {item.price != null && (
-            <span className="price-value">{fmtPrice(item.price, item.symbol)}</span>
-          )}
+          <span className="price-value">{fmtPrice(displayPrice, item.symbol)}</span>
           <span className={`change-percent ${changeClass}`}>
             <span className="arrow">{arrow}</span>
             {fmtChangePercent(item.changePercent)}
@@ -665,7 +811,7 @@ const MarketRow: React.FC<{ item: MarketItem; isForex: boolean }> = ({ item, isF
 };
 
 // ----------------------------------------------------------------------
-// Market List (remounts on category change)
+// Market List
 // ----------------------------------------------------------------------
 const MarketList: React.FC<{ category: MarketCategory }> = ({ category }) => {
   const { items, loading, error, refetch } = useMarketData(category);
@@ -689,7 +835,6 @@ const MarketList: React.FC<{ category: MarketCategory }> = ({ category }) => {
     );
   }
 
-  // Items are already deduplicated by parseResponse, so keys are now unique
   return (
     <>
       {items.map(item => (

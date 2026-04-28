@@ -30,6 +30,12 @@ const MENU_ITEMS = [
     name: i18n("pages.profile.menu.withdrawalAddress"),
     requiresKyc: true,
   },
+  // --- New notification item ---
+  {
+    icon: "fas fa-bell",
+    path: "/notification",
+    name: i18n("pages.profile.menu.notifications"),
+  },
   {
     icon: "fas fa-comment-dots",
     path: "/online-service",
@@ -140,25 +146,25 @@ function Profile() {
     setIsLanguageModalOpen(false);
   }, []);
 
-    const menuItems = useMemo(
-      () => {
-        let items = MENU_ITEMS.map((item) => ({
+  const menuItems = useMemo(
+    () => {
+      let items = MENU_ITEMS.map((item) => ({
+        ...item,
+        disabled: item?.requiresKyc && !isKycVerified,
+      }));
+
+      // For demo accounts, disable KYC-required items (keep visible but not clickable)
+      if (currentUser?.accountType === 'demo') {
+        items = items.map(item => ({
           ...item,
-          disabled: item?.requiresKyc && !isKycVerified,
+          disabled: item.requiresKyc ? true : item.disabled,
         }));
+      }
 
-        // For demo accounts, disable KYC-required items (keep visible but not clickable)
-        if (currentUser?.accountType === 'demo') {
-          items = items.map(item => ({
-            ...item,
-            disabled: item.requiresKyc ? true : item.disabled,
-          }));
-        }
-
-        return items;
-      },
-      [isKycVerified, currentUser?.accountType]
-    );
+      return items;
+    },
+    [isKycVerified, currentUser?.accountType]
+  );
 
   const handleVerifyNow = useCallback(() => {
     if (kycStatus === 'unverified') {
@@ -258,7 +264,7 @@ function Profile() {
           <li
             className={`menu-item ${item.disabled ? "disabled" : ""}`}
             key={index}
-            onClick={item.modal === "language" ? openLanguageModal : null}
+            onClick={item.modal === "language" ? openLanguageModal : undefined}
           >
             <div
               className={`icon-container ${
@@ -275,7 +281,7 @@ function Profile() {
         );
       }
 
-      // Regular link items
+      // Regular link items (including the new notification item)
       const menuItemContent = (
         <li className={`menu-item ${item.disabled ? "disabled" : ""}`}>
           <div
@@ -339,26 +345,24 @@ function Profile() {
     <div className="profile-container">
       {/* Header Section */}
       <div className="header">
-       
-
-         {/* Asset Section – replaces old profile-section */}
-         <div className="asset-section">
-           {/* User name */}
-           <div className="user-name">
-             {displayName}
-             {currentUser?.accountType === 'demo' && (
-               <span style={{
-                 backgroundColor: '#FF6838',
-                 color: 'white',
-                 padding: '2px 8px',
-                 borderRadius: '4px',
-                 fontSize: '12px',
-                 marginLeft: '8px',
-                 fontWeight: 'bold',
-                 verticalAlign: 'middle'
-               }}>DEMO</span>
-             )}
-           </div>
+        {/* Asset Section – replaces old profile-section */}
+        <div className="asset-section">
+          {/* User name */}
+          <div className="user-name">
+            {displayName}
+            {currentUser?.accountType === 'demo' && (
+              <span style={{
+                backgroundColor: '#FF6838',
+                color: 'white',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                marginLeft: '8px',
+                fontWeight: 'bold',
+                verticalAlign: 'middle'
+              }}>DEMO</span>
+            )}
+          </div>
 
           {/* Valuation Card */}
           <div className="valuation-card">
@@ -396,59 +400,59 @@ function Profile() {
             </div>
           </div>
 
-           {/* Quick Actions - Deposit / Withdraw */}
-           {currentUser?.accountType !== 'demo' && (
-             <div className="actions-section">
-               <div className="actions-grid">
-                 <Link to="/deposit" className="action-item remove_blue">
-                   <div className="action-icon">
-                     <i className="fas fa-arrow-down" />
-                   </div>
-                   <span className="action-label">
-                     {i18n("pages.wallet.quickActions.deposit")}
-                   </span>
-                 </Link>
-                 <Link to="/withdraw" className="action-item remove_blue">
-                   <div className="action-icon">
-                     <i className="fas fa-arrow-up" />
-                   </div>
-                   <span className="action-label">
-                     {i18n("pages.wallet.quickActions.withdraw")}
-                   </span>
-                 </Link>
-               </div>
-             </div>
-           )}
+          {/* Quick Actions - Deposit / Withdraw */}
+          {currentUser?.accountType !== 'demo' && (
+            <div className="actions-section">
+              <div className="actions-grid">
+                <Link to="/deposit" className="action-item remove_blue">
+                  <div className="action-icon">
+                    <i className="fas fa-arrow-down" />
+                  </div>
+                  <span className="action-label">
+                    {i18n("pages.wallet.quickActions.deposit")}
+                  </span>
+                </Link>
+                <Link to="/withdraw" className="action-item remove_blue">
+                  <div className="action-icon">
+                    <i className="fas fa-arrow-up" />
+                  </div>
+                  <span className="action-label">
+                    {i18n("pages.wallet.quickActions.withdraw")}
+                  </span>
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-       {/* Content Card */}
-       <div className="content-card">
-         <ul className="menu-list">
-           {/* KYC Status Item – appears at the top of the menu - hidden for demo accounts */}
-           {currentUser?.accountType !== 'demo' && (
-             <li className="menu-item kyc-status-item">
-               <div className="icon-container icon-gray">
-                 <i className={getVerificationIcon()} />
-               </div>
-               <div className="menu-text">
-                 <div className="kyc-badge-text">{getVerificationText()}</div>
-               </div>
-               <div className="menu-action">
-                 <button
-                   className={`verify-button-small ${shouldPulseBadge() ? "pulse" : ""}`}
-                   onClick={handleVerifyNow}
-                   disabled={isVerificationButtonDisabled()}
-                 >
-                   {getVerificationButtonText()}
-                 </button>
-               </div>
-             </li>
-           )}
+      {/* Content Card */}
+      <div className="content-card">
+        <ul className="menu-list">
+          {/* KYC Status Item – appears at the top of the menu - hidden for demo accounts */}
+          {currentUser?.accountType !== 'demo' && (
+            <li className="menu-item kyc-status-item">
+              <div className="icon-container icon-gray">
+                <i className={getVerificationIcon()} />
+              </div>
+              <div className="menu-text">
+                <div className="kyc-badge-text">{getVerificationText()}</div>
+              </div>
+              <div className="menu-action">
+                <button
+                  className={`verify-button-small ${shouldPulseBadge() ? "pulse" : ""}`}
+                  onClick={handleVerifyNow}
+                  disabled={isVerificationButtonDisabled()}
+                >
+                  {getVerificationButtonText()}
+                </button>
+              </div>
+            </li>
+          )}
 
-           {/* Other menu items */}
-           {menuItems.map((item, index) => renderMenuItem(item, index))}
-         </ul>
+          {/* Other menu items (now includes Notifications) */}
+          {menuItems.map((item, index) => renderMenuItem(item, index))}
+        </ul>
 
         <div className="signout-section">
           <button className="signout-button" onClick={handleSignOut}>
@@ -503,7 +507,6 @@ function Profile() {
         /* Header */
         .header {
           padding: 12px 16px;
-          border-bottom: 1px solid #2a2a2a;
         }
         .nav-bar {
           display: flex;
