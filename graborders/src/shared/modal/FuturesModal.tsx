@@ -15,6 +15,7 @@ interface FuturesModalProps {
   marketPrice: string;
   availableBalance: number;
   setOpeningOrders: React.Dispatch<React.SetStateAction<any[]>>; // Added proper typing
+  isDemoAccount?: boolean;
 }
 
 const FuturesModal: React.FC<FuturesModalProps> = ({
@@ -26,7 +27,8 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   selectedCoin,
   marketPrice,
   availableBalance,
-  setOpeningOrders
+  setOpeningOrders,
+  isDemoAccount = false,
 }) => {
   const [selectedDuration, setSelectedDuration] = useState<string>("120");
   const [selectvalue, setSelectedValue] = useState<string>("20"); // Default payout percentage
@@ -42,6 +44,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   const [pnlDisplay, setPnlDisplay] = useState<string>("");
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [tradeDetails, setTradeDetails] = useState<any>(null);
+  const [demoTradeOpenPrice, setDemoTradeOpenPrice] = useState<number | null>(null);
 
   // Helper to format numbers with commas and two decimals
   const formatBalance = (value: number): string => {
@@ -116,11 +119,20 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
 
     setIsCreating(true);
     try {
-      const created = await create(); // create returns created record or null
-      if (!created || !created.id) {
-        // creation failed, don't start
-        setIsCreating(false);
-        return;
+      const openPrice = parseFloat(marketPrice || "0") || 0;
+
+      // For demo accounts: don't create server record initially
+      // Track trade locally and use actual market price at expiry
+      if (isDemoAccount) {
+        setDemoTradeOpenPrice(openPrice);
+        setFutureId(null);
+      } else {
+        const created = await create();
+        if (!created || !created.id) {
+          setIsCreating(false);
+          return;
+        }
+        setFutureId(created.id);
       }
 
       // Set trade details for display
@@ -128,7 +140,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         futuresAmount,
         contractDuration: selectedDuration,
         futuresStatus: direction === "up" ? "long" : "short",
-        openPositionPrice: parseFloat(marketPrice || "0") || 0,
+        openPositionPrice: openPrice,
         closePositionPrice: null,
         leverage: parseInt(selectedLeverage, 10),
         openPositionTime: new Date(),
@@ -136,11 +148,11 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       });
 
       setOpeningOrders(prev => [...prev, {
-        id: futureId, // Use the actual ID from created record
+        id: futureId,
         futuresAmount,
         contractDuration: selectedDuration,
         futuresStatus: direction === "up" ? "long" : "short",
-        openPositionPrice: parseFloat(marketPrice || "0") || 0,
+        openPositionPrice: openPrice,
         closePositionPrice: null,
         leverage: parseInt(selectedLeverage, 10),
         openPositionTime: new Date().toISOString(),
@@ -151,7 +163,6 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       const secs = parseInt(selectedDuration, 10) || 0;
       setTimeLeft(secs);
 
-      // set status after create succeeded
       setTradeStatus("in-progress");
     } catch (err) {
       console.error("startTrade error", err);
@@ -160,13 +171,63 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     }
   };
 
-  // completeTrade: fetch finalized trade from backend and show real PnL
+  // completeTrade: determine PnL based on actual market movement for demo trades
   const completeTrade = async () => {
-    // ensure we have a future id
     setOpeningOrders([]);
+
+    // For demo trades: use current market price to determine PnL based on actual price movement
+    if (isDemoAccount && demoTradeOpenPrice !== null) {
+      const closePrice = parseFloat(marketPrice) || demoTradeOpenPrice;
+      const wasLong = tradeDetails?.futuresStatus === "long";
+
+      // Determine if trade was profitable based on actual price movement:
+      // - long (up): profit if close price > open price (market went up as predicted)
+      // - short (down): profit if close price < open price (market went down as predicted)
+      const isWin = wasLong ? closePrice > demoTradeOpenPrice : closePrice < demoTradeOpenPrice;
+
+      // Calculate actual price change percentage
+      const priceChangePercent = ((closePrice - demoTradeOpenPrice) / demoTradeOpenPrice) * 100;
+      const leverage = parseInt(selectedLeverage, 10);
+      const pnlPercent = priceChangePercent * leverage;
+      const pnlAmount = (futuresAmount * pnlPercent) / 100;
+
+      // Leverage caps at the payout percentages (10%, 20%, 40%, 80%)
+      const maxPayoutPercent = parseInt(selectvalue, 10);
+      const maxPnl = (futuresAmount * maxPayoutPercent) / 100;
+
+      const finalPnl = isWin ? Math.min(pnlAmount, maxPnl) : -futuresAmount;
+
+      setTradeResult(isWin ? "win" : "loss");
+      setPnlDisplay(`${isWin ? '+' : ''}${finalPnl.toFixed(2)} USD`);
+      setTradeStatus("completed");
+
+      // Now create the server record with actual result
+      try {
+        const payload = {
+          futuresStatus: wasLong ? "long" : "short",
+          profitAndLossAmount: finalPnl,
+          leverage: leverage,
+          control: isWin ? "profit" : "loss",
+          operate: "low",
+          futureCoin: selectedCoin.replace("USD", "/USD"),
+          closePositionTime: new Date().toISOString(),
+          closePositionPrice: closePrice,
+          openPositionTime: new Date().toISOString(),
+          openPositionPrice: demoTradeOpenPrice,
+          contractDuration: selectedDuration,
+          futuresAmount,
+        };
+        await dispatch(futuresFormAction.doCreate(payload));
+      } catch (err) {
+        console.error("Error creating demo trade record:", err);
+      }
+
+      return;
+    }
+
+    // For real trades: fetch from backend as before
     if (!futureId) {
-      // no id => nothing we can fetch; fallback to internal calculation
-      const calculatedIsWin = false; // fallback: treat as loss
+      const calculatedIsWin = false;
       setTradeResult(calculatedIsWin ? "win" : "loss");
       if (calculatedIsWin) {
         setPnlDisplay(`+${calculateProfit(futuresAmount, selectedLeverage, selectvalue).toFixed(2)} USD`);
@@ -178,19 +239,16 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     }
 
     try {
-      // dispatch the view action to fetch the latest trade from backend
       const result = await dispatch(futuresViewActions.doFind(futureId));
       const trade = result && result.payload ? result.payload : result;
 
       if (!trade) {
-        // fallback: mark as loss
         setTradeResult("loss");
         setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
         setTradeStatus("completed");
         return;
       }
 
-      // Update trade details with finalized data
       setTradeDetails({
         ...tradeDetails,
         closePositionPrice: trade.closePositionPrice,
@@ -198,7 +256,6 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         profitAndLossAmount: trade.profitAndLossAmount
       });
 
-      // Backend should set trade.control (profit | loss), profitAndLossAmount, futuresAmount
       if (trade.control === "profit") {
         setTradeResult("win");
         const pnl = Number(trade.profitAndLossAmount ?? calculateProfit(futuresAmount, selectedLeverage, selectvalue));
@@ -210,13 +267,10 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       }
 
       setTradeStatus("completed");
-
-      // refresh lists/view after finalization
       dispatch(futuresListAction.doFetchPending());
 
     } catch (err) {
       console.error("completeTrade error", err);
-      // fallback to computed display
       setTradeResult("loss");
       setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
       setTradeStatus("completed");
@@ -227,19 +281,18 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   const create = async () => {
     const currentPrice = parseFloat(marketPrice || "0") || 0;
 
-    // derive close price assuming no real result yet; backend or worker will update it later
     let closePrice = currentPrice;
     if (direction === "up") {
-      closePrice = currentPrice * 0.95; // default placeholder
+      closePrice = currentPrice * 0.95;
     } else {
-      closePrice = currentPrice * 1.05; // placeholder
+      closePrice = currentPrice * 1.05;
     }
 
     const payload = {
       futuresStatus: direction === "up" ? "long" : "short",
       profitAndLossAmount: '',
       leverage: parseInt(selectedLeverage, 10),
-      control: "loss", // default — worker/ admin may set later
+      control: "loss",
       operate: "low",
       futureCoin: selectedCoin.replace("USD", "/USD"),
       closePositionTime: '',
@@ -278,6 +331,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     setFuturesAmount(30);
     setSelectedValue("20");
     setSelectedDuration("120");
+    setDemoTradeOpenPrice(null);
   };
 
   const calculateProfit = (
@@ -316,7 +370,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
 
   if (!isOpen) return null;
 
-  const modalContent = (
+  return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div
         className={`modal-container ${direction === "up" ? "up-theme" : "down-theme"}`}
@@ -513,7 +567,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         )}
       </div>
 
-      <style>{` 
+    <style>{` 
   .modal-overlay {
       position: fixed;
       top: 0;
@@ -912,10 +966,9 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       background-color: #e55a2b;
   }
 `}</style>
-    </div>
+    </div>,
+    document.body
   );
-
-  return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default FuturesModal;

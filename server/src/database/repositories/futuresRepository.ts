@@ -530,22 +530,34 @@ class FuturesRepository {
 
         let control: 'profit' | 'loss';
         let descriptionPrefix: string;
+        let closePrice: number;
 
         if (isDemo) {
-          const willProfit = Math.random() < 0.5;
+          // Determine profit/loss based on simulated market price movement
+          // Generate realistic close price with random variance (-1% to +1%)
+          const basePrice = record.openPositionPrice;
+          const randomPercentage = -0.01 + Math.random() * 0.02; // -1% to +1% variance
+          closePrice = basePrice * (1 + randomPercentage);
+          
+          // Determine profit/loss based on trade direction and market movement:
+          // - long (up): profit if close price > open price (market went up as predicted)
+          // - short (down): profit if close price < open price (market went down as predicted)
+          const willProfit = record.futuresStatus === 'long' 
+            ? closePrice > basePrice 
+            : closePrice < basePrice;
+          
           control = willProfit ? 'profit' : 'loss';
           descriptionPrefix = willProfit ? 'Demo profit' : 'Demo loss';
         } else {
           control = 'loss';
           descriptionPrefix = isPreemptive ? 'Pre-emptive loss' : 'Expired loss';
+          closePrice = FuturesRepository.calculateClosingPrice(
+            record.openPositionPrice,
+            record.futuresStatus,
+            control,
+            record.futureCoin || 'BTC/USDT'
+          );
         }
-
-        const closePrice = FuturesRepository.calculateClosingPrice(
-          record.openPositionPrice,
-          record.futuresStatus,
-          control,
-          record.futureCoin || 'BTC/USDT'
-        );
 
         const updateData: any = {
           control,

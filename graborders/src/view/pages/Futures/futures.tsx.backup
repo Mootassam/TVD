@@ -9,7 +9,6 @@ import selector from "src/modules/assets/list/assetsListSelectors";
 import FutureList from "./FutureList";
 import { i18n } from '../../../i18n';
 import TradingViewChart from "../Market/TradingViewChart";
-import authSelectors from "src/modules/auth/authSelectors";
 
 // ----------------------------------------------------------------------
 // Types & Helpers
@@ -149,7 +148,6 @@ interface Order {
 }
 
 function Futures() {
-  console.log('Futures component rendering');
   const dispatch = useDispatch();
 
   // Redux
@@ -160,7 +158,6 @@ function Futures() {
   const pendingLoading = useSelector(futuresListSelectors.pendingLoading);
   const futuretLoading = useSelector(futuresListSelectors.selectLoading);
   const countFutures = useSelector(futuresListSelectors.selectCount);
-  const currentUser = useSelector(authSelectors.selectCurrentUser);
 
   // ----- WebSocket real‑time data -----
   const wsRef = useRef<WebSocket | null>(null);
@@ -187,30 +184,6 @@ function Futures() {
   const [isOrdersLoading, setIsOrdersLoading] = useState(true);
   const [USDBalance, setUSDBalance] = useState<number>(0);
   const [openingOrders, setOpeningOrders] = useState<any[]>([]);
-
-  const [isDemoAccount, setIsDemoAccount] = useState<boolean>(false);
-
-  // Prevent navigation during active demo trade
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      // Check if a demo trade modal is open (tradeDirection indicates modal is open)
-      if (isDemoAccount && tradeDirection) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [isDemoAccount, tradeDirection]);
-
-  // Determine if user is on demo account
-  useEffect(() => {
-    setIsDemoAccount(currentUser?.accountType === 'demo');
-  }, [currentUser]);
-
 
   // ----- Helpers -----
   const encode = useCallback((msg: string) => `~m~${msg.length}~m~${msg}`, []);
@@ -490,7 +463,6 @@ function Futures() {
   }, []);
 
   const handleOpenModal = useCallback((direction: "up" | "down") => {
-    console.log("Opening modal with direction:", direction, "isDemoAccount:", isDemoAccount);
     dispatch(assetsListAction.doFetch());
     setTradeDirection(direction);
     setIsModalOpen(true);
@@ -627,7 +599,6 @@ function Futures() {
         marketPrice={currentPrice?.toString() ?? "0"}
         availableBalance={USDBalance}
         setOpeningOrders={setOpeningOrders}
-        isDemoAccount={isDemoAccount}
       />
 
       <CoinSelectorSidebar
@@ -639,7 +610,7 @@ function Futures() {
         title={i18n('pages.marketDetail.coinSelector.title')}
       />
 
-   <style>{`
+      <style>{`
         * {
           margin: 0;
           padding: 0;
