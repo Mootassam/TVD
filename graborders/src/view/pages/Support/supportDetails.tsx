@@ -44,7 +44,7 @@ function HelpCenterDetail() {
       <style>{`
         /* HelpCenterDetail Container – matches login/profile containers */
         .helpcenterdetail-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

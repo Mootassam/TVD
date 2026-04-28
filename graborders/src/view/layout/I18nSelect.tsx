@@ -275,7 +275,7 @@ const I18nSelect = ({ isInModal = false }) => {
       <style>{`
         /* I18n Container – matches login/profile containers */
         .i18n-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

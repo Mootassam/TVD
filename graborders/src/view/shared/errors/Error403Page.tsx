@@ -54,7 +54,7 @@ function Error403Page() {
       <style>{`
         /* Container – matches the 404 design */
         .error403-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

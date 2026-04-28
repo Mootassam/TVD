@@ -28,7 +28,7 @@ const ErrorWrapper = styled.div`
     .imgEle {
       height: 360px;
       width: 100%;
-      max-width: 430px;
+      max-width: 400px;
       float: right;
       background-repeat: no-repeat;
       background-position: 50% 50%;

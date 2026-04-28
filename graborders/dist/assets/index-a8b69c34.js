@@ -111,7 +111,7 @@ attempted value: ${i}
           bottom: 0;
           left: 0;
           right: 0;
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           background-color: #1c1c1c;
           border-top: 1px solid #2a2a2a;

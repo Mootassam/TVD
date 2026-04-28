@@ -1,7 +1,7 @@
 import{al as n,u as r,aj as s,i as l,ak as c,k as e,L as d,j as p}from"./index-a8b69c34.js";import{u as f}from"./useDispatch-34d25598.js";function g(){const{id:o}=n(),a=f(),t=r(s.selectRows).find(i=>i.id===o);return l.useEffect(()=>{a(c.doFetch())},[a]),e.jsxs("div",{className:"helpcenterdetail-container",children:[e.jsx("div",{className:"header",children:e.jsxs("div",{className:"nav-bar",children:[e.jsx(d,{to:"/support",className:"back-arrow",children:e.jsx("i",{className:"fas fa-arrow-left"})}),e.jsx("div",{className:"page-title",children:p("pages.helpCenter.title")})]})}),e.jsx("div",{className:"content-card",children:e.jsx("div",{className:"helpcenterdetail-content",children:t&&e.jsxs(e.Fragment,{children:[e.jsx("div",{className:"question-title",children:t.question}),e.jsx("div",{className:"divider-line"}),e.jsx("div",{className:"answer-content",children:t.description})]})})}),e.jsx("style",{children:`
         /* HelpCenterDetail Container – matches login/profile containers */
         .helpcenterdetail-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

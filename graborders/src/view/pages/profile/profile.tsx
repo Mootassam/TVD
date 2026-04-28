@@ -339,12 +339,7 @@ function Profile() {
     <div className="profile-container">
       {/* Header Section */}
       <div className="header">
-        <div className="nav-bar">
-          <Link to="/" className="back-arrow">
-            <i className="fas fa-arrow-left" />
-          </Link>
-          <div className="page-title">{i18n("pages.profile.title")}</div>
-        </div>
+       
 
          {/* Asset Section – replaces old profile-section */}
          <div className="asset-section">
@@ -494,7 +489,7 @@ function Profile() {
       <style>{`
         /* Profile Container */
         .profile-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;
@@ -841,7 +836,7 @@ function Profile() {
           border-top: 2px solid #39FF14;
           border-radius: 24px 24px 0 0;
           width: 100%;
-          max-width: 430px;
+          max-width: 400px;
           max-height: 85vh;
           overflow: hidden;
           box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);

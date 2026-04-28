@@ -54,7 +54,7 @@ function BindAccount() {
       <style>{`
         /* Bind Account Container – matches Profile */
         .bind-account-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

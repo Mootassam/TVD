@@ -1,7 +1,7 @@
 import{u as d,ah as r,i as l,k as a,L as p,ai as m}from"./index-a8b69c34.js";import{L as f}from"./LoadingModal-fd51406b.js";import{u as x}from"./useDispatch-34d25598.js";function u(){var i,n,s;const t=x(),o=d(r.selectRows),e=d(r.selectLoading),c=()=>{t(m.doFetch())};return l.useEffect(()=>{c()},[t]),a.jsxs("div",{className:"about-container",children:[a.jsx("div",{className:"header",children:a.jsxs("div",{className:"nav-bar",children:[a.jsx(p,{to:"/profile",className:"back-arrow",children:a.jsx("i",{className:"fas fa-arrow-left"})}),a.jsx("div",{className:"page-title",children:"About Us"})]})}),a.jsx("div",{className:"content-card",children:a.jsxs("div",{className:"about-content",children:[e&&a.jsx("div",{className:"loading-container",children:a.jsx(f,{})}),!e&&o&&((i=o[0])==null?void 0:i.companydetails)&&a.jsx("div",{className:"company-details",dangerouslySetInnerHTML:{__html:(n=o[0])==null?void 0:n.companydetails}}),!e&&(!o||o.length===0||!((s=o[0])!=null&&s.companydetails))&&a.jsxs("div",{className:"no-data-message",children:[a.jsx("i",{className:"fas fa-info-circle"}),a.jsx("p",{children:"No company information available at the moment."})]})]})}),a.jsx("style",{children:`
         /* About Container – matches login/profile containers */
         .about-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

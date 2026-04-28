@@ -638,7 +638,7 @@ function Deposit() {
       <style>{`
         /* Deposit Container – matches profile/wallet theme */
         .deposit-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

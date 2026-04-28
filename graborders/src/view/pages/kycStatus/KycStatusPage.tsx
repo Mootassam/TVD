@@ -122,7 +122,7 @@ function KycStatusPage() {
 
       <style>{`
         .kyc-status-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;
@@ -317,7 +317,7 @@ function KycStatusPage() {
           box-shadow: 0 4px 12px rgba(57, 255, 20, 0.3);
         }
 
-        @media (max-width: 430px) {
+        @media (max-width: 400px) {
           .kyc-status-container {
             max-width: 100%;
           }

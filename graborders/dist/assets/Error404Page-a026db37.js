@@ -1,7 +1,7 @@
 import{k as e,L as o}from"./index-a8b69c34.js";function a(){return e.jsxs("div",{className:"error404-container",children:[e.jsx("div",{className:"header",children:e.jsx("div",{className:"nav-bar",children:e.jsx("div",{className:"page-title",children:"404 Error"})})}),e.jsx("div",{className:"content-card",children:e.jsxs("div",{className:"error404-content",children:[e.jsxs("div",{className:"forex-animation",children:[e.jsx("div",{className:"forex-icon dollar",children:e.jsx("i",{className:"fas fa-dollar-sign"})}),e.jsx("div",{className:"forex-icon euro",children:e.jsx("i",{className:"fas fa-euro-sign"})}),e.jsx("div",{className:"forex-icon pound",children:e.jsx("i",{className:"fas fa-pound-sign"})})]}),e.jsx("div",{className:"error-icon",children:e.jsx("i",{className:"fas fa-exclamation-circle"})}),e.jsx("h1",{className:"error-code",children:"404"}),e.jsx("h2",{className:"error-title",children:"Page Not Found"}),e.jsx("p",{className:"error-message",children:"The page you're looking for doesn't exist. It might have been moved or you entered the wrong address."}),e.jsxs(o,{to:"/",className:"home-button",children:[e.jsx("i",{className:"fas fa-home"})," Go Back Home"]})]})}),e.jsx("style",{children:`
         /* Error Container – matches profile container */
         .error404-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

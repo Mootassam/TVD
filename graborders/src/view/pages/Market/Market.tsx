@@ -34,13 +34,12 @@ const styles = `
     min-height: 100vh;
     background-color: #0f0f0f;
     border-top: 2px solid var(--neon-green);
-    max-width: 430px;
+    max-width: 400px;
     margin: auto;
   }
 
   .market-container {
     width: 100%;
-    padding: 0 10px;
     display: flex;
     flex-direction: column;
     gap: 8px;

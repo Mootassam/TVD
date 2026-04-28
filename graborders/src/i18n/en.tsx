@@ -1640,14 +1640,7 @@ const en = {
         minimumWithdraw: "Minimum withdraw for {0}: {1} {2}",
         insufficientForFee: "Not enough balance to cover fee ({0} {1})"
       },
-      validation: {
-        selectCurrency: "Select currency",
-        enterAmount: "Enter amount",
-        belowMin: "Below minimum ({0} {1})",
-        insufficientBalance: "Insufficient balance",
-        insufficientForFee: "Insufficient balance (including fee)",
-        enterPassword: "Enter password"
-      }
+
     },
     deposit: {
       title: "Deposit Crypto",
@@ -2157,69 +2150,7 @@ const en = {
     },
 
 
-    transaction: {
-      name: "transaction",
-      label: "Transactions",
-      menu: "Transactions",
-      exporterFileName: "transaction_export",
-      list: {
-        menu: "Transactions",
-        title: "Transactions",
-      },
-      create: {
-        success: "Transaction successfully send",
-      },
-      update: {
-        success: "Transaction successfully saved",
-      },
-      destroy: {
-        success: "Transaction successfully deleted",
-      },
-      destroyAll: {
-        success: "Transaction(s) successfully deleted",
-      },
-      edit: {
-        title: "Edit Transaction",
-      },
-      fields: {
-        id: "Id",
-        amountRange: "Amount",
-        amount: "Amount",
-        email: "Email",
-        tax: "Tax",
-        currencySign: "CurrencySign",
-        currencyValue: "CurrencyValue",
-        orderId: "OrderId",
-        createdAt: "Created at",
-        updatedAt: "Updated at",
-        createdAtRange: "Created at",
-        accountHolder: "Account Holder",
-        ibanNumber: "IBAN Number",
-        bankName: "Bank Name",
-        ifscCode: "IFSC Code",
 
-      },
-      enumerators: {
-        status: {
-          pending: "Pending",
-          completed: "Success",
-          canceled: "Canceled",
-        },
-      },
-      placeholders: {},
-      hints: {},
-      new: {
-        title: "New Transaction",
-      },
-      view: {
-        title: "View Transaction",
-      },
-      importer: {
-        title: "Import Transactions",
-        fileName: "transaction_import_template",
-        hint: "Files/Images columns must be the URLs of the files separated by space.",
-      },
-    },
 
 
   },

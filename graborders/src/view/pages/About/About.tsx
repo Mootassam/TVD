@@ -57,7 +57,7 @@ function About() {
       <style>{`
         /* About Container – matches login/profile containers */
         .about-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

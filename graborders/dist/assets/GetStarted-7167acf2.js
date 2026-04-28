@@ -16,7 +16,7 @@ import{i as o,k as e,L as c}from"./index-a8b69c34.js";function d(){const r=[{url
         .slider-container {
           position: relative;
           width: 100%;
-          max-width: 430px;
+          max-width: 400px;
           height: 100vh;
           overflow: hidden;
           margin: 0 auto;
@@ -147,7 +147,7 @@ import{i as o,k as e,L as c}from"./index-a8b69c34.js";function d(){const r=[{url
           transform: scale(1.2);
         }
 
-        @media (max-width: 430px) {
+        @media (max-width: 400px) {
           .slider-container {
             max-width: 100%;
           }

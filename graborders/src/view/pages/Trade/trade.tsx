@@ -1344,7 +1344,7 @@ function Trade() {
       <style>{`
         /* Trade Container – matches profile/wallet theme */
         .trade-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

@@ -183,7 +183,7 @@ function Signin() {
 
       <style>{`
         .login-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;
@@ -389,7 +389,7 @@ function Signin() {
         .modal-container-bottom {
           background-color: #1c1c1c;
           width: 100%;
-          max-width: 430px;
+          max-width: 400px;
           border-top-left-radius: 16px;
           border-top-right-radius: 16px;
           padding: 16px;

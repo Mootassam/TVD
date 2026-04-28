@@ -24,13 +24,12 @@ function TabBottomNavigator() {
       path: "/market",
       name: i18n("components.bottomNav.market"),
     },
-  
     {
-      icon: "fas fa-chart-bar",
+      icon: "fas fa-chart-bar",   // This will be ignored for the futures tab
       path: "/futures",
       name: i18n("components.bottomNav.trade"),
     },
-      {
+    {
       icon: "fas fa-history",
       path: "/history",
       name: i18n("components.bottomNav.history"),
@@ -44,16 +43,33 @@ function TabBottomNavigator() {
 
   return (
     <nav className="bottom-nav">
-      {tabs.map((item, index) => (
-        <Link
-          key={index}
-          to={item.path}
-          className={`nav-item ${isActive(item.path) ? "active" : ""}`}
-        >
-          <i className={item.icon}></i>
-          <span className="nav-label">{item.name}</span>
-        </Link>
-      ))}
+      {tabs.map((item, index) => {
+        const isFutures = item.path === "/futures";
+
+        return (
+          <Link
+            key={index}
+            to={item.path}
+            className={`nav-item ${isActive(item.path) ? "active" : ""} ${
+              isFutures ? "futures-tab" : ""
+            }`}
+          >
+            {/* Conditional rendering for the futures tab */}
+            {isFutures ? (
+              <img
+                src="/icons/logo.png"
+                alt="Futures"
+                className="futures-icon"
+              />
+            ) : (
+              <i className={item.icon}></i>
+            )}
+
+            {/* Remove the label only for the futures tab */}
+            {!isFutures && <span className="nav-label">{item.name}</span>}
+          </Link>
+        );
+      })}
 
       <style>{`
         .bottom-nav {
@@ -61,15 +77,13 @@ function TabBottomNavigator() {
           bottom: 0;
           left: 0;
           right: 0;
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
-          background-color: #1c1c1c;
-          border-top: 1px solid #2a2a2a;
+          background-color: #0f0f0f;
           display: flex;
           justify-content: space-around;
           align-items: center;
           padding: 6px 0 8px;
-          box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
           z-index: 100;
         }
 
@@ -83,6 +97,7 @@ function TabBottomNavigator() {
           transition: color 0.2s;
           padding: 4px 8px;
           border-radius: 8px;
+          gap: 1px;
         }
 
         .nav-item i {
@@ -98,14 +113,32 @@ function TabBottomNavigator() {
           color: #39FF14;
         }
 
+        /* Active background tint (optional) */
+        .nav-item.active {
+          background-color: rgba(57, 255, 20, 0.05);
+        }
+
         .nav-label {
           font-weight: 500;
           line-height: 1.2;
         }
 
-        /* Optional: add a subtle indicator for active tab */
-        .nav-item.active {
-          background-color: rgba(57, 255, 20, 0.05);
+        /* ----- Futures tab custom styles ----- */
+        .futures-tab {
+          /* Slightly raise the whole tab container (optional) */
+          margin-top: -21px;        /* Adjust to taste */
+        }
+
+        .futures-icon {
+              width: 53px;          /* control image size */
+          object-fit: contain;
+          transform: translateY(-8px);  /* pushes image a bit up relative to its own line */
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));  /* optional shadow for depth */
+        }
+
+        /* Remove default icon gap for the futures tab */
+        .futures-tab .nav-label {
+          display: none;            /* ensures no extra space from label */
         }
 
         /* Ensure container doesn't hide content behind it */

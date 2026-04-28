@@ -176,7 +176,7 @@ function Futures() {
   const [selectedCoin, setSelectedCoin] = useState("EURUSD");
   const [activeTab, setActiveTab] = useState<"openOrders" | "recentOrders">("openOrders");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tradeDirection, setTradeDirection] = useState<string | null>(null);
+  const [tradeDirection, setTradeDirection] = useState<"up" | "down" | null>(null);
   const [isCoinModalOpen, setIsCoinModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
@@ -462,7 +462,7 @@ function Futures() {
     setIsCoinModalOpen(false);
   }, []);
 
-  const handleOpenModal = useCallback((direction: string) => {
+  const handleOpenModal = useCallback((direction: "up" | "down") => {
     dispatch(assetsListAction.doFetch());
     setTradeDirection(direction);
     setIsModalOpen(true);
@@ -599,7 +599,6 @@ function Futures() {
         marketPrice={currentPrice?.toString() ?? "0"}
         availableBalance={USDBalance}
         setOpeningOrders={setOpeningOrders}
-        coinIcon={flagUrl}
       />
 
       <CoinSelectorSidebar
@@ -620,7 +619,7 @@ function Futures() {
         }
 
         .container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

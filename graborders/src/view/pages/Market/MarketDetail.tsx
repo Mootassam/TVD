@@ -3,6 +3,7 @@ import { useHistory, useParams } from "react-router-dom";
 import TradingViewChart from "./TradingViewChart";
 import { i18n } from "../../../i18n";
 import CoinSelectorSidebar from "src/view/shared/modals/CoinSelectorSidebar";
+import { Link } from "react-router-dom";
 
 // ----------------------------------------------------------------------
 // Types
@@ -470,9 +471,9 @@ function MarketDetail() {
       {/* Header */}
       <div className="header">
         <div className="nav-bar">
-          <div className="back-arrow" onClick={goBack}>
+          <Link className="back-arrow" to="/market" >
             <i className="fas fa-arrow-left"></i>
-          </div>
+          </Link>
           <div className="trading-pair" onClick={toggleCoinSelector}>
             {currentCoin.name}
             <i className={`fas fa-chevron-down dropdown-arrow ${showCoinSelector ? 'rotate' : ''}`}></i>
@@ -631,7 +632,7 @@ function MarketDetail() {
       {/* Styles – kept exactly as original */}
       <style>{`
         .market-detail-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

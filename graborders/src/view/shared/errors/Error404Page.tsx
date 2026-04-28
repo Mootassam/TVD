@@ -54,7 +54,7 @@ function Error404Page() {
       <style>{`
         /* Error Container – matches profile container */
         .error404-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

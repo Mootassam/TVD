@@ -418,7 +418,7 @@ import{i as a,O as J,S as ue,k as e,T as pe,N as me,j as r,u as T,w as ce,M as I
         }
 
         .container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;

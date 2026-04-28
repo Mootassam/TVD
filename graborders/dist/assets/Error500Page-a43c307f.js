@@ -1,7 +1,7 @@
 import{i as o,k as e,L as r}from"./index-a8b69c34.js";class t extends o.Component{render(){return e.jsxs("div",{className:"error-container",children:[e.jsx("div",{className:"header",children:e.jsx("div",{className:"nav-bar",children:e.jsx("div",{className:"page-title",children:"Server Error"})})}),e.jsx("div",{className:"content-card",children:e.jsxs("div",{className:"error-content",children:[e.jsxs("div",{className:"forex-animation",children:[e.jsx("div",{className:"dollar",children:e.jsx("i",{className:"fas fa-dollar-sign"})}),e.jsx("div",{className:"euro",children:e.jsx("i",{className:"fas fa-euro-sign"})}),e.jsx("div",{className:"pound",children:e.jsx("i",{className:"fas fa-pound-sign"})})]}),e.jsx("div",{className:"error-code",children:"500"}),e.jsx("div",{className:"error-title",children:"Internal Server Error"}),e.jsx("div",{className:"error-message",children:"Oops! Something went wrong on our end. Our team has been notified and is working to fix the issue."}),e.jsx(r,{to:"/",children:e.jsxs("button",{className:"home-button",children:[e.jsx("i",{className:"fas fa-home home-icon"}),"Back to Home"]})})]})}),e.jsx("style",{children:`
                     /* Error Container – matches profile container */
                     .error-container {
-                        max-width: 430px;
+                        max-width: 400px;
                         margin: 0 auto;
                         min-height: 100vh;
                         background-color: #0f0f0f;

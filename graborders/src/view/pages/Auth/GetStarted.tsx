@@ -149,7 +149,7 @@ function GetStarted() {
         .slider-container {
           position: relative;
           width: 100%;
-          max-width: 430px;
+          max-width: 400px;
           height: 100vh;
           overflow: hidden;
           margin: 0 auto;
@@ -280,7 +280,7 @@ function GetStarted() {
           transform: scale(1.2);
         }
 
-        @media (max-width: 430px) {
+        @media (max-width: 400px) {
           .slider-container {
             max-width: 100%;
           }

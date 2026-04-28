@@ -1,7 +1,7 @@
 import{k as e,j as o,L as r}from"./index-a8b69c34.js";function a(){return e.jsxs("div",{className:"error403-container",children:[e.jsx("div",{className:"header",children:e.jsx("div",{className:"nav-bar",children:e.jsx("div",{className:"page-title",children:"403 Error"})})}),e.jsx("div",{className:"content-card",children:e.jsxs("div",{className:"error403-content",children:[e.jsxs("div",{className:"crypto-animation",children:[e.jsx("div",{className:"crypto-icon bitcoin",children:e.jsx("i",{className:"fab fa-bitcoin"})}),e.jsx("div",{className:"crypto-icon ethereum",children:e.jsx("i",{className:"fab fa-ethereum"})}),e.jsx("div",{className:"crypto-icon altcoin",children:e.jsx("i",{className:"fas fa-coins"})})]}),e.jsx("div",{className:"error-icon",children:e.jsx("i",{className:"fas fa-exclamation-triangle"})}),e.jsx("h1",{className:"error-code",children:"403"}),e.jsx("h2",{className:"error-title",children:"Access Denied"}),e.jsx("p",{className:"error-message",children:o("errors.403")}),e.jsxs(r,{to:"/",className:"home-button",children:[e.jsx("i",{className:"fas fa-home"})," ",o("errors.backToHome")]})]})}),e.jsx("style",{children:`
         /* Container – matches the 404 design */
         .error403-container {
-          max-width: 430px;
+          max-width: 400px;
           margin: 0 auto;
           min-height: 100vh;
           background-color: #0f0f0f;
