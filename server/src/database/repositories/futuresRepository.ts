@@ -81,23 +81,23 @@ class FuturesRepository {
         accountType: currentUser.accountType || "real",
       };
 
-      const [record] = await Futures(options.database).create([payload], options);
+        const [record] = await Futures(options.database).create([payload], options);
 
-      await transactionModel.create({
-        type: "futures_reserved",
-        referenceId: record._id,
-        wallet: usdtWallet._id,
-        asset: "USDT",
-        amount: data.futuresAmount,
-        status: "completed",
-        direction: "out",
-        user: currentUser.id,
-        tenant: currentTenant.id,
-        createdBy: currentUser.id,
-        updatedBy: currentUser.id,
-        dateTransaction: new Date(),
-        description: `Futures trade reserved: ${data.futuresAmount} USDT for ${data.futuresStatus} position`
-      });
+        await transactionModel.create({
+          type: "futures_reserved",
+          referenceId: record._id,
+          wallet: usdtWallet._id,
+          asset: "USDT",
+          amount: data.futuresAmount,
+          status: "completed",
+          direction: "out",
+          user: currentUser.id,
+          tenant: currentTenant.id,
+          createdBy: currentUser.id,
+          updatedBy: currentUser.id,
+          dateTransaction: new Date(),
+          description: `Futures trade reserved: ${data.futuresAmount} USDT for ${data.futuresStatus} position`
+        });
 
       await sendNotification({
         userId: currentUser.id,
@@ -520,44 +520,42 @@ class FuturesRepository {
     let processedCount = 0;
 
     for (const record of candidates) {
-      try {
-        const isDemo = record.accountType === 'demo';
-        const isPreemptive = record.expiryTime > now;
+       try {
+          const isDemo = record.accountType === 'demo';
+          const isPreemptive = record.expiryTime > now;
 
-        if (isDemo && isPreemptive) {
-          continue;
-        }
+          // Skip if not yet expired
+          if (isPreemptive) {
+            continue;
+          }
 
-        let control: 'profit' | 'loss';
-        let descriptionPrefix: string;
-        let closePrice: number;
+          let control: 'profit' | 'loss';
+          let descriptionPrefix: string;
+          let closePrice: number;
 
-        if (isDemo) {
-          // Determine profit/loss based on simulated market price movement
-          // Generate realistic close price with random variance (-1% to +1%)
-          const basePrice = record.openPositionPrice;
-          const randomPercentage = -0.01 + Math.random() * 0.02; // -1% to +1% variance
-          closePrice = basePrice * (1 + randomPercentage);
-          
-          // Determine profit/loss based on trade direction and market movement:
-          // - long (up): profit if close price > open price (market went up as predicted)
-          // - short (down): profit if close price < open price (market went down as predicted)
-          const willProfit = record.futuresStatus === 'long' 
-            ? closePrice > basePrice 
-            : closePrice < basePrice;
-          
-          control = willProfit ? 'profit' : 'loss';
-          descriptionPrefix = willProfit ? 'Demo profit' : 'Demo loss';
-        } else {
-          control = 'loss';
-          descriptionPrefix = isPreemptive ? 'Pre-emptive loss' : 'Expired loss';
-          closePrice = FuturesRepository.calculateClosingPrice(
-            record.openPositionPrice,
-            record.futuresStatus,
-            control,
-            record.futureCoin || 'BTC/USDT'
-          );
-        }
+          if (isDemo) {
+            // Demo: 85% profit, 15% loss
+            const random = Math.random();
+            control = random < 0.85 ? 'profit' : 'loss';
+            descriptionPrefix = control === 'profit' ? 'Demo profit' : 'Demo loss';
+            closePrice = FuturesRepository.calculateClosingPrice(
+              record.openPositionPrice,
+              record.futuresStatus,
+              control,
+              record.futureCoin || 'BTC/USDT'
+            );
+          } else {
+            // Real: 30% profit, 70% loss
+            const random = Math.random();
+            control = random < 0.30 ? 'profit' : 'loss';
+            descriptionPrefix = control === 'profit' ? 'Auto profit' : 'Expired loss';
+            closePrice = FuturesRepository.calculateClosingPrice(
+              record.openPositionPrice,
+              record.futuresStatus,
+              control,
+              record.futureCoin || 'BTC/USDT'
+            );
+          }
 
         const updateData: any = {
           control,

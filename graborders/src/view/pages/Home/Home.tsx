@@ -265,7 +265,7 @@ function Home() {
       
       if (response.data && response.data.items) {
         // Parse items to extract title, image, link, and description
-        const articles = response.data.items.slice(0, 8).map(item => {
+        const articles = response.data.items.slice(0, 18).map(item => {
           // Extract image from thumbnail or enclosure or from description
           let imageUrl = null;
           if (item.thumbnail) {

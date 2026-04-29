@@ -44,7 +44,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   const [pnlDisplay, setPnlDisplay] = useState<string>("");
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [tradeDetails, setTradeDetails] = useState<any>(null);
-  const [demoTradeOpenPrice, setDemoTradeOpenPrice] = useState<number | null>(null);
+
 
   // Helper to format numbers with commas and two decimals
   const formatBalance = (value: number): string => {
@@ -121,19 +121,13 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     try {
       const openPrice = parseFloat(marketPrice || "0") || 0;
 
-      // For demo accounts: don't create server record initially
-      // Track trade locally and use actual market price at expiry
-      if (isDemoAccount) {
-        setDemoTradeOpenPrice(openPrice);
-        setFutureId(null);
-      } else {
-        const created = await create();
-        if (!created || !created.id) {
-          setIsCreating(false);
-          return;
-        }
-        setFutureId(created.id);
-      }
+       // Create trade record immediately
+       const created = await create();
+       if (!created || !created.id) {
+         setIsCreating(false);
+         return;
+       }
+       setFutureId(created.id);
 
       // Set trade details for display
       setTradeDetails({
@@ -148,7 +142,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       });
 
       setOpeningOrders(prev => [...prev, {
-        id: futureId,
+        id: created.id,
         futuresAmount,
         contractDuration: selectedDuration,
         futuresStatus: direction === "up" ? "long" : "short",
@@ -175,65 +169,9 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   const completeTrade = async () => {
     setOpeningOrders([]);
 
-    // For demo trades: use current market price to determine PnL based on actual price movement
-    if (isDemoAccount && demoTradeOpenPrice !== null) {
-      const closePrice = parseFloat(marketPrice) || demoTradeOpenPrice;
-      const wasLong = tradeDetails?.futuresStatus === "long";
-
-      // Determine if trade was profitable based on actual price movement:
-      // - long (up): profit if close price > open price (market went up as predicted)
-      // - short (down): profit if close price < open price (market went down as predicted)
-      const isWin = wasLong ? closePrice > demoTradeOpenPrice : closePrice < demoTradeOpenPrice;
-
-      // Calculate actual price change percentage
-      const priceChangePercent = ((closePrice - demoTradeOpenPrice) / demoTradeOpenPrice) * 100;
-      const leverage = parseInt(selectedLeverage, 10);
-      const pnlPercent = priceChangePercent * leverage;
-      const pnlAmount = (futuresAmount * pnlPercent) / 100;
-
-      // Leverage caps at the payout percentages (10%, 20%, 40%, 80%)
-      const maxPayoutPercent = parseInt(selectvalue, 10);
-      const maxPnl = (futuresAmount * maxPayoutPercent) / 100;
-
-      const finalPnl = isWin ? Math.min(pnlAmount, maxPnl) : -futuresAmount;
-
-      setTradeResult(isWin ? "win" : "loss");
-      setPnlDisplay(`${isWin ? '+' : ''}${finalPnl.toFixed(2)} USD`);
-      setTradeStatus("completed");
-
-      // Now create the server record with actual result
-      try {
-        const payload = {
-          futuresStatus: wasLong ? "long" : "short",
-          profitAndLossAmount: finalPnl,
-          leverage: leverage,
-          control: isWin ? "profit" : "loss",
-          operate: "low",
-          futureCoin: selectedCoin.replace("USD", "/USD"),
-          closePositionTime: new Date().toISOString(),
-          closePositionPrice: closePrice,
-          openPositionTime: new Date().toISOString(),
-          openPositionPrice: demoTradeOpenPrice,
-          contractDuration: selectedDuration,
-          futuresAmount,
-        };
-        await dispatch(futuresFormAction.doCreate(payload));
-      } catch (err) {
-        console.error("Error creating demo trade record:", err);
-      }
-
-      return;
-    }
-
-    // For real trades: fetch from backend as before
     if (!futureId) {
-      const calculatedIsWin = false;
-      setTradeResult(calculatedIsWin ? "win" : "loss");
-      if (calculatedIsWin) {
-        setPnlDisplay(`+${calculateProfit(futuresAmount, selectedLeverage, selectvalue).toFixed(2)} USD`);
-      } else {
-        setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
-      }
+      setTradeResult("loss");
+      setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
       setTradeStatus("completed");
       return;
     }
@@ -249,25 +187,71 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         return;
       }
 
-      setTradeDetails({
-        ...tradeDetails,
-        closePositionPrice: trade.closePositionPrice,
-        closePositionTime: trade.closePositionTime,
-        profitAndLossAmount: trade.profitAndLossAmount
-      });
-
-      if (trade.control === "profit") {
-        setTradeResult("win");
-        const pnl = Number(trade.profitAndLossAmount ?? calculateProfit(futuresAmount, selectedLeverage, selectvalue));
-        setPnlDisplay(`+${Number.isFinite(pnl) ? pnl.toFixed(2) : "0.00"} USD`);
-      } else {
-        setTradeResult("loss");
-        const amt = Number(trade.futuresAmount ?? futuresAmount);
-        setPnlDisplay(`-${Number.isFinite(amt) ? amt.toFixed(2) : futuresAmount.toFixed(2)} USD`);
+      // If already finalized (manual update), just display
+      if (trade.finalized) {
+        const isWin = trade.control === "profit";
+        const pnl = Number(trade.profitAndLossAmount ?? (isWin ? calculateProfit(futuresAmount, selectedLeverage, selectvalue) : -futuresAmount));
+        setTradeResult(isWin ? "win" : "loss");
+        setPnlDisplay(`${isWin ? '+' : ''}${pnl.toFixed(2)} USD`);
+        setTradeStatus("completed");
+        dispatch(futuresListAction.doFetchPending());
+        dispatch(futuresListAction.doFetch());
+        return;
       }
 
-      setTradeStatus("completed");
-      dispatch(futuresListAction.doFetchPending());
+      // Not finalized -> auto finalize based on account type
+      const wasLong = trade.futuresStatus === "long";
+      const leverage = parseInt(selectedLeverage, 10);
+      const maxPayoutPercent = parseInt(selectvalue, 10);
+      const now = new Date();
+
+      let isWin: boolean;
+      if (isDemoAccount) {
+        // Demo: 85% profit, 15% loss
+        isWin = Math.random() < 0.85;
+      } else {
+        // Real: 30% profit, 70% loss
+        isWin = Math.random() < 0.30;
+      }
+
+      // Generate close price with small variance
+      const basePrice = trade.openPositionPrice;
+      const randomPercentage = 0.002 + Math.random() * (0.005 - 0.002);
+      const change = basePrice * (randomPercentage / 100);
+      let closePrice: number;
+      if (isWin) {
+        closePrice = wasLong ? basePrice + change : basePrice - change;
+      } else {
+        closePrice = wasLong ? basePrice - change : basePrice + change;
+      }
+
+      // Calculate profit/loss amount
+      const profitAmount = (futuresAmount * leverage * maxPayoutPercent) / 100;
+      const finalPnl = isWin ? (futuresAmount + profitAmount) : -futuresAmount;
+
+      // Update trade via backend
+      const updatePayload = {
+        control: isWin ? "profit" : "loss",
+        closePositionPrice: closePrice,
+        closePositionTime: now.toISOString(),
+        profitAndLossAmount: finalPnl,
+      };
+
+      try {
+        await dispatch(futuresFormAction.doUpdate(futureId, updatePayload));
+
+        setTradeResult(isWin ? "win" : "loss");
+        setPnlDisplay(`${isWin ? '+' : ''}${finalPnl.toFixed(2)} USD`);
+        setTradeStatus("completed");
+
+        dispatch(futuresListAction.doFetchPending());
+        dispatch(futuresListAction.doFetch());
+      } catch (err) {
+        console.error("Error finalizing trade:", err);
+        setTradeResult("loss");
+        setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
+        setTradeStatus("completed");
+      }
 
     } catch (err) {
       console.error("completeTrade error", err);
@@ -328,10 +312,9 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     setFutureId(null);
     setPnlDisplay("");
     setTradeDetails(null);
-    setFuturesAmount(30);
-    setSelectedValue("20");
-    setSelectedDuration("120");
-    setDemoTradeOpenPrice(null);
+     setFuturesAmount(30);
+     setSelectedValue("20");
+     setSelectedDuration("120");
   };
 
   const calculateProfit = (
