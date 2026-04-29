@@ -595,7 +595,7 @@ class WalletRepository {
       plain.balanceFiat = balanceFiat;
       plain.fiat = fiat.toUpperCase();
 
-      totalFiat += balanceFiat;
+      totalFiat += amount;
 
       return plain;
     });

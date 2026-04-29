@@ -75,6 +75,7 @@ function Profile() {
   // Asset data
   const listAssets = useSelector(assetsListSelectors.selectRows);
   const selectTotalFiat = useSelector(assetsListSelectors.selectTotalFiat);
+  console.log("🚀 ~ Profile ~ selectTotalFiat:", selectTotalFiat)
   const loadingAssets = useSelector(assetsListSelectors.selectLoading);
 
   // State

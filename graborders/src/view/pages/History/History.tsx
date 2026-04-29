@@ -17,7 +17,7 @@ function History() {
     dispatch(transactionListActions.doFetch());
   }, [dispatch]);
 
-  // Enhanced transaction configuration
+  // Enhanced transaction configuration - now includes futures_reserved
   const getTransactionConfig = (type, direction, relatedAsset) => {
     const config = {
       icon: 'fa-exchange-alt',
@@ -42,6 +42,15 @@ function History() {
         config.iconClass = 'withdraw';
         config.color = '#FF6838';
         config.amountColor = '#FF6838';
+        break;
+
+      // New: futures_reserved
+      case 'futures_reserved':
+        config.icon = 'fa-lock';
+        config.typeText = i18n("pages.history.transactionTypes.futuresReserved") || "Futures Reserved";
+        config.iconClass = 'futures-reserved';
+        config.color = '#FF9800';       // orange to distinguish from pure withdrawal
+        config.amountColor = '#FFB74D'; // lighter orange
         break;
 
       case 'convert_in':
@@ -134,24 +143,31 @@ function History() {
     return config;
   };
 
-  // Filter transactions based on selected filters
+  // Filter transactions based on selected filters – UPDATED
   const filteredTransactions = useMemo(() => {
     if (!transaction) return [];
 
     return transaction.filter((tx) => {
-      // Apply type filter
-      if (typeFilter !== "all") {
-        const typeMatch =
-          typeFilter === "deposits" ? (tx.type === "deposit" || tx.direction === "in") :
-            typeFilter === "withdrawals" ? (tx.type === "withdraw" || tx.direction === "out") :
-              typeFilter === "profits" ? (tx.type.includes('profit') || (tx.direction === "in" && tx.type !== "deposit")) :
-                typeFilter === "losses" ? (tx.type.includes('loss') || (tx.direction === "out" && tx.type !== "withdraw")) :
-                  typeFilter === "conversions" ? tx.type.includes('convert') :
-                    typeFilter === "stacking" ? tx.type === "stacking" : true;
-        if (!typeMatch) return false;
-      }
+      if (typeFilter === "all") return true;
 
-      return true;
+      // Matching logic with clear rules
+      switch (typeFilter) {
+        case "deposits":
+          return tx.type === "deposit";
+        case "withdrawals":
+          // includes both manual withdrawals and futures reserved amounts
+          return tx.type === "withdraw" || tx.type === "futures_reserved";
+        case "profits":
+          return tx.type.includes('profit') || (tx.direction === "in" && tx.type !== "deposit");
+        case "losses":
+          return tx.type.includes('loss') || (tx.direction === "out" && tx.type !== "withdraw" && tx.type !== "futures_reserved");
+        case "conversions":
+          return tx.type.includes('convert');
+        case "stacking":
+          return tx.type === "stacking";
+        default:
+          return true;
+      }
     });
   }, [transaction, typeFilter]);
 
@@ -161,7 +177,6 @@ function History() {
     const now = new Date();
     const isToday = transactionDate.toDateString() === now.toDateString();
 
-    // Reset now date after checking today
     const yesterday = new Date(now);
     yesterday.setDate(now.getDate() - 1);
     const isYesterday = transactionDate.toDateString() === yesterday.toDateString();
@@ -188,9 +203,6 @@ function History() {
 
   return (
     <div className="history-container">
-      {/* Header Section - Matching Profile Page */}
-  
-
       {/* Content Card - Matching Profile Page */}
       <div className="content-card">
         <div className="history-content">
@@ -236,7 +248,6 @@ function History() {
                 >
                   {i18n("pages.history.filters.losses")}
                 </button>
-             
               </div>
 
               {/* Transaction List */}
@@ -287,7 +298,7 @@ function History() {
                 ) : (
                   <div className="no-data-message">
                     <i className="fas fa-receipt"></i>
-                    <p>No transaction history available</p>
+                    <p>{i18n("pages.history.noTransactions") || "No transaction history available"}</p>
                   </div>
                 )}
               </div>
@@ -307,30 +318,6 @@ function History() {
           display: flex;
           flex-direction: column;
           box-sizing: border-box;
-          color: #ffffff;
-        }
-
-        /* Header / Navigation */
-        .header {
-          padding: 16px 20px;
-          border-bottom: 1px solid #2a2a2a;
-        }
-        .nav-bar {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-        .back-arrow {
-          color: #ffffff;
-          font-size: 20px;
-          text-decoration: none;
-        }
-        .back-arrow:hover {
-          color: #39FF14;
-        }
-        .page-title {
-          font-size: 18px;
-          font-weight: 500;
           color: #ffffff;
         }
 
@@ -468,25 +455,6 @@ function History() {
           display: flex;
           flex-direction: column;
           gap: 16px;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 380px) {
-          .filter-option {
-            padding: 4px 10px;
-            font-size: 12px;
-          }
-          .transaction-item {
-            padding: 10px;
-          }
-          .transaction-icon {
-            width: 36px;
-            height: 36px;
-            font-size: 16px;
-          }
-          .amount {
-            font-size: 14px;
-          }
         }
       `}</style>
     </div>
