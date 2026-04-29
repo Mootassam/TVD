@@ -27,13 +27,13 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   selectedCoin,
   marketPrice,
   availableBalance,
-  setOpeningOrders,
-  isDemoAccount = false,
-}) => {
-  const [selectedDuration, setSelectedDuration] = useState<string>("120");
-  const [selectvalue, setSelectedValue] = useState<string>("20"); // Default payout percentage
-  const [selectedLeverage, setSelectedLeverage] = useState<string>("2");
-  const [futuresAmount, setFuturesAmount] = useState<number>(30);
+   setOpeningOrders,
+   isDemoAccount = false,
+ }) => {
+   const DEFAULT_LEVERAGE = 1;
+   const [selectedDuration, setSelectedDuration] = useState<string>("120");
+   const [selectvalue, setSelectedValue] = useState<string>("20"); // Default payout percentage
+   const [futuresAmount, setFuturesAmount] = useState<number>(30);
   const [tradeStatus, setTradeStatus] = useState<
     "configuring" | "in-progress" | "completed"
   >("configuring");
@@ -136,8 +136,8 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         futuresStatus: direction === "up" ? "long" : "short",
         openPositionPrice: openPrice,
         closePositionPrice: null,
-        leverage: parseInt(selectedLeverage, 10),
-        openPositionTime: new Date(),
+         leverage: DEFAULT_LEVERAGE,
+         openPositionTime: new Date(),
         closePositionTime: null
       });
 
@@ -148,7 +148,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         futuresStatus: direction === "up" ? "long" : "short",
         openPositionPrice: openPrice,
         closePositionPrice: null,
-        leverage: parseInt(selectedLeverage, 10),
+        leverage: DEFAULT_LEVERAGE,
         openPositionTime: new Date().toISOString(),
         closePositionTime: null
       }]);
@@ -190,7 +190,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       // If already finalized (manual update), just display
       if (trade.finalized) {
         const isWin = trade.control === "profit";
-        const pnl = Number(trade.profitAndLossAmount ?? (isWin ? calculateProfit(futuresAmount, selectedLeverage, selectvalue) : -futuresAmount));
+        const pnl = Number(trade.profitAndLossAmount ?? (isWin ? calculateProfit(futuresAmount, DEFAULT_LEVERAGE, selectvalue) : -futuresAmount));
         setTradeResult(isWin ? "win" : "loss");
         setPnlDisplay(`${isWin ? '+' : ''}${pnl.toFixed(2)} USD`);
         setTradeStatus("completed");
@@ -201,7 +201,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
 
       // Not finalized -> auto finalize based on account type
       const wasLong = trade.futuresStatus === "long";
-      const leverage = parseInt(selectedLeverage, 10);
+      const leverage = DEFAULT_LEVERAGE;
       const maxPayoutPercent = parseInt(selectvalue, 10);
       const now = new Date();
 
@@ -272,11 +272,11 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       closePrice = currentPrice * 1.05;
     }
 
-    const payload = {
-      futuresStatus: direction === "up" ? "long" : "short",
-      profitAndLossAmount: '',
-      leverage: parseInt(selectedLeverage, 10),
-      control: "loss",
+     const payload = {
+       futuresStatus: direction === "up" ? "long" : "short",
+       profitAndLossAmount: '',
+       leverage: DEFAULT_LEVERAGE,
+       control: "loss",
       operate: "low",
       futureCoin: selectedCoin.replace("USD", "/USD"),
       closePositionTime: '',
@@ -317,16 +317,16 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
      setSelectedDuration("120");
   };
 
-  const calculateProfit = (
-    amount: number,
-    leverage: string,
-    value: string
-  ): number => {
-    const validAmount = Number.isFinite(amount) ? amount : 0;
-    const validLeverage = parseInt(leverage, 10) || 0;
-    const validValue = parseInt(value, 10) || 0;
-    return (validAmount * validLeverage * validValue) / 100;
-  };
+   const calculateProfit = (
+     amount: number,
+     leverage: number | string,
+     value: string
+   ): number => {
+     const validAmount = Number.isFinite(amount) ? amount : 0;
+     const validLeverage = typeof leverage === 'number' ? leverage : parseInt(leverage, 10) || 0;
+     const validValue = parseInt(value, 10) || 0;
+     return (validAmount * validLeverage * validValue) / 100;
+   };
 
   const calculateProgress = (): number => {
     if (tradeStatus !== "in-progress") return 0;
@@ -475,25 +475,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                 </div>
               </div>
 
-              {/* Leverage Section */}
-              <div className="section">
-                <div className="section-title">
-                  <span>Leverage</span>
-                </div>
-                <div className="options-container">
-                  {["1", "2", "5", "10", "20"].map((leverage) => (
-                    <button
-                      key={leverage}
-                      className={`option-btn ${selectedLeverage === leverage ? "selected" : ""}`}
-                      onClick={() => setSelectedLeverage(leverage)}
-                    >
-                      {leverage}×
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Futures Amount Section */}
+               {/* Futures Amount Section */}
               <div className="section">
                 <div className="section-title">
                   <span>Futures Amount (USD)</span>
@@ -528,10 +510,10 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                 )}
               </div>
 
-              {/* Projected Profit */}
-              <div className="profit-info">
-                Projected Profit: {calculateProfit(futuresAmount, selectedLeverage, selectvalue).toFixed(2)} USD
-              </div>
+               {/* Projected Profit */}
+               <div className="profit-info">
+                 Projected Profit: {calculateProfit(futuresAmount, DEFAULT_LEVERAGE, selectvalue).toFixed(2)} USD
+               </div>
 
               {/* Confirm Button */}
               <button

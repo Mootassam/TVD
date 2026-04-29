@@ -189,119 +189,117 @@ class FuturesRepository {
     };
 
     try {
-      if (isControlUpdate) {
-        const selectedWallet = await walletModel.findOne({
-          user: record.createdBy,
-          symbol: "USDT",
-          tenant: currentTenant.id,
-          accountType: 'exchange'
-        });
+       if (isControlUpdate) {
+         const selectedWallet = await walletModel.findOne({
+           user: record.createdBy,
+           symbol: "USDT",
+           tenant: currentTenant.id,
+           accountType: 'exchange'
+         });
 
-        if (!selectedWallet) {
-          throw new Error400(options.language, "errors.usdtWalletNotFoundForUser", {
-            userId: record.createdBy
-          });
-        }
-
-        const profitAmount = calculateProfit(
-          record.futuresAmount,
-          record.leverage,
-          record.contractDuration
-        );
-
-        const lossAmount = record.futuresAmount;
-
-        let closePrice = data.closePositionPrice;
-        if (closePrice && closePrice > 100) {
-          throw new Error400(options.language, "errors.closingPriceExceedLimit");
-        }
-
-        if (!closePrice) {
-          closePrice = calculateClosingPrice(
-            record.openPositionPrice,
-            record.futuresStatus,
-            data.control,
-            record.futuresPair || "BTC/USDT"
-          );
-        }
-
-        const closeTime = data.closePositionTime || new Date();
-
-        let finalProfitLossAmount;
-        if (data.profitAndLossAmount !== undefined) {
-          finalProfitLossAmount = data.profitAndLossAmount;
-        } else {
-          finalProfitLossAmount = data.control === "profit"
-            ? (record.futuresAmount + profitAmount)
-            : -lossAmount;
-        }
-
-        if (data.control === "profit") {
-          if (!(profitAmount > 0)) {
-            throw new Error400(options.language, "errors.profitAmountInvalid");
+          if (!selectedWallet) {
+            throw new Error400(options.language, "errors.usdtWalletNotFoundForUser", {
+              userId: record.createdBy
+            });
           }
 
-          await walletModel.findOneAndUpdate(
-            { _id: selectedWallet._id, tenant: currentTenant.id, accountType: 'exchange' },
-            {
-              $inc: { amount: profitAmount + record.futuresAmount },
-              $set: { updatedBy: currentUser.id, updatedAt: new Date() },
-            },
-            { new: true }
-          );
-
-          await transactionModel.create({
-            type: "futures_profit",
-            referenceId: record._id,
-            wallet: selectedWallet._id,
-            asset: "USDT",
-            amount: profitAmount + record.futuresAmount,
-            status: "completed",
-            direction: "in",
-            user: record.createdBy,
-            tenant: currentTenant.id,
-            createdBy: currentUser.id,
-            updatedBy: currentUser.id,
-            dateTransaction: new Date(),
-            description: `Futures profit: ${profitAmount} USDT profit + ${record.futuresAmount} USDT returned`
-          });
-
-        } else {
-          if (!(lossAmount > 0)) {
-            throw new Error400(options.language, "errors.lossAmountInvalid");
+          let closePrice = data.closePositionPrice;
+          if (closePrice && closePrice > 100) {
+            throw new Error400(options.language, "errors.closingPriceExceedLimit");
           }
 
-          await transactionModel.create({
-            type: "futures_loss",
-            referenceId: record._id,
-            wallet: selectedWallet._id,
-            asset: "USDT",
-            amount: lossAmount,
-            status: "completed",
-            direction: "out",
-            user: record.createdBy,
-            tenant: currentTenant.id,
-            createdBy: currentUser.id,
-            updatedBy: currentUser.id,
-            dateTransaction: new Date(),
-            description: `Futures loss: ${lossAmount} USDT`
-          });
-        }
-
-        await FuturesModel.updateOne(
-          { _id: id, tenant: currentTenant.id, finalized: { $ne: true } },
-          {
-            $set: {
-              control: data.control,
-              finalized: true,
-              finalizedAt: new Date(),
-              updatedBy: currentUser.id,
-              profitAndLossAmount: finalProfitLossAmount,
-              closePositionPrice: closePrice,
-              closePositionTime: closeTime,
-            },
+          if (!closePrice) {
+            closePrice = calculateClosingPrice(
+              record.openPositionPrice,
+              record.futuresStatus,
+              data.control,
+              record.futuresPair || "BTC/USDT"
+            );
           }
-        );
+
+          const closeTime = data.closePositionTime || new Date();
+          const lossAmount = record.futuresAmount;
+
+          let finalProfitLossAmount;
+          if (data.profitAndLossAmount !== undefined) {
+            finalProfitLossAmount = data.profitAndLossAmount;
+          } else {
+            const profitAmount = FuturesRepository.calculateProfit(
+              record.futuresAmount,
+              record.leverage,
+              record.contractDuration
+            );
+            finalProfitLossAmount = data.control === "profit"
+              ? (record.futuresAmount + profitAmount)
+              : -lossAmount;
+          }
+
+          if (data.control === "profit") {
+           if (!(finalProfitLossAmount > record.futuresAmount)) {
+             throw new Error400(options.language, "errors.profitAmountInvalid");
+           }
+
+           await walletModel.findOneAndUpdate(
+             { _id: selectedWallet._id, tenant: currentTenant.id, accountType: 'exchange' },
+             {
+               $inc: { amount: finalProfitLossAmount },
+               $set: { updatedBy: currentUser.id, updatedAt: new Date() },
+             },
+             { new: true }
+           );
+
+           await transactionModel.create({
+             type: "futures_profit",
+             referenceId: record._id,
+             wallet: selectedWallet._id,
+             asset: "USDT",
+             amount: finalProfitLossAmount,
+             status: "completed",
+             direction: "in",
+             user: record.createdBy,
+             tenant: currentTenant.id,
+             createdBy: currentUser.id,
+             updatedBy: currentUser.id,
+             dateTransaction: new Date(),
+             description: `Futures profit: ${finalProfitLossAmount - record.futuresAmount} USDT profit + ${record.futuresAmount} USDT returned`
+           });
+
+         } else {
+           if (!(lossAmount > 0)) {
+             throw new Error400(options.language, "errors.lossAmountInvalid");
+           }
+
+           await transactionModel.create({
+             type: "futures_loss",
+             referenceId: record._id,
+             wallet: selectedWallet._id,
+             asset: "USDT",
+             amount: lossAmount,
+             status: "completed",
+             direction: "out",
+             user: record.createdBy,
+             tenant: currentTenant.id,
+             createdBy: currentUser.id,
+             updatedBy: currentUser.id,
+             dateTransaction: new Date(),
+             description: `Futures loss: ${lossAmount} USDT`
+           });
+         }
+
+         await FuturesModel.updateOne(
+           { _id: id, tenant: currentTenant.id, finalized: { $ne: true } },
+           {
+             $set: {
+               control: data.control,
+               finalized: true,
+               finalizedAt: new Date(),
+               updatedBy: currentUser.id,
+               profitAndLossAmount: finalProfitLossAmount,
+               closePositionPrice: closePrice,
+               closePositionTime: closeTime,
+             },
+           }
+         );
 
       } else {
         const updateData = { ...data, updatedBy: currentUser.id };

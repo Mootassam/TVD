@@ -15,6 +15,7 @@ import { formatDate } from 'src/view/shared/dates/formatDate';
 
 function FuturesListTable() {
   const [recordIdToDestroy, setRecordIdToDestroy] = useState(null);
+  const [rowLeverage, setRowLeverage] = useState<{ [key: string]: number }>({});
   const dispatch = useDispatch();
 
   const findLoading = useSelector(selectors.selectLoading);
@@ -53,9 +54,32 @@ function FuturesListTable() {
   const doToggleOneSelected = (id) =>
     dispatch(actions.doToggleOneSelected(id));
 
-  const formSubmit = (id, e) => {
-    let data = { control: e.target.value };
-    dispatch(actionsForm.doUpdate(id, data));
+  // Helper to calculate profit amount using same formula as backend
+  const calculateProfit = (amount: number, leverage: number, duration: string | number): number => {
+    const payoutMap: Record<string, number> = {
+      "60": 10,
+      "120": 20,
+      "180": 40,
+      "240": 80,
+    };
+    const durationStr = duration?.toString().trim();
+    const payoutPercent = payoutMap[durationStr];
+    if (!payoutPercent) return 0;
+    return (amount * leverage * payoutPercent) / 100;
+  };
+
+  const handleProfitLoss = (row, type: 'profit' | 'loss') => {
+    const leverage = rowLeverage[row.id] ?? 1;
+    let data: any = { control: type };
+
+    if (type === 'profit') {
+      const profitAmount = calculateProfit(row.futuresAmount, leverage, row.contractDuration);
+      data.profitAndLossAmount = row.futuresAmount + profitAmount;
+    } else {
+      data.profitAndLossAmount = -row.futuresAmount;
+    }
+
+    dispatch(actionsForm.doUpdate(row.id, data));
   };
 
   return (
@@ -247,27 +271,49 @@ function FuturesListTable() {
                   <td className="table-cell">
                     <UserListItem value={row.createdBy} />
                   </td>
-                  <td className="actions-cell">
-                    <div className="actions-container">
-                      {row.finalized ? (
-                        <span className={`badge__action ${row.control}`}>{row.control}</span>
-                      ) : (
-                        ['profit', 'loss'].map((status) => (
-                          <button
-                            key={status}
-                            type="button"
-                            className={`btn-action ${status === 'profit' ? 'edit' : 'delete'}`}
-                            onClick={() =>
-                              formSubmit(row.id, { target: { value: status } })
-                            }
-                          >
-                            {status}
-
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </td>
+                   <td className="actions-cell">
+                     <div className="actions-container">
+                       {row.finalized ? (
+                         <span className={`badge__action ${row.control}`}>{row.control}</span>
+                       ) : (
+                         <>
+                           <select
+                             value={rowLeverage[row.id] ?? 1}
+                             onChange={(e) => setRowLeverage(prev => ({ ...prev, [row.id]: Number(e.target.value) }))}
+                             className="leverage-select"
+                             style={{
+                               marginRight: '8px',
+                               padding: '4px 8px',
+                               background: '#1c1c1c',
+                               color: '#fff',
+                               border: '1px solid #444',
+                               borderRadius: '4px',
+                               minWidth: '70px',
+                               cursor: 'pointer'
+                             }}
+                           >
+                             {[1, 2, 5, 10, 20].map((lev) => (
+                               <option key={lev} value={lev}>{lev}x</option>
+                             ))}
+                           </select>
+                           <button
+                             type="button"
+                             className="btn-action edit"
+                             onClick={() => handleProfitLoss(row, 'profit')}
+                           >
+                             Profit
+                           </button>
+                           <button
+                             type="button"
+                             className="btn-action delete"
+                             onClick={() => handleProfitLoss(row, 'loss')}
+                           >
+                             Loss
+                           </button>
+                         </>
+                       )}
+                     </div>
+                   </td>
                 </tr>
               ))}
           </tbody>
