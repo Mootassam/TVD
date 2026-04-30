@@ -406,8 +406,11 @@ interface RawTicker {
   logo?: { logoid?: string };
 }
 
+// UPDATED: added routeSymbol for detail page (only the part after ":")
 interface MarketItem {
-  symbol: string;
+  symbol: string;        // display name, e.g. "BTC", "USDMXN", "GLD"
+  fullSymbol: string;    // original full code for WebSocket, e.g. "CRYPTO:BTCUSD", "FX_IDC:USDMXN"
+  routeSymbol: string;   // code after ":", e.g. "BTCUSD", "USDMXN", "GLD" – used in detail page URL
   price: number | null;
   changePercent: number | null;
   baseLogoId?: string;
@@ -461,17 +464,26 @@ function extractLogo(ticker: RawTicker): { baseLogoId?: string; currencyLogoId?:
   return {};
 }
 
-function parseResponse(data: any, categoryKey: string): MarketItem[] {
-  const columns = data?.data;
+// Helper to extract the part after the first colon
+function extractRouteSymbol(fullSymbol: string): string {
+  const idx = fullSymbol.indexOf(':');
+  return idx !== -1 ? fullSymbol.substring(idx + 1) : fullSymbol;
+}
+
+// CHANGED: accepts full response data (with .symbols) and computes routeSymbol
+function parseResponse(fullResponse: any, categoryKey: string): MarketItem[] {
+  const columns = fullResponse?.data;
   if (!columns || !Array.isArray(columns)) return [];
 
+  const symbols: string[] = fullResponse.symbols || [];   // the prefixed list
+
   let tickerColId = 'TickerUniversal';
-  const priceColId = 'Price';            // always present for these table_ids
+  const priceColId = 'Price';
   let changeColId = 'Change';
 
   if (categoryKey === 'crypto') {
     tickerColId = 'TickerInstrumentUniversal';
-    changeColId = 'ChangeCrypto';        // crypto uses a different change column
+    changeColId = 'ChangeCrypto';
   }
 
   const tickerCol = getColumnById(columns, tickerColId);
@@ -493,8 +505,13 @@ function parseResponse(data: any, categoryKey: string): MarketItem[] {
     const changePercent = changeCol ? changeCol.rawValues[i] ?? null : null;
     const logos = extractLogo(ticker);
 
+    const rawFull = symbols[i] || ticker.name;   // fallback to ticker name if no symbols array
+    const routeSymbol = extractRouteSymbol(rawFull);
+
     result.push({
-      symbol: ticker.name,
+      symbol: ticker.name,          // e.g. "BTC", "USDMXN"
+      fullSymbol: rawFull,          // e.g. "CRYPTO:BTCUSD"
+      routeSymbol: routeSymbol,     // e.g. "BTCUSD"
       price,
       changePercent,
       baseLogoId: logos.baseLogoId,
@@ -521,7 +538,7 @@ function useMarketData(category: MarketCategory) {
   const subscribedSymbolsRef = useRef<Set<string>>(new Set());
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Subscribe / unsubscribe helper
+  // Subscribe / unsubscribe helper – uses fullSymbol (with prefix)
   const subscribeSymbols = useCallback((symbols: string[]) => {
     const ws = wsRef.current;
     const session = sessionRef.current;
@@ -568,9 +585,9 @@ function useMarketData(category: MarketCategory) {
       ws.send(encode(JSON.stringify({ m: "quote_create_session", p: [session] })));
       ws.send(encode(JSON.stringify({ m: "quote_set_fields", p: [session, "ask", "bid", "lp"] })));
 
-      // If we already have items, subscribe to them
+      // Use fullSymbol for subscription
       if (items.length > 0) {
-        subscribeSymbols(items.map(item => item.symbol));
+        subscribeSymbols(items.map(item => item.fullSymbol));
       }
     };
 
@@ -586,11 +603,10 @@ function useMarketData(category: MarketCategory) {
           const json = JSON.parse(msg);
           if (json.m === "qsd") {
             const payload = json.p[1];
-            const symbol = extractSymbol(payload.n);
+            const symbol = extractSymbol(payload.n);  // this will be the prefixed symbol, e.g. "CRYPTO:BTCUSD"
             const values = payload.v;
             if (!values) return;
 
-            // Use last price if positive, else fall back to mid of ask/bid
             let price: number | null = null;
             if (typeof values.lp === 'number' && values.lp > 0) {
               price = values.lp;
@@ -632,16 +648,16 @@ function useMarketData(category: MarketCategory) {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // run once per mount (MarketList remounts on category change)
+  }, []);
 
-  // When items list changes, update subscriptions
+  // When items list changes, update subscriptions using fullSymbol
   useEffect(() => {
     if (items.length > 0) {
-      subscribeSymbols(items.map(item => item.symbol));
+      subscribeSymbols(items.map(item => item.fullSymbol));
     }
   }, [items, subscribeSymbols]);
 
-  // Fetch data
+  // Fetch data – now passes the full response to parseResponse
   const fetchData = useCallback(async (signal: AbortSignal) => {
     try {
       const response = await axios.post(
@@ -657,6 +673,7 @@ function useMarketData(category: MarketCategory) {
           headers: { 'Content-Type': 'application/json' },
         }
       );
+      // Pass the whole response.data (with symbols, data, totalCount, params)
       const parsed = parseResponse(response.data, category.key);
       setItems(parsed);
       setError(null);
@@ -681,9 +698,9 @@ function useMarketData(category: MarketCategory) {
 
   const refetch = useCallback(() => setRetryCount(c => c + 1), []);
 
-  // Enrich items with live price, only if live price exists and is valid
+  // Enrich items with live price; lookup by fullSymbol (prefixed)
   const enrichedItems = items.map(item => {
-    const livePrice = livePrices[item.symbol];
+    const livePrice = livePrices[item.fullSymbol];
     const displayPrice = (livePrice !== undefined && livePrice !== null && livePrice > 0)
       ? livePrice
       : item.price;
@@ -783,7 +800,7 @@ const LogoCell: React.FC<{ baseId?: string; quoteId?: string }> = ({ baseId, quo
 };
 
 // ----------------------------------------------------------------------
-// Row component
+// Row component – now uses routeSymbol for the detail link
 // ----------------------------------------------------------------------
 const MarketRow: React.FC<{ item: MarketItem & { currentPrice?: number | null }; isForex: boolean }> = ({ item, isForex }) => {
   const positive = (item.changePercent ?? 0) >= 0;
@@ -792,7 +809,7 @@ const MarketRow: React.FC<{ item: MarketItem & { currentPrice?: number | null };
   const displayPrice = item.currentPrice ?? item.price;
 
   return (
-    <Link to={`/market/detail/${item.symbol}`} className="row-link">
+    <Link to={`/market/detail/${item.routeSymbol}`} className="row-link">
       <div className="currency-row">
         <div className="left-section">
           <LogoCell baseId={item.baseLogoId} quoteId={item.currencyLogoId} />
