@@ -16,7 +16,7 @@ function PrivateRoute({ component: Component, currentTenant, currentUser, permis
         if (!permissionChecker.isAuthenticated) {
           return (
             <Redirect
-              to={{ pathname: "/get-started", state: { from: location } }}
+              to={{ pathname: "/auth/signin", state: { from: location } }}
             />
           );
         }

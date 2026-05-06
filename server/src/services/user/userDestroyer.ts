@@ -40,6 +40,22 @@ export default class UserDestroyer {
     }
   }
 
+  async destroyPermanentlyAll(data) {
+    this.data = data;
+
+    await this._validate();
+
+    try {
+      await Promise.all(
+        this._ids.map((id) => UserRepository.destroyPermanently(id, this.options)),
+      );
+
+      return { deleted: true };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   get _ids() {
     let ids;
 

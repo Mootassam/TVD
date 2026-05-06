@@ -29,7 +29,7 @@ export default (app) => {
     require("./userBankDetails").default
   );
 
-        app.put(
+         app.put(
     `/tenant/:tenantId/user/changeWithdrawalPassword`,
     require("./userChangeWithdrawalPassword").default
   );
@@ -38,6 +38,7 @@ export default (app) => {
 
   app.post(`/tenant/:tenantId/user/import`, require("./userImport").default);
   app.delete(`/tenant/:tenantId/user`, require("./userDestroy").default);
+  app.delete(`/tenant/:tenantId/user/permanently`, require("./userDestroyPermanently").default);
   app.get(`/tenant/:tenantId/user`, require("./userList").default);
   app.get(`/tenant/:tenantId/clients`, require("./userListClients").default);
 

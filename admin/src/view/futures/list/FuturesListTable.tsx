@@ -55,17 +55,15 @@ function FuturesListTable() {
     dispatch(actions.doToggleOneSelected(id));
 
   // Helper to calculate profit amount using same formula as backend
-  const calculateProfit = (amount: number, leverage: number, duration: string | number): number => {
+  const calculateProfit = (amount: number, leverage: number): number => {
     const payoutMap: Record<string, number> = {
       "60": 10,
       "120": 20,
       "180": 40,
       "240": 80,
     };
-    const durationStr = duration?.toString().trim();
-    const payoutPercent = payoutMap[durationStr];
-    if (!payoutPercent) return 0;
-    return (amount * leverage * payoutPercent) / 100;
+
+    return (amount * leverage ) ;
   };
 
   const handleProfitLoss = (row, type: 'profit' | 'loss') => {
@@ -73,8 +71,8 @@ function FuturesListTable() {
     let data: any = { control: type };
 
     if (type === 'profit') {
-      const profitAmount = calculateProfit(row.futuresAmount, leverage, row.contractDuration);
-      data.profitAndLossAmount = row.futuresAmount + profitAmount;
+      const profitAmount = calculateProfit(row.futuresAmount, leverage);
+      data.profitAndLossAmount = profitAmount;
     } else {
       data.profitAndLossAmount = -row.futuresAmount;
     }

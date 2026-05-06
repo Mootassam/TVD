@@ -25,6 +25,8 @@ function UserTable() {
   const LoadingTasksDone = useSelector(
     selectorTaskdone.selectLoading,
   );
+    const [recordIdToDestroyPermanently, setRecordIdToDestroyPermanently] =
+      useState(null);
   const loading = useSelector(selectors.selectLoading);
   const rows = useSelector(selectors.selectRows);
   const pagination = useSelector(
@@ -64,7 +66,7 @@ function UserTable() {
     dispatch(actions.doChangePagination(pagination));
   };
 
-    const paginationClient = (pagination) => {
+  const paginationClient = (pagination) => {
     dispatch(actions.doChangePaginationClient(pagination));
   };
 
@@ -88,6 +90,11 @@ function UserTable() {
   useEffect(() => { }, [dispatch, tasksdone]);
   const oneClick = async (id) => {
     await UserService.doOneClickLogin(id);
+  };
+
+   const doDestroyPermanently = (id) => {
+    setRecordIdToDestroyPermanently(null);
+    dispatch(actions.doDestroyPermanentlyClient(id));
   };
 
   return (
@@ -135,9 +142,9 @@ function UserTable() {
                     </span>
                   )}
                 </th>
-              
+
                 <th>Location</th>
-            
+
                 <th className="sortable-header">
                   {i18n('user.fields.status')}
                 </th>
@@ -190,27 +197,27 @@ function UserTable() {
                     <td className="table-cell">
                       {row.fullName}
                     </td>
-                 
+
                     <td>
                       {' '}
                       {row.ipAddress} <br /> {row.country}{' '}
                     </td>
-                  
+
                     <td className="table-cell">
                       <UserStatusView value={row.status} />
                     </td>
                     <td className="actions-cell">
                       <div className="actions-container">
-                  
-                 
-                          <Link
-                            className="btn btn-link"
-                            to={`/user/${row.id}`}
-                          >
-                            <i className="fas fa-eye"></i>
-                            
-                          </Link>
-                   
+
+
+                        <Link
+                          className="btn btn-link"
+                          to={`/user/${row.id}`}
+                        >
+                          <i className="fas fa-eye"></i>
+
+                        </Link>
+
 
                         <Link
                           className="btn btn-link"
@@ -225,7 +232,7 @@ function UserTable() {
                             to={`/user/${row.id}/edit`}
                           >
                             <i className="fas fa-edit"></i>
-                            
+
                           </Link>
                         )}
 
@@ -240,6 +247,21 @@ function UserTable() {
                             {i18n('common.freeze')}
                           </span>
                         </button>
+
+                        {hasPermissionToDestroy && (
+                          <button
+                            className="btn-action delete"
+                            style={{ backgroundColor: '#dc3545',  color:'white',  marginLeft: '5px' }}
+                            onClick={() =>
+                              setRecordIdToDestroyPermanently(row.id)
+                            }
+                          >
+                            <i className="fas fa-trash-alt"></i>
+                            <span>
+                              {i18n('common.deletePermanently')}
+                            </span>
+                          </button>
+                        )}
 
                       </div>
                     </td>
@@ -265,6 +287,17 @@ function UserTable() {
           onClose={() => setRecordIdToDestroy(null)}
           okText={i18n('common.yes')}
           cancelText={i18n('common.no')}
+        />
+      )}
+
+         {recordIdToDestroyPermanently && (
+        <ConfirmModal
+          title={i18n('common.areYouSureDeletePermanently')}
+          onConfirm={() => doDestroyPermanently(recordIdToDestroyPermanently)}
+          onClose={() => setRecordIdToDestroyPermanently(null)}
+          okText={i18n('common.yes')}
+          cancelText={i18n('common.no')}
+          okStyle="danger"
         />
       )}
       {!LoadingTasksDone && showTask && (

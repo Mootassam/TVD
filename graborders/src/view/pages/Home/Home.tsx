@@ -6,25 +6,27 @@ import axios from 'axios';
 function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentAnnouncementIndex, setCurrentAnnouncementIndex] = useState(0);
-  
+
   // Dynamic market data state
   const [marketData, setMarketData] = useState([]);
   const [loadingMarket, setLoadingMarket] = useState(true);
   const [marketError, setMarketError] = useState(null);
-  
+
   // News state
   const [newsArticles, setNewsArticles] = useState([]);
   const [loadingNews, setLoadingNews] = useState(true);
   const [newsError, setNewsError] = useState(null);
-  
+
   // Last update time for market data
   const [lastUpdate, setLastUpdate] = useState(null);
 
   const slides = [
-    'https://www.icmarkets.com/blog/wp-content/uploads/2017/12/Metal-trading.jpg',
-    'https://www.icmarkets.com/blog/wp-content/uploads/2025/09/Earning-report_1-1200x740.png',
-    'https://www.icmarkets.com/blog/wp-content/uploads/2018/03/pics-new19-01.png', 
-    'https://fxnewsgroup.com/wp-content/uploads/2022/09/ic_markets_ad-1024x503-978x400.jpg'
+    '/images/slides/forex2.png',
+    '/images/slides/gold.png',
+    '/images/slides/crypto.png',
+        '/images/slides/energy.png',
+    'https://www.icmarkets.com/blog/wp-content/uploads/2018/03/pics-new19-01.png',
+    '/images/slides/forex.png',
   ];
 
   const announcements = [
@@ -45,11 +47,11 @@ function Home() {
     try {
       const currencies = ['EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY'];
       const currencyQuery = currencies.join(',');
-      
+
       // Try primary API: ExchangeRate-API (free tier)
       let currentRates = null;
       let yesterdayRates = null;
-      
+
       try {
         const currentRes = await axios.get(
           `https://open.er-api.com/v6/latest/USD`,
@@ -70,7 +72,7 @@ function Home() {
       } catch (primaryError) {
         console.warn('Primary forex API failed, trying fallback:', primaryError.message);
       }
-      
+
       // Fallback: Frankfurter API
       if (!currentRates) {
         try {
@@ -83,7 +85,7 @@ function Home() {
           console.warn('Fallback API also failed:', fallbackError.message);
         }
       }
-      
+
       // Last resort: use static rates if APIs fail
       if (!currentRates) {
         currentRates = {
@@ -96,7 +98,7 @@ function Home() {
           CNY: 7.24
         };
       }
-      
+
       // Fetch yesterday's rates for change calculation
       const yesterday = getYesterdayDate();
       try {
@@ -120,40 +122,40 @@ function Home() {
         // If yesterday's data unavailable, use current as baseline
         yesterdayRates = currentRates;
       }
-      
+
       // Calculate derived prices and changes
       const eurRate = currentRates.EUR;
       const gbpRate = currentRates.GBP;
       const jpyRate = currentRates.JPY;
       const audRate = currentRates.AUD;
       const cadRate = currentRates.CAD;
-      
+
       const eurUsdPrice = 1 / eurRate;
       const gbpUsdPrice = 1 / gbpRate;
       const usdJpyPrice = jpyRate;
       const audUsdPrice = 1 / audRate;
       const usdCadPrice = cadRate;
-      
+
       // Yesterday prices
       const eurRateYest = yesterdayRates?.EUR || eurRate;
       const gbpRateYest = yesterdayRates?.GBP || gbpRate;
       const jpyRateYest = yesterdayRates?.JPY || jpyRate;
       const audRateYest = yesterdayRates?.AUD || audRate;
       const cadRateYest = yesterdayRates?.CAD || cadRate;
-      
+
       const eurUsdPriceYest = 1 / eurRateYest;
       const gbpUsdPriceYest = 1 / gbpRateYest;
       const usdJpyPriceYest = jpyRateYest;
       const audUsdPriceYest = 1 / audRateYest;
       const usdCadPriceYest = cadRateYest;
-      
+
       // Calculate percentage changes
       const calcChange = (current, previous) => {
         if (!previous || previous === 0) return '+0.00%';
         const change = ((current - previous) / previous) * 100;
         return `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
       };
-      
+
       // Build forex pairs dynamically
       const buildPair = (base, quote, rate, rateYest, decimals, spread) => {
         const price = base === 'USD' ? rate : 1 / rate;
@@ -167,31 +169,28 @@ function Home() {
           spread: spread
         };
       };
-      
+
       const forexPairs = [
         buildPair('USD', 'EUR', currentRates.EUR, yesterdayRates?.EUR || currentRates.EUR, 5, '0.1'),
         buildPair('USD', 'GBP', currentRates.GBP, yesterdayRates?.GBP || currentRates.GBP, 5, '0.2'),
         buildPair('USD', 'JPY', currentRates.JPY, yesterdayRates?.JPY || currentRates.JPY, 3, '0.3'),
-        buildPair('USD', 'AUD', currentRates.AUD, yesterdayRates?.AUD || currentRates.AUD, 5, '0.4'),
-        buildPair('USD', 'CAD', currentRates.CAD, yesterdayRates?.CAD || currentRates.CAD, 5, '0.3'),
-        buildPair('USD', 'CHF', currentRates.CHF, yesterdayRates?.CHF || currentRates.CHF, 5, '0.3'),
-        buildPair('USD', 'CNY', currentRates.CNY, yesterdayRates?.CNY || currentRates.CNY, 4, '0.5'),
+
       ];
-      
+
       return forexPairs;
     } catch (error) {
       console.error('Forex API error:', error);
       throw new Error('Failed to fetch forex rates');
     }
   };
-  
+
   // Fetch BTC price with multiple API fallbacks
   const fetchBTCPrice = async () => {
     try {
       // Try CoinGecko first
       let price = 0;
       let change24h = 0;
-      
+
       try {
         const response = await axios.get(
           'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',
@@ -202,7 +201,7 @@ function Home() {
       } catch (primaryError) {
         console.warn('CoinGecko API failed, trying fallback:', primaryError.message);
       }
-      
+
       // Fallback: Binance API for BTC price
       if (!price) {
         try {
@@ -219,7 +218,7 @@ function Home() {
           change24h = 2.5;
         }
       }
-      
+
       return {
         pair: 'BTC/USD',
         price: price.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
@@ -232,7 +231,7 @@ function Home() {
       throw new Error('Failed to fetch BTC price');
     }
   };
-  
+
   // Fetch all market data
   const fetchAllMarketData = useCallback(async () => {
     setLoadingMarket(true);
@@ -253,7 +252,7 @@ function Home() {
       setLoadingMarket(false);
     }
   }, []);
-  
+
   // Fetch news from Bloomberg RSS via rss2json (free, no key)
   const fetchNews = async () => {
     setLoadingNews(true);
@@ -262,7 +261,7 @@ function Home() {
       // Using rss2json to convert Bloomberg Markets RSS to JSON
       const rssUrl = 'https://feeds.bloomberg.com/markets/news.rss';
       const response = await axios.get(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
-      
+
       if (response.data && response.data.items) {
         // Parse items to extract title, image, link, and description
         const articles = response.data.items.slice(0, 18).map(item => {
@@ -283,7 +282,7 @@ function Home() {
           if (!imageUrl) {
             imageUrl = 'https://via.placeholder.com/300x160/1c1c1c/39FF14?text=Market+News';
           }
-          
+
           return {
             title: item.title || 'Market Update',
             link: item.link || '#',
@@ -304,7 +303,7 @@ function Home() {
       setLoadingNews(false);
     }
   };
-  
+
   // Auto slide
   useEffect(() => {
     const slideInterval = setInterval(() => {
@@ -312,7 +311,7 @@ function Home() {
     }, 3000);
     return () => clearInterval(slideInterval);
   }, [slides.length]);
-  
+
   // Auto announcement
   useEffect(() => {
     const announcementInterval = setInterval(() => {
@@ -320,41 +319,41 @@ function Home() {
     }, 4000);
     return () => clearInterval(announcementInterval);
   }, [announcements.length]);
-  
+
   // Initial data fetch and refresh interval
   useEffect(() => {
     fetchAllMarketData();
     fetchNews();
-    
+
     // Refresh market data every 30 seconds for real-time updates
     const marketInterval = setInterval(() => {
       fetchAllMarketData();
     }, 30000);
-    
+
     // Refresh news every 5 minutes
     const newsInterval = setInterval(() => {
       fetchNews();
     }, 300000);
-    
+
     return () => {
       clearInterval(marketInterval);
       clearInterval(newsInterval);
     };
   }, [fetchAllMarketData]);
-  
+
   const truncateText = (text, maxLength = 80) => {
     if (!text) return '';
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
   };
-  
+
   const features = [
     { icon: 'fas fa-bolt', title: i18n("pages.home.execution"), desc: i18n("pages.home.executionDesc") },
     { icon: 'fas fa-shield-alt', title: i18n("pages.home.secure"), desc: i18n("pages.home.secureDesc") },
     { icon: 'fas fa-chart-line', title: i18n("pages.home.spreads"), desc: i18n("pages.home.spreadsDesc") },
     { icon: 'fas fa-headset', title: i18n("pages.home.support"), desc: i18n("pages.home.supportDesc") },
   ];
-  
+
   return (
     <div className="home-container">
       {/* Header */}
@@ -368,12 +367,12 @@ function Home() {
           </Link>
         </div>
       </div>
-      
+
       {/* Hero Section */}
       <div className="hero-section">
         {/* Hero content can be added here if needed */}
       </div>
-      
+
       {/* Slideshow */}
       <div className="slideshow-section">
         <div className="section-title">{i18n("pages.home.promoTitle")}</div>
@@ -397,7 +396,7 @@ function Home() {
           </div>
         </div>
       </div>
-      
+
       {/* Announcements Ticker */}
       <div className="announcements-section">
         <div className="announcement-header">
@@ -408,7 +407,7 @@ function Home() {
           <p className="ticker-text">{truncateText(announcements[currentAnnouncementIndex])}</p>
         </div>
       </div>
-      
+
       {/* Market Overview - DYNAMIC REAL DATA */}
       <div className="market-section">
         <div className="section-header">
@@ -454,20 +453,18 @@ function Home() {
           </div>
         )}
       </div>
-      
+
       {/* NEWS SECTION - DYNAMIC FROM API */}
       <div className="news-section">
         <div className="section-header">
           <div className="section-title">
             <i className="fas fa-newspaper"></i> Market News
           </div>
-          <a href="https://www.bloomberg.com/markets" target="_blank" rel="noopener noreferrer" className="view-all-link">
-            Bloomberg <i className="fas fa-external-link-alt" />
-          </a>
+
         </div>
         {loadingNews ? (
           <div className="news-horizontal">
-            {[...Array(4)].map((_, i) => (
+            {[...Array(5)].map((_, i) => (
               <div key={i} className="news-card skeleton-news">
                 <div className="skeleton-image"></div>
                 <div className="skeleton-title"></div>
@@ -483,11 +480,11 @@ function Home() {
         ) : newsArticles.length > 0 ? (
           <div className="news-horizontal">
             {newsArticles.map((article, idx) => (
-              <a 
-                key={idx} 
-                href={article.link} 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <a
+                key={idx}
+                href={article.link}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="news-card"
               >
                 <div className="news-image">
@@ -505,7 +502,7 @@ function Home() {
           <div className="no-data-message">No news available at the moment.</div>
         )}
       </div>
-      
+
       {/* Features */}
       <div className="features-section">
         <div className="section-title">{i18n("pages.home.featuresTitle")}</div>
@@ -521,9 +518,9 @@ function Home() {
           ))}
         </div>
       </div>
-      
+
       {/* Floating CTA */}
-    
+
       <div className="stats-section">
         <div className="section-title">
           <i className="fas fa-chart-bar"></i> Platform Statistics
@@ -586,7 +583,7 @@ function Home() {
           </div>
         </div>
       </div>
-      
+
       <style>{`
         .home-container {
           max-width: 400px;
@@ -647,7 +644,7 @@ function Home() {
         .slideshow-container {
           position: relative;
           width: 100%;
-          height: 160px;
+          height: 202px;
           border-radius: 12px;
           overflow: hidden;
           background-color: #1c1c1c;
@@ -783,10 +780,13 @@ function Home() {
           padding: 0 20px 24px;
         }
         .news-horizontal {
-          display: flex;
-          gap: 16px;
-          overflow-x: auto;
-          padding-bottom: 8px;
+         display: grid;
+    grid-auto-columns: max-content;
+    flex-direction: column;
+    gap: 16px;
+    overflow-x: auto;
+    grid-template-columns: repeat(2, 1fr);
+    padding-bottom: 8px;
         }
         .news-horizontal::-webkit-scrollbar {
           height: 4px;

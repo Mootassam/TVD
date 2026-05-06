@@ -17,6 +17,10 @@ const ConfirmModal = (props) => {
     return props.onConfirm();
   };
 
+  const okButtonClass = props.okStyle === 'danger' 
+    ? "btn btn-danger btn-sm" 
+    : "btn btn-primary btn-sm";
+
   return ReactDOM.createPortal(
     <div ref={modalRef} className="modal" tabIndex={-1}>
       <div className="modal-dialog modal-sm">
@@ -42,7 +46,7 @@ const ConfirmModal = (props) => {
             <button
               type="button"
               onClick={onConfirm}
-              className="btn btn-primary btn-sm"
+              className={okButtonClass}
             >
               {props.okText}
             </button>

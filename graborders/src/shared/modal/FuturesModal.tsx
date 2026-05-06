@@ -468,7 +468,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                         className={`option-btn ${selectedDuration === option.duration ? "selected" : ""}`}
                         onClick={() => changeValues(option.duration, option.payout)}
                       >
-                        {option.duration}s ({option.payout}%)
+                        {option.duration}s 
                       </button>
                     )
                   )}
@@ -510,10 +510,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                 )}
               </div>
 
-               {/* Projected Profit */}
-               <div className="profit-info">
-                 Projected Profit: {calculateProfit(futuresAmount, DEFAULT_LEVERAGE, selectvalue).toFixed(2)} USD
-               </div>
+       
 
               {/* Confirm Button */}
               <button

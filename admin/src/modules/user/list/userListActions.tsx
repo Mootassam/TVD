@@ -301,6 +301,94 @@ const userListActions = {
     }
   },
 
+  doDestroyPermanently: (id) => async (dispatch, getState) => {
+    try {
+      dispatch({
+        type: userListActions.DESTROY_STARTED,
+      });
+
+      await UserService.destroyPermanently([id]);
+
+      dispatch({
+        type: userListActions.DESTROY_SUCCESS,
+      });
+
+      Message.success(i18n('user.doDestroyPermanentlySuccess'));
+
+      dispatch(userListActions.doFetchCurrentFilter());
+    } catch (error) {
+      Errors.handle(error);
+
+      dispatch({
+        type: userListActions.DESTROY_ERROR,
+      });
+
+      dispatch(userListActions.doFetchCurrentFilter());
+    }
+  },
+
+
+    doDestroyPermanentlyClient: (id) => async (dispatch, getState) => {
+    try {
+      dispatch({
+        type: userListActions.DESTROY_STARTED,
+      });
+
+      await UserService.destroyPermanently([id]);
+
+      dispatch({
+        type: userListActions.DESTROY_SUCCESS,
+      });
+
+      Message.success(i18n('user.doDestroyPermanentlySuccess'));
+
+      dispatch(userListActions.doFetchCurrentFilterClient());
+    } catch (error) {
+      Errors.handle(error);
+
+      dispatch({
+        type: userListActions.DESTROY_ERROR,
+      });
+
+      dispatch(userListActions.doFetchCurrentFilterClient());
+    }
+  },
+
+  doDestroyPermanentlyAllSelected:
+    () => async (dispatch, getState) => {
+      try {
+        const selectedRows = selectors.selectSelectedRows(
+          getState(),
+        );
+
+        dispatch({
+          type: userListActions.DESTROY_ALL_SELECTED_STARTED,
+        });
+
+        await UserService.destroyPermanently(
+          selectedRows.map((row) => row.id),
+        );
+
+        dispatch({
+          type: userListActions.DESTROY_ALL_SELECTED_SUCCESS,
+        });
+
+        Message.success(
+          i18n('user.doDestroyPermanentlyAllSelectedSuccess'),
+        );
+
+        dispatch(userListActions.doFetchCurrentFilter());
+      } catch (error) {
+        Errors.handle(error);
+
+        dispatch({
+          type: userListActions.DESTROY_ALL_SELECTED_ERROR,
+        });
+
+        dispatch(userListActions.doFetchCurrentFilter());
+      }
+    },
+
   depositCount: () => async (dispatch, getState) => {
     try {
       dispatch({

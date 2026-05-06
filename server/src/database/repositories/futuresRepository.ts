@@ -144,23 +144,15 @@ class FuturesRepository {
     const calculateProfit = (
       amount: number,
       leverage: number | string,
-      duration: string | number
+
     ): number => {
       const amountNum = Number(amount) || 0;
       const leverageNum = parseFloat(leverage?.toString() || "0");
-      const durationStr = duration?.toString().trim();
+      console.log("🚀 ~ FuturesRepository ~ calculateProfit ~ leverageNum:", leverageNum)
 
-      const payoutMap: Record<string, number> = {
-        "60": 10,
-        "120": 20,
-        "180": 40,
-        "240": 80,
-      };
 
-      const payoutPercent = payoutMap[durationStr];
-      if (!payoutPercent) return 0;
 
-      return (amountNum * leverageNum * payoutPercent) / 100;
+      return (amountNum * leverageNum ) / 100;
     };
 
     const calculateClosingPrice = (
@@ -227,7 +219,7 @@ class FuturesRepository {
             const profitAmount = FuturesRepository.calculateProfit(
               record.futuresAmount,
               record.leverage,
-              record.contractDuration
+    
             );
             finalProfitLossAmount = data.control === "profit"
               ? (record.futuresAmount + profitAmount)
@@ -235,7 +227,7 @@ class FuturesRepository {
           }
 
           if (data.control === "profit") {
-           if (!(finalProfitLossAmount > record.futuresAmount)) {
+           if (!(finalProfitLossAmount >= record.futuresAmount)) {
              throw new Error400(options.language, "errors.profitAmountInvalid");
            }
 
@@ -570,7 +562,7 @@ class FuturesRepository {
           const profitAmount = FuturesRepository.calculateProfit(
             record.futuresAmount,
             record.leverage,
-            record.contractDuration
+    
           );
           profitLossAmount = record.futuresAmount + profitAmount;
           updateData.profitAndLossAmount = profitLossAmount;
@@ -666,23 +658,11 @@ class FuturesRepository {
   static calculateProfit(
     amount: number,
     leverage: number | string,
-    duration: string | number
+
   ): number {
     const amountNum = Number(amount) || 0;
     const leverageNum = parseFloat(leverage?.toString() || "0");
-    const durationStr = duration?.toString().trim();
-
-    const payoutMap: Record<string, number> = {
-      "60": 10,
-      "120": 20,
-      "180": 40,
-      "240": 80,
-    };
-
-    const payoutPercent = payoutMap[durationStr];
-    if (!payoutPercent) return 0;
-
-    return (amountNum * leverageNum * payoutPercent) / 100;
+    return (amountNum * leverageNum ) / 100;
   }
 
   static async parseDurationToMs(duration: string | number | undefined) {

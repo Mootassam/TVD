@@ -20,8 +20,10 @@ const en = {
     no: 'No',
     pause: 'Pause',
     areYouSure: 'Are you sure?',
+    areYouSureDeletePermanently: 'Are you sure you want to permanently delete this user? This action cannot be undone and will remove all user data from all models (assets, records, futures, deposits, withdrawals, stackings, spots, transactions, wallets, notifications, KYC, votes, etc.).',
     view: 'View',
     destroy: 'Delete',
+    deletePermanently: 'Delete Permanently',
     mustSelectARow: 'Must select a row',
     start: 'Start',
     end: 'End',
@@ -3378,6 +3380,9 @@ const en = {
     doDestroySuccess: 'User successfully deleted',
     doDestroyAllSelectedSuccess:
       'Users successfully deleted',
+    doDestroyPermanentlySuccess: 'User permanently deleted',
+    doDestroyPermanentlyAllSelectedSuccess:
+      'Users permanently deleted',
     edit: {
       title: 'Edit User',
     },

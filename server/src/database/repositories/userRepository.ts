@@ -6,13 +6,13 @@ import MongooseQueryUtils from "../utils/mongooseQueryUtils";
 import FileRepository from "./fileRepository";
 import crypto from "crypto";
 import Error404 from "../../errors/Error404";
+import Plans from "../../security/plans";
 import SettingsRepository from "./settingsRepository";
 import { isUserInTenant } from "../utils/userTenantUtils";
 import { IRepositoryOptions } from "./IRepositoryOptions";
 import lodash from "lodash";
 
 import Vip from "../models/vip";
-
 import withdraw from "../models/withdraw";
 import deposit from "../models/deposit";
 import axios from "axios";
@@ -20,6 +20,21 @@ import { sendNotification } from "../../services/notificationServices";
 import kyc from "../models/kyc";
 import auditLog from "../models/auditLog";
 import Error400 from "../../errors/Error400";
+
+import futures from "../models/futures";
+import records from "../models/records";
+import stacking from "../models/stacking";
+import spot from "../models/spot";
+import wallet from "../models/wallet";
+import transaction from "../models/transaction";
+import Transfer from "../models/Transfer";
+import notification from "../models/notification";
+import userMessage from "../models/userMessage";
+import dons from "../models/dons";
+import produitCommande from "../models/produitCommande";
+import historiquePoints from "../models/historiquePoints";
+import votes from "../models/votes";
+import tenantUserRepository from "../repositories/tenantUserRepository";
 
 
 
@@ -1397,6 +1412,61 @@ export default class UserRepository {
 
   static async Destroy(id, options) {
     return User(options.database).deleteOne({ _id: id });
+  }
+
+  /**
+   * Permanently deletes a user and ALL related data from all models
+   * This removes all traces of the user from the database
+   */
+  static async destroyPermanently(id: string, options: IRepositoryOptions) {
+    const session = await MongooseRepository.createSession(options.database);
+
+    try {
+      // Delete all related records in parallel for efficiency
+      await Promise.all([
+        // Trading records
+        futures(options.database).deleteMany({ createdBy: id }),
+        records(options.database).deleteMany({ user: id }),
+        spot(options.database).deleteMany({ userAccount: id }),
+        stacking(options.database).deleteMany({ user: id }),
+
+        // Financial records
+        wallet(options.database).deleteMany({ user: id }),
+        transaction(options.database).deleteMany({ user: id }),
+        Transfer(options.database).deleteMany({ user: id }),
+        withdraw(options.database).deleteMany({ createdBy: id }),
+        deposit(options.database).deleteMany({ createdBy: id }),
+
+        // User related data
+        kyc(options.database).deleteMany({ user: id }),
+        notification(options.database).deleteMany({ userId: id }),
+        userMessage(options.database).deleteMany({ createdBy: id }),
+        dons(options.database).deleteMany({ adherent: id }),
+        produitCommande(options.database).deleteMany({ adherent: id }),
+        historiquePoints(options.database).deleteMany({ adherent: id }),
+        votes(options.database).deleteMany({ adherent: id }),
+
+        // Audit logs and references
+        auditLog(options.database).deleteMany({ user: id }),
+      ]);
+
+      // Delete tenant user relationship
+      await tenantUserRepository.destroy(
+        options.currentTenant.id,
+        id,
+        { ...options, session }
+      );
+
+      // Finally, delete the user itself
+      await User(options.database).deleteOne({ _id: id }).session(session);
+
+      await MongooseRepository.commitTransaction(session);
+
+      return { deleted: true };
+    } catch (error) {
+      await MongooseRepository.abortTransaction(session);
+      throw error;
+    }
   }
 
   /**

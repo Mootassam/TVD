@@ -18,6 +18,8 @@ function UserTable() {
   const dispatch = useDispatch();
   const [recordIdToDestroy, setRecordIdToDestroy] =
     useState(null);
+  const [recordIdToDestroyPermanently, setRecordIdToDestroyPermanently] =
+    useState(null);
   const [totalTask, setTotalTasks] = useState('');
   const tasksdone = useSelector(
     selectorTaskdone.selectCountRecord,
@@ -50,6 +52,11 @@ function UserTable() {
   const doDestroy = (id) => {
     setRecordIdToDestroy(null);
     dispatch(actions.doDestroy(id));
+  };
+
+  const doDestroyPermanently = (id) => {
+    setRecordIdToDestroyPermanently(null);
+    dispatch(actions.doDestroyPermanently(id));
   };
 
   const doChangeSort = (field) => {
@@ -197,38 +204,52 @@ function UserTable() {
                       <UserStatusView value={row?.tenants[0]?.status} />
                     </td>
                     <td className="actions-cell">
-                      <div className="actions-container">
-                
-                        {hasPermissionToEdit && (
-                          <Link
-                            className="btn btn-link"
-                            to={`/password-reset/${row.id}`}
-                          >
-                            <i className="fas fa-key"></i>
-                          </Link>
-                        )}
-                        {hasPermissionToEdit && (
-                          <Link
-                            className="btn btn-link"
-                            to={`/user/${row.id}/edit`}
-                          >
-                            <i className="fas fa-edit"></i>
-                          </Link>
-                        )}
-                        {hasPermissionToDestroy && (
-                          <button
-                            className="btn-action delete"
-                            onClick={() =>
-                              setRecordIdToDestroy(row.id)
-                            }
-                          >
-                            <i className="fas fa-lock"></i>
-                            <span>
-                              {i18n('common.freeze')}
-                            </span>
-                          </button>
-                        )}
-                      </div>
+<div className="actions-container">
+                 
+                         {hasPermissionToEdit && (
+                           <Link
+                             className="btn btn-link"
+                             to={`/password-reset/${row.id}`}
+                           >
+                             <i className="fas fa-key"></i>
+                           </Link>
+                         )}
+                         {hasPermissionToEdit && (
+                           <Link
+                             className="btn btn-link"
+                             to={`/user/${row.id}/edit`}
+                           >
+                             <i className="fas fa-edit"></i>
+                           </Link>
+                         )}
+                         {hasPermissionToDestroy && (
+                           <button
+                             className="btn-action delete"
+                             onClick={() =>
+                               setRecordIdToDestroy(row.id)
+                             }
+                           >
+                             <i className="fas fa-lock"></i>
+                             <span>
+                               {i18n('common.freeze')}
+                             </span>
+                           </button>
+                         )}
+                         {hasPermissionToDestroy && (
+                           <button
+                             className="btn-action delete"
+                             style={{ backgroundColor: '#dc3545', marginLeft: '5px' }}
+                             onClick={() =>
+                               setRecordIdToDestroyPermanently(row.id)
+                             }
+                           >
+                             <i className="fas fa-trash-alt"></i>
+                             <span>
+                               {i18n('common.deletePermanently')}
+                             </span>
+                           </button>
+                         )}
+                        </div>
                     </td>
                   </tr>
                 ))}
@@ -252,6 +273,16 @@ function UserTable() {
           onClose={() => setRecordIdToDestroy(null)}
           okText={i18n('common.yes')}
           cancelText={i18n('common.no')}
+        />
+      )}
+      {recordIdToDestroyPermanently && (
+        <ConfirmModal
+          title={i18n('common.areYouSureDeletePermanently')}
+          onConfirm={() => doDestroyPermanently(recordIdToDestroyPermanently)}
+          onClose={() => setRecordIdToDestroyPermanently(null)}
+          okText={i18n('common.yes')}
+          cancelText={i18n('common.no')}
+          okStyle="danger"
         />
       )}
       {!LoadingTasksDone && showTask && (
