@@ -128,7 +128,7 @@ function MarketDetail() {
       wsRef.current = null;
     }
 
-    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/socket.io/websocket`);
+    const ws = new WebSocket("wss://widgetdata.tradingview.com/socket.io/websocket");
     wsRef.current = ws;
 
     ws.onopen = () => {
