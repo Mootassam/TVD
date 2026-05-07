@@ -64,7 +64,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     if (!document.getElementById('tradingview-widget-script')) {
       const script = document.createElement('script');
       script.id = 'tradingview-widget-script';
-      script.src = 'https://s3.tradingview.com/tv.js';
+      script.src = '/tv-static/tv.js';
       script.async = true;
       document.head.appendChild(script);
     }

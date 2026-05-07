@@ -9,7 +9,7 @@
 
 
   <title>Icmarkets</title>
-  <script type="module" crossorigin src="/assets/index-6af00e78.js"></script>
+  <script type="module" crossorigin src="/assets/index-592c566e.js"></script>
   <link rel="stylesheet" href="/assets/index-6e6d7b8b.css">
 </head>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,18 +20,7 @@
   <div id="root"></div>
   
 
-<script>
-  (function() {
-    var OrigWS = window.WebSocket;
-    window.WebSocket = function(url, protocols) {
-      if (typeof url === "string" && (url.startsWith("wss://widgetdata.tradingview.com") || url.startsWith("ws://widgetdata.tradingview.com"))) {
-        url = url.replace(/^wss?:\/\/widgetdata\.tradingview\.com/, (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws");
-      }
-      return new OrigWS(url, protocols);
-    };
-    window.WebSocket.prototype = OrigWS.prototype;
-  })();
-</script>
+
 </body>
 
 </html>
