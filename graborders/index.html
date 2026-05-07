@@ -18,7 +18,18 @@
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 
-
+<script>
+  (function() {
+    var OrigWS = window.WebSocket;
+    window.WebSocket = function(url, protocols) {
+      if (typeof url === "string" && (url.startsWith("wss://widgetdata.tradingview.com") || url.startsWith("ws://widgetdata.tradingview.com"))) {
+        url = url.replace(/^wss?:\/\/widgetdata\.tradingview\.com/, (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws");
+      }
+      return new OrigWS(url, protocols);
+    };
+    window.WebSocket.prototype = OrigWS.prototype;
+  })();
+</script>
 </body>
 
 </html>
