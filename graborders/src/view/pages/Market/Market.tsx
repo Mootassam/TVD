@@ -574,8 +574,8 @@ function useMarketData(category: MarketCategory) {
 
     subscribedSymbolsRef.current = new Set();
     setLivePrices({});
-
-    const ws = new WebSocket("wss://widgetdata.tradingview.com/socket.io/websocket");
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(`${protocol}//${window.location.host}/ws/socket.io/websocket`);
     wsRef.current = ws;
 
     ws.onopen = () => {
