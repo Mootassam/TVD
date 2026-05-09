@@ -111,9 +111,11 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tradeStatus, timeLeft]);
 
+  const isPriceReady = parseFloat(marketPrice || "0") > 0;
+
   // Start the trade: create backend record then start timer
   const startTrade = async () => {
-    if (!direction || futuresAmount < 30 || futuresAmount > availableBalance) {
+    if (!direction || futuresAmount < 30 || futuresAmount > availableBalance || !isPriceReady) {
       return;
     }
 
@@ -513,16 +515,21 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
        
 
               {/* Confirm Button */}
+              {!isPriceReady && (
+                <div style={{ textAlign: "center", color: "#AAAAAA", fontSize: "13px", marginBottom: "10px" }}>
+                  ⏳ Waiting for live price...
+                </div>
+              )}
               <button
                 className="confirm-btn"
                 onClick={startTrade}
-                disabled={!direction || futuresAmount < 30 || futuresAmount > availableBalance || isCreating}
+                disabled={!direction || futuresAmount < 30 || futuresAmount > availableBalance || isCreating || !isPriceReady}
                 style={{
-                  opacity: !direction || futuresAmount < 30 || futuresAmount > availableBalance ? 0.5 : 1,
-                  cursor: !direction || futuresAmount < 30 || futuresAmount > availableBalance ? "not-allowed" : "pointer",
+                  opacity: !direction || futuresAmount < 30 || futuresAmount > availableBalance || !isPriceReady ? 0.5 : 1,
+                  cursor: !direction || futuresAmount < 30 || futuresAmount > availableBalance || !isPriceReady ? "not-allowed" : "pointer",
                 }}
               >
-                {isCreating ? "CREATING..." : futuresAmount > availableBalance ? "INSUFFICIENT BALANCE" : "CONFIRM ORDER"}
+                {isCreating ? "CREATING..." : !isPriceReady ? "PRICE LOADING..." : futuresAmount > availableBalance ? "INSUFFICIENT BALANCE" : "CONFIRM ORDER"}
               </button>
             </div>
           </>

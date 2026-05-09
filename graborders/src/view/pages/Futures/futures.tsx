@@ -310,7 +310,8 @@ function Futures() {
       wsRef.current = null;
     }
 
-    const ws = new WebSocket("wss://widgetdata.tradingview.com/socket.io/websocket");
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws/socket.io/websocket`);
     wsRef.current = ws;
 
     ws.onopen = () => {
