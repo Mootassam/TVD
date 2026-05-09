@@ -57,6 +57,43 @@ const getTvSymbol = (symbol: string): string => {
   return s;
 };
 
+// Helper to convert symbol to TradingView format
+const getTvSymbol = (symbol: string): string => {
+  const s = symbol.toUpperCase();
+  const cryptoSymbols = [
+    'BTCUSD','ETHUSD','XRPUSD','SOLUSD','ADAUSD','DOGEUSD','DOTUSD','AVAXUSD',
+    'LINKUSD','MATICUSD','UNIUSD','ATOMUSD','LTCUSD','BCHUSD','NEARUSD','ALGOUSD',
+    'VETUSD','FILUSD','THETAUSD','AXSUSD','SANDUSD','MANAUSD','ENJUSD','CHZUSD','APEUSD'
+  ];
+  if (cryptoSymbols.includes(s)) {
+    return `BINANCE:${s.replace('USD','')}USDT`;
+  }
+  const forexSymbols = [
+    'EURUSD','GBPUSD','USDJPY','AUDUSD','USDCAD','USDCHF','NZDUSD','EURGBP','EURJPY',
+    'GBPJPY','AUDJPY','EURAUD','GBPAUD','USDMXN','USDTRY','USDZAR','USDSGD','USDHKD',
+    'USDKRW','USDINR','EURCHF','EURNZD','GBPEUR','AUDNZD','CADJPY','CHFJPY','NZDJPY',
+    'SGDJPY','HKDJPY','ZARJPY'
+  ];
+  if (forexSymbols.includes(s)) {
+    return `FX:${s}`;
+  }
+  const commoditySymbols = [
+    'XAUUSD','XAGUSD','XPTUSD','XPDUSD','XAUEUR','XAGEUR','XPTEUR','XAUGBP','XAGGBP',
+    'USOIL','UKOIL','BRENT','WTI','CRUDE','NGAS','HEAT','GAS'
+  ];
+  if (commoditySymbols.includes(s)) {
+    return `OANDA:${s}`;
+  }
+  const indexSymbols = [
+    'US30','US500','NAS100','US2000','GER40','UK100','FRA40','EU50','JP225','HK50',
+    'AUS200','TWII','KR100','IN50','TECH100'
+  ];
+  if (indexSymbols.includes(s)) {
+    return `TVC:${s}`;
+  }
+  return s;
+};
+
 const currencyToCountry: Record<string, string> = {
   EUR: 'eu', USD: 'us', GBP: 'gb', JPY: 'jp', AUD: 'au', CAD: 'ca',
   CHF: 'ch', NZD: 'nz', MXN: 'mx', TRY: 'tr', ZAR: 'za', SGD: 'sg',
