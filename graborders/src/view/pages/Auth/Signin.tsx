@@ -153,6 +153,32 @@ function Signin() {
         <Link to="/auth/signup" className="bottom-text remove_blue">
           <p>Don't have an account?</p>
         </Link>
+
+        {/* ---------- NEW: Play Store Download Section ---------- */}
+        <div className="playstore-section">
+          <div className="playstore-divider">
+            <span className="divider-line"></span>
+            <span className="divider-text">Get the app</span>
+            <span className="divider-line"></span>
+          </div>
+
+          {/* External link to the actual Google Play Store */}
+          <Link
+            to="/playgoogle"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="playstore-badge"
+          >
+            <img
+              src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png?hl=fr"
+              alt="Get it on Google Play"
+              className="playstore-img"
+            />
+          </Link>
+
+
+        </div>
+        {/* ---------- END OF PLAY STORE SECTION ---------- */}
       </div>
 
       {/* Language Modal */}
@@ -379,6 +405,57 @@ function Signin() {
           border-radius: 4px;
           font-size: 14px;
         }
+
+        /* ---------- NEW PLAY STORE STYLES ---------- */
+        .playstore-section {
+          margin-top: 30px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .playstore-divider {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          width: 100%;
+          color: #777;
+          font-size: 13px;
+        }
+
+        .divider-line {
+          flex: 1;
+          height: 1px;
+          background: #2a2a2a;
+        }
+
+        .playstore-badge {
+          display: inline-block;
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .playstore-badge:hover {
+          transform: scale(1.05);
+          box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+          border-radius: 8px;
+        }
+
+        .playstore-img {
+          height: 65px;
+          display: block;
+        }
+
+        .playstore-link {
+          color: #39FF14;
+          font-size: 13px;
+          text-decoration: none;
+        }
+
+        .playstore-link:hover {
+          text-decoration: underline;
+        }
+        /* ---------- END OF PLAY STORE STYLES ---------- */
 
         /* Modal styles */
         .modal-overlay {

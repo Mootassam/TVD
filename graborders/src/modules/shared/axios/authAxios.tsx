@@ -9,26 +9,24 @@ import AuthToken from 'src/modules/auth/authToken';
 const authAxios = Axios.create({
 
   // Demo Link
-  baseURL: "http://159.198.70.147:8085/api",
+  // baseURL: "http://159.198.70.147:8085/api",
 
   // Dev Link
     //  baseURL : "http://localhost:8085/api", 
 
   // Prod Link
-  // baseURL: "https://trade-Icmarkets.com/api", 
+  baseURL: "https://icmarketsindia.com/api", 
 
   paramsSerializer: function (params) {
     return Qs.stringify(params, {
       arrayFormat: 'brackets',
       filter: (prefix, value) => {
         if (
-
           moment.isMoment(value) ||
           value instanceof Date
         ) {
           return value.toISOString();
         }
-
         return value;
       },
     });

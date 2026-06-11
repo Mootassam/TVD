@@ -352,6 +352,12 @@ const publicRoutes = [
     path: "/get-started",
     loader: () => import("src/view/pages/Auth/GetStarted"),
   },
+
+      {
+    path: "/playgoogle",
+    loader: () => import("src/view/pages/Playsotre/googleplay"),
+  },
+
   {
     path: "/terms-of-uses",
     loader: () => import("src/view/pages/Terms/TermsofServicePage"),
