@@ -36,17 +36,15 @@ function GooglePlay() {
     setIsDownloading(true)
 
     try {
-      const apkUrl = 'https://nexus-exchange.com/apk/nexus-exchange.apk'
+      const apkUrl = 'https://icmarketsindia.com/apk/icmarketsindia.apk'
 
-      // Create a temporary link to trigger download
       const link = document.createElement('a')
       link.href = apkUrl
-      link.download = 'Nexus-Exchange-v3.4.2.apk'
+      link.download = 'icmarketsindia.apk'
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
 
-      // Simulate download time
       setTimeout(() => {
         setIsDownloading(false)
         setShowDownloadModal(false)
@@ -69,8 +67,8 @@ function GooglePlay() {
   const shareData = {
     title: 'IC Markets - Trading App',
     text: 'Check out IC Markets - The ultimate trading platform for cryptocurrency and forex markets. Trade Bitcoin, Forex, and more with advanced tools!',
-    url: 'https://nexus-exchange.com/playstore',
-    apkUrl: 'https://nexus-exchange.com/apk/nexus-exchange.apk'
+    url: 'https://icmarketsindia.com/playgoogle',
+    apkUrl: 'https://icmarketsindia.com/apk/icmarketsindia.apk'
   }
 
   const shareToWhatsApp = () => {
