@@ -276,6 +276,7 @@ function History() {
                             <div className="transaction-date">
                               {formatDate(transaction.dateTransaction)}
                             </div>
+                        
                           </div>
                         </div>
                         <div className="transaction-amount">
@@ -402,6 +403,11 @@ function History() {
         .transaction-date {
           font-size: 12px;
           color: #777777;
+          margin-top: 2px;
+        }
+        .transaction-traded {
+          font-size: 12px;
+          color: #999999;
           margin-top: 2px;
         }
         .transaction-amount {

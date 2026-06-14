@@ -26,7 +26,6 @@ function Home() {
     '/images/slides/crypto.png',
         '/images/slides/energy.png',
     'https://www.icmarkets.com/blog/wp-content/uploads/2018/03/pics-new19-01.png',
-    '/images/slides/forex.png',
   ];
 
   const announcements = [
@@ -662,7 +661,7 @@ function Home() {
         .slide img {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          // object-fit: cover;
         }
         .slide-dots {
           position: absolute;

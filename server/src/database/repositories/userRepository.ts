@@ -1089,6 +1089,13 @@ export default class UserRepository {
       //   });
       // }
 
+      // 🆕 Filter by account type (real / demo)
+      if (filter.accountType) {
+        criteriaAnd.push({
+          ["accountType"]: filter.accountType,
+        });
+      }
+
       if (filter.invitationcode) {
         criteriaAnd.push({
           ["invitationcode"]: {

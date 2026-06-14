@@ -51,16 +51,29 @@ const MENU_ITEMS = [
     path: "/support",
     name: i18n("pages.profile.menu.helpcenter"),
   },
+
+  {
+    icon: "fas fa-link",
+    path: "/bind-account",
+    name: i18n("pages.profile.menu.BindAccount"),
+  },
   {
     icon: "fas fa-download",
     path: "/download",
     name: i18n("pages.profile.menu.downloadApp"),
   },
+
+
   {
     icon: "fas fa-trash-alt",
     name: i18n("pages.profile.menu.clearCache"),
     type: "action",
   },
+
+
+
+
+
 ];
 
 function Profile() {
@@ -268,9 +281,8 @@ function Profile() {
             onClick={item.modal === "language" ? openLanguageModal : undefined}
           >
             <div
-              className={`icon-container ${
-                item.icon.includes("language") ? "icon-green" : "icon-gray"
-              }`}
+              className={`icon-container ${item.icon.includes("language") ? "icon-green" : "icon-gray"
+                }`}
             >
               <i className={item.icon} />
             </div>
@@ -286,27 +298,26 @@ function Profile() {
       const menuItemContent = (
         <li className={`menu-item ${item.disabled ? "disabled" : ""}`}>
           <div
-            className={`icon-container ${
-              item.icon.includes("exchange-alt")
+            className={`icon-container ${item.icon.includes("exchange-alt")
                 ? "icon-green"
                 : item.icon.includes("cog")
-                ? "icon-gray"
-                : item.icon.includes("shield-alt")
-                ? "icon-blue"
-                : item.icon.includes("file-alt")
-                ? "icon-green"
-                : item.icon.includes("gift")
-                ? "icon-green"
-                : item.icon.includes("comment-dots")
-                ? "icon-blue"
-                : item.icon.includes("building")
-                ? "icon-green"
-                : item.icon.includes("question-circle")
-                ? "icon-gray"
-                : item.icon.includes("download")
-                ? "icon-green"
-                : "icon-gray"
-            }`}
+                  ? "icon-gray"
+                  : item.icon.includes("shield-alt")
+                    ? "icon-blue"
+                    : item.icon.includes("file-alt")
+                      ? "icon-green"
+                      : item.icon.includes("gift")
+                        ? "icon-green"
+                        : item.icon.includes("comment-dots")
+                          ? "icon-blue"
+                          : item.icon.includes("building")
+                            ? "icon-green"
+                            : item.icon.includes("question-circle")
+                              ? "icon-gray"
+                              : item.icon.includes("download")
+                                ? "icon-green"
+                                : "icon-gray"
+              }`}
           >
             <i className={item.icon} />
           </div>

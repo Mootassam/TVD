@@ -15,7 +15,7 @@ class FuturesRepository {
     const currentTenant = MongooseRepository.getCurrentTenant(options);
     const currentUser = MongooseRepository.getCurrentUser(options);
 
-    if (!data.futuresAmount || data.futuresAmount <= 200) {
+    if (!data.futuresAmount || data.futuresAmount < 200) {
       throw new Error400(options.language, "errors.amountConditions");
     }
 
@@ -210,23 +210,31 @@ class FuturesRepository {
           }
 
           const closeTime = data.closePositionTime || new Date();
-          const lossAmount = record.futuresAmount;
 
+          // The amount typed by the admin (profit to add, or loss to deduct).
+          // For profit it is the extra gain; for loss it is how much of the
+          // original stake the customer loses.
+          //
+          // finalProfitLossAmount -> what we credit back to the wallet (assets).
+          // netProfitLoss         -> what we store on the trade for the customer's
+          //                          history: only the profit (+) or the loss (-),
+          //                          NOT the returned stake.
           let finalProfitLossAmount;
-          if (data.profitAndLossAmount !== undefined) {
-            finalProfitLossAmount = data.profitAndLossAmount;
-          } else {
-            const profitAmount = FuturesRepository.calculateProfit(
-              record.futuresAmount,
-              record.leverage,
-    
-            );
-            finalProfitLossAmount = data.control === "profit"
-              ? (record.futuresAmount + profitAmount)
-              : -lossAmount;
-          }
+          let netProfitLoss;
 
           if (data.control === "profit") {
+           // Total credited back to the wallet = original stake + profit.
+           // The admin sends profitAndLossAmount already as (stake + profit).
+           if (data.profitAndLossAmount !== undefined) {
+             finalProfitLossAmount = data.profitAndLossAmount;
+           } else {
+             const profitAmount = FuturesRepository.calculateProfit(
+               record.futuresAmount,
+               record.leverage,
+             );
+             finalProfitLossAmount = record.futuresAmount + profitAmount;
+           }
+
            if (!(finalProfitLossAmount >= record.futuresAmount)) {
              throw new Error400(options.language, "errors.profitAmountInvalid");
            }
@@ -240,12 +248,16 @@ class FuturesRepository {
              { new: true }
            );
 
+           // Store only the profit gained (excluding the returned stake).
+           netProfitLoss = finalProfitLossAmount - record.futuresAmount;
+
            await transactionModel.create({
              type: "futures_profit",
              referenceId: record._id,
              wallet: selectedWallet._id,
              asset: "USDT",
-             amount: finalProfitLossAmount,
+             amount: netProfitLoss,
+             tradedAmount: record.futuresAmount,
              status: "completed",
              direction: "in",
              user: record.createdBy,
@@ -253,12 +265,35 @@ class FuturesRepository {
              createdBy: currentUser.id,
              updatedBy: currentUser.id,
              dateTransaction: new Date(),
-             description: `Futures profit: ${finalProfitLossAmount - record.futuresAmount} USDT profit + ${record.futuresAmount} USDT returned`
+             description: `Futures profit: ${netProfitLoss} USDT profit + ${record.futuresAmount} USDT returned`
            });
 
          } else {
-           if (!(lossAmount > 0)) {
+           // 🆕 Partial loss: the customer loses only the amount entered by the
+           // admin. The surviving portion of the original stake is returned to
+           // the wallet (the full stake was deducted when the trade was opened).
+           const lossMagnitude = data.profitAndLossAmount !== undefined
+             ? Math.abs(data.profitAndLossAmount)
+             : record.futuresAmount;
+
+           // Cannot lose more than what was staked.
+           const cappedLoss = Math.min(lossMagnitude, record.futuresAmount);
+           const returnAmount = record.futuresAmount - cappedLoss;
+
+           if (!(cappedLoss > 0)) {
              throw new Error400(options.language, "errors.lossAmountInvalid");
+           }
+
+           // Refund the part of the stake that was not lost.
+           if (returnAmount > 0) {
+             await walletModel.findOneAndUpdate(
+               { _id: selectedWallet._id, tenant: currentTenant.id, accountType: 'exchange' },
+               {
+                 $inc: { amount: returnAmount },
+                 $set: { updatedBy: currentUser.id, updatedAt: new Date() },
+               },
+               { new: true }
+             );
            }
 
            await transactionModel.create({
@@ -266,7 +301,8 @@ class FuturesRepository {
              referenceId: record._id,
              wallet: selectedWallet._id,
              asset: "USDT",
-             amount: lossAmount,
+             amount: cappedLoss,
+             tradedAmount: record.futuresAmount,
              status: "completed",
              direction: "out",
              user: record.createdBy,
@@ -274,8 +310,11 @@ class FuturesRepository {
              createdBy: currentUser.id,
              updatedBy: currentUser.id,
              dateTransaction: new Date(),
-             description: `Futures loss: ${lossAmount} USDT`
+             description: `Futures loss: ${cappedLoss} USDT lost, ${returnAmount} USDT returned`
            });
+
+           // Store only the amount lost (negative).
+           netProfitLoss = -cappedLoss;
          }
 
          await FuturesModel.updateOne(
@@ -286,7 +325,7 @@ class FuturesRepository {
                finalized: true,
                finalizedAt: new Date(),
                updatedBy: currentUser.id,
-               profitAndLossAmount: finalProfitLossAmount,
+               profitAndLossAmount: netProfitLoss,
                closePositionPrice: closePrice,
                closePositionTime: closeTime,
              },
@@ -556,19 +595,23 @@ class FuturesRepository {
           updatedBy: null
         };
 
-        let profitLossAmount: number;
+        // netAmount   -> the profit or loss magnitude (positive number).
+        // walletCredit -> amount returned to the wallet (stake was deducted on open).
+        let netAmount: number;
+        let walletCredit: number;
 
         if (control === 'profit') {
-          const profitAmount = FuturesRepository.calculateProfit(
-            record.futuresAmount,
-            record.leverage,
-    
-          );
-          profitLossAmount = record.futuresAmount + profitAmount;
-          updateData.profitAndLossAmount = profitLossAmount;
+          // Profit between 10% and 20% of the staked amount.
+          const profitPct = 0.10 + Math.random() * (0.20 - 0.10);
+          netAmount = record.futuresAmount * profitPct;
+          walletCredit = record.futuresAmount + netAmount; // stake + profit
+          updateData.profitAndLossAmount = netAmount;
         } else {
-          profitLossAmount = -record.futuresAmount;
-          updateData.profitAndLossAmount = profitLossAmount;
+          // Loss between 10% and 30% of the staked amount.
+          const lossPct = 0.10 + Math.random() * (0.30 - 0.10);
+          netAmount = record.futuresAmount * lossPct;
+          walletCredit = record.futuresAmount - netAmount; // refund the rest
+          updateData.profitAndLossAmount = -netAmount;
         }
 
         const updateResult = await FuturesModel.updateOne(
@@ -588,10 +631,11 @@ class FuturesRepository {
         });
 
         if (wallet) {
-          if (control === 'profit') {
+          // Return the stake + profit (profit) or the surviving stake (loss).
+          if (walletCredit > 0) {
             await WalletModel.updateOne(
               { _id: wallet._id },
-              { $inc: { amount: profitLossAmount } }
+              { $inc: { amount: walletCredit } }
             );
           }
 
@@ -600,19 +644,20 @@ class FuturesRepository {
             referenceId: record._id,
             wallet: wallet._id,
             asset: 'USDT',
-            amount: Math.abs(profitLossAmount),
+            amount: netAmount,
+            tradedAmount: record.futuresAmount,
             status: 'completed',
             direction: control === 'profit' ? 'in' : 'out',
             user: record.createdBy,
             tenant: record.tenant,
             dateTransaction: now,
-            description: `Futures ${control}: ${Math.abs(profitLossAmount)} USDT (${descriptionPrefix})`
+            description: `Futures ${control}: ${netAmount} USDT (${descriptionPrefix})`
           });
         }
 
         await sendNotification({
           userId: record.createdBy,
-          message: `Your futures trade has been closed with ${control === 'profit' ? 'a profit' : 'a loss'} of ${Math.abs(profitLossAmount)} USDT`,
+          message: `Your futures trade has been closed with ${control === 'profit' ? 'a profit' : 'a loss'} of ${netAmount} USDT`,
           type: "futures",
           options: {
             ...options,

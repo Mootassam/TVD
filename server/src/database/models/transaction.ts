@@ -85,10 +85,15 @@ export default (database) => {
         type: String,
       },
 
-      // ✅ Amount in that asset
+      // ✅ Amount in that asset (for trades this is the net profit/loss only)
       amount: {
         type: Number,
         required: true,
+      },
+
+      // ✅ Original amount the customer traded with (stake), for trade history
+      tradedAmount: {
+        type: Number,
       },
 
       // ✅ Status of transaction

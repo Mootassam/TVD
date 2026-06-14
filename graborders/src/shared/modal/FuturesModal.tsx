@@ -27,13 +27,13 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   selectedCoin,
   marketPrice,
   availableBalance,
-   setOpeningOrders,
-   isDemoAccount = false,
- }) => {
-   const DEFAULT_LEVERAGE = 1;
-   const [selectedDuration, setSelectedDuration] = useState<string>("120");
-   const [selectvalue, setSelectedValue] = useState<string>("20"); // Default payout percentage
-   const [futuresAmount, setFuturesAmount] = useState<number>(30);
+  setOpeningOrders,
+  isDemoAccount = false,
+}) => {
+  const DEFAULT_LEVERAGE = 1;
+  const [selectedDuration, setSelectedDuration] = useState<string>("120");
+  const [selectvalue, setSelectedValue] = useState<string>("20"); // Default payout percentage
+  const [futuresAmount, setFuturesAmount] = useState<number>(200);
   const [tradeStatus, setTradeStatus] = useState<
     "configuring" | "in-progress" | "completed"
   >("configuring");
@@ -79,8 +79,8 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
 
   // validate amount
   useEffect(() => {
-    if (futuresAmount < 30) {
-      setAmountError("Minimum amount is 30 USD");
+    if (futuresAmount < 200) {
+      setAmountError("Minimum amount is 200 USD");
     } else if (futuresAmount > availableBalance) {
       setAmountError("Insufficient balance");
     } else {
@@ -115,7 +115,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
 
   // Start the trade: create backend record then start timer
   const startTrade = async () => {
-    if (!direction || futuresAmount < 30 || futuresAmount > availableBalance || !isPriceReady) {
+    if (!direction || futuresAmount < 200 || futuresAmount > availableBalance || !isPriceReady) {
       return;
     }
 
@@ -123,13 +123,13 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     try {
       const openPrice = parseFloat(marketPrice || "0") || 0;
 
-       // Create trade record immediately
-       const created = await create();
-       if (!created || !created.id) {
-         setIsCreating(false);
-         return;
-       }
-       setFutureId(created.id);
+      // Create trade record immediately
+      const created = await create();
+      if (!created || !created.id) {
+        setIsCreating(false);
+        return;
+      }
+      setFutureId(created.id);
 
       // Set trade details for display
       setTradeDetails({
@@ -138,8 +138,8 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         futuresStatus: direction === "up" ? "long" : "short",
         openPositionPrice: openPrice,
         closePositionPrice: null,
-         leverage: DEFAULT_LEVERAGE,
-         openPositionTime: new Date(),
+        leverage: DEFAULT_LEVERAGE,
+        openPositionTime: new Date(),
         closePositionTime: null
       });
 
@@ -203,8 +203,6 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
 
       // Not finalized -> auto finalize based on account type
       const wasLong = trade.futuresStatus === "long";
-      const leverage = DEFAULT_LEVERAGE;
-      const maxPayoutPercent = parseInt(selectvalue, 10);
       const now = new Date();
 
       let isWin: boolean;
@@ -227,9 +225,22 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         closePrice = wasLong ? basePrice - change : basePrice + change;
       }
 
-      // Calculate profit/loss amount
-      const profitAmount = (futuresAmount * leverage * maxPayoutPercent) / 100;
-      const finalPnl = isWin ? (futuresAmount + profitAmount) : -futuresAmount;
+      // Net profit/loss magnitude (only the gain or loss, not the stake)
+      let netPnl: number;
+      if (isWin) {
+        // Profit between 10% and 20% of the traded amount
+        const profitPct = 0.10 + Math.random() * (0.20 - 0.10);
+        netPnl = futuresAmount * profitPct;
+      } else {
+        // Loss between 10% and 30% of the traded amount
+        const lossPct = 0.10 + Math.random() * (0.30 - 0.10);
+        netPnl = futuresAmount * lossPct;
+      }
+
+      // Amount sent to backend:
+      //  - profit: stake + profit (server returns the full stake plus profit)
+      //  - loss:   negative net loss (server refunds the surviving stake)
+      const finalPnl = isWin ? (futuresAmount + netPnl) : -netPnl;
 
       // Update trade via backend
       const updatePayload = {
@@ -243,7 +254,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         await dispatch(futuresFormAction.doUpdate(futureId, updatePayload));
 
         setTradeResult(isWin ? "win" : "loss");
-        setPnlDisplay(`${isWin ? '+' : ''}${finalPnl.toFixed(2)} USD`);
+        setPnlDisplay(`${isWin ? '+' : '-'}${netPnl.toFixed(2)} USD`);
         setTradeStatus("completed");
 
         dispatch(futuresListAction.doFetchPending());
@@ -274,11 +285,11 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       closePrice = currentPrice * 1.05;
     }
 
-     const payload = {
-       futuresStatus: direction === "up" ? "long" : "short",
-       profitAndLossAmount: '',
-       leverage: DEFAULT_LEVERAGE,
-       control: "loss",
+    const payload = {
+      futuresStatus: direction === "up" ? "long" : "short",
+      profitAndLossAmount: '',
+      leverage: DEFAULT_LEVERAGE,
+      control: "loss",
       operate: "low",
       futureCoin: selectedCoin.replace("USD", "/USD"),
       closePositionTime: '',
@@ -314,21 +325,21 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     setFutureId(null);
     setPnlDisplay("");
     setTradeDetails(null);
-     setFuturesAmount(30);
-     setSelectedValue("20");
-     setSelectedDuration("120");
+    setFuturesAmount(200);
+    setSelectedValue("20");
+    setSelectedDuration("120");
   };
 
-   const calculateProfit = (
-     amount: number,
-     leverage: number | string,
-     value: string
-   ): number => {
-     const validAmount = Number.isFinite(amount) ? amount : 0;
-     const validLeverage = typeof leverage === 'number' ? leverage : parseInt(leverage, 10) || 0;
-     const validValue = parseInt(value, 10) || 0;
-     return (validAmount * validLeverage * validValue) / 100;
-   };
+  const calculateProfit = (
+    amount: number,
+    leverage: number | string,
+    value: string
+  ): number => {
+    const validAmount = Number.isFinite(amount) ? amount : 0;
+    const validLeverage = typeof leverage === 'number' ? leverage : parseInt(leverage, 10) || 0;
+    const validValue = parseInt(value, 10) || 0;
+    return (validAmount * validLeverage * validValue) / 100;
+  };
 
   const calculateProgress = (): number => {
     if (tradeStatus !== "in-progress") return 0;
@@ -463,21 +474,26 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                   <span>Payout</span>
                 </div>
                 <div className="options-container">
-                  {[{ duration: "60", payout: "10" }, { duration: "120", payout: "20" }, { duration: "180", payout: "40" }, { duration: "240", payout: "80" }].map(
+                  {[{ duration: "60", payout: "10" },
+                  { duration: "120", payout: "20" },
+                  { duration: "240", payout: "40" },
+                  { duration: "300", payout: "80" },
+                  { duration: "360", payout: "160" },
+                  { duration: "420", payout: "320" }].map(
                     (option) => (
                       <button
                         key={option.duration}
                         className={`option-btn ${selectedDuration === option.duration ? "selected" : ""}`}
                         onClick={() => changeValues(option.duration, option.payout)}
                       >
-                        {option.duration}s 
+                        {option.duration}s
                       </button>
                     )
                   )}
                 </div>
               </div>
 
-               {/* Futures Amount Section */}
+              {/* Futures Amount Section */}
               <div className="section">
                 <div className="section-title">
                   <span>Futures Amount (USD)</span>
@@ -485,7 +501,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                 <div className="amount-control">
                   <button
                     className="amount-btn"
-                    onClick={() => setFuturesAmount((prev) => Math.max(1, prev - 1))}
+                    onClick={() => setFuturesAmount((prev) => Math.max(200, prev - 1))}
                   >
                     -
                   </button>
@@ -494,7 +510,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                     className="amount-inputs"
                     value={futuresAmount}
                     onChange={handleAmountChange}
-                    min="1"
+                    min="200"
                     placeholder="Enter amount"
                   />
                   <button className="amount-btn" onClick={() => setFuturesAmount((prev) => prev + 1)}>
@@ -512,7 +528,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                 )}
               </div>
 
-       
+
 
               {/* Confirm Button */}
               {!isPriceReady && (
@@ -523,10 +539,10 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
               <button
                 className="confirm-btn"
                 onClick={startTrade}
-                disabled={!direction || futuresAmount < 30 || futuresAmount > availableBalance || isCreating || !isPriceReady}
+                disabled={!direction || futuresAmount < 200 || futuresAmount > availableBalance || isCreating || !isPriceReady}
                 style={{
-                  opacity: !direction || futuresAmount < 30 || futuresAmount > availableBalance || !isPriceReady ? 0.5 : 1,
-                  cursor: !direction || futuresAmount < 30 || futuresAmount > availableBalance || !isPriceReady ? "not-allowed" : "pointer",
+                  opacity: !direction || futuresAmount < 200 || futuresAmount > availableBalance || !isPriceReady ? 0.5 : 1,
+                  cursor: !direction || futuresAmount < 200 || futuresAmount > availableBalance || !isPriceReady ? "not-allowed" : "pointer",
                 }}
               >
                 {isCreating ? "CREATING..." : !isPriceReady ? "PRICE LOADING..." : futuresAmount > availableBalance ? "INSUFFICIENT BALANCE" : "CONFIRM ORDER"}
@@ -536,7 +552,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         )}
       </div>
 
-    <style>{` 
+      <style>{` 
   .modal-overlay {
       position: fixed;
       top: 0;

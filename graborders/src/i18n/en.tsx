@@ -488,10 +488,12 @@ const en = {
         aboutUs: "Platform introduction",
         msbApproval: "MSB Approval",
         customerSupport: "Online service",
+        BindAccount: 'Bind Account',
         downloadApp: "Download",
         logout: "Sign Out",
         preferences: "Preferences",
-        clearCache: "Clear cache"
+        clearCache: "Clear cache",
+
       },
       cache: {
         clearing: "Clearing cache...",
@@ -1473,6 +1475,8 @@ const en = {
 
     history: {
       title: "Transaction History",
+      tradedAmount: "Traded",
+      noTransactions:"noTransactions",
       emptyState: {
         title: "No transactions found",
         description: "Try changing your filters to see more transactions"
@@ -1561,7 +1565,7 @@ const en = {
 
     withdraw: {
       title: "Withdraw",
-      message : "Your withdrawal request has been submitted successfully and is being processed. ",
+      message: "Your withdrawal request has been submitted successfully and is being processed. ",
       announcement: "The minimum withdrawal amount is $50. All withdrawals are processed within 30 minutes.",
       withdrawAmount: "Withdrawal Amount",
       withdrawPassword: "Withdraw Password",
@@ -1579,7 +1583,7 @@ const en = {
         crypto: "Cryptocurrency",
         bank: "Bank Transfer",
         cryptoNetworks: "TRC20 | ERC20",
-        bankNetworks: "IBAN | SWIFT"
+        bankNetworks: "Savings | Current"
       },
       status: {
         complete: "✓ Complete",
@@ -1722,7 +1726,7 @@ const en = {
       },
 
 
-      
+
       futures: {
         create: "Order successfully placed.",
         title: "Futures Trading Explained",
@@ -1768,7 +1772,7 @@ const en = {
       grap: "grap",
       records: "Records",
       starting: "Starting",
-      profile : "Profile"
+      profile: "Profile"
 
     },
 
@@ -2015,6 +2019,7 @@ const en = {
 
     transaction: {
       name: "transaction",
+      
       label: "Transactions",
       menu: "Transactions",
       exporterFileName: "transaction_export",
@@ -2040,6 +2045,10 @@ const en = {
       fields: {
         id: "Id",
         amountRange: "Amount",
+        accountHolder:"Account holder name",
+        ibanNumber:"Bank name and Branch name",
+        bankName:"Account number",
+        ifscCode:"IFSC code",
         amount: "Amount",
         email: "Email",
         tax: "Tax",
@@ -2178,7 +2187,7 @@ const en = {
       trade: "Trade",
       futures: "Futures",
       history: "history",
-      wallets: "Assets", 
+      wallets: "Assets",
       profile: "Profile"
     },
     coinListModal: {

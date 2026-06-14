@@ -110,7 +110,7 @@ const CustomModal = ({ visible, title, onClose, children }) => {
 const schema = yup.object().shape({
   amount: yupFormSchemas.integer(i18n("entities.transaction.fields.amount"), {
     required: true,
-    min: 50,
+    min: 10,
   }),
   withdrawPassword: yupFormSchemas.string(
     i18n("user.fields.withdrawPassword"),

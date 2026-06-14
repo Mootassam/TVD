@@ -15,11 +15,15 @@ import InputFormItem from 'src/view/shared/form/items/InputFormItem';
 import UserAutocompleteFormItem from 'src/view/user/autocomplete/UserAutocompleteFormItem';
 import SelectFormItem from 'src/view/shared/form/items/SelectFormItem';
 import assetEnumerators from 'src/modules/assets/assetsEnumerators';
+import userEnumerators from 'src/modules/user/userEnumerators';
 
 
 const schema = yup.object().shape({
   user: yupFilterSchemas.relationToOne(
     i18n('entities.transaction.fields.user'),
+  ),
+  userAccountType: yupFilterSchemas.enumerator(
+    i18n('user.fields.accountType'),
   ),
   // idnumber: yupFilterSchemas.decimal(
   //   i18n('entities.assets.fields.idnumber'),
@@ -30,6 +34,7 @@ const schema = yup.object().shape({
 
 const emptyValues = {
 user: null,
+  userAccountType: null,
   // levellimit: null,
 };
 
@@ -37,6 +42,11 @@ const previewRenders = {
  user: {
     label: i18n('entities.transaction.fields.user'),
     render: filterRenders.relationToOne(),
+  },
+  userAccountType: {
+    label: i18n('user.fields.accountType'),
+    render: (value) =>
+      value ? i18n(`user.accountType.${value}`) : null,
   },
   // idnumer: {
   //   label: i18n('entities.assets.fields.idnumer'),
@@ -126,7 +136,20 @@ function CouponsListFilter(props) {
                   />
                 </div>
 
-
+                <div className="col-lg-6 col-12">
+                  <SelectFormItem
+                    name={'userAccountType'}
+                    label={i18n('user.fields.accountType')}
+                    options={userEnumerators.accountType.map(
+                      (value) => ({
+                        value,
+                        label: i18n(
+                          `user.accountType.${value}`,
+                        ),
+                      }),
+                    )}
+                  />
+                </div>
 
                        {/* <div className="col-lg-6 col-12">
                   <SelectFormItem

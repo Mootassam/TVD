@@ -508,6 +508,17 @@ class WalletRepository {
         });
       }
 
+      // 🆕 Filter assets by the owning user's account type (real / demo)
+      if (filter.userAccountType) {
+        const matchingUsers = await User(options.database)
+          .find({ accountType: filter.userAccountType })
+          .select(["_id"]);
+
+        criteriaAnd.push({
+          user: { $in: matchingUsers.map((u) => u._id) },
+        });
+      }
+
       if (filter.idnumer) {
         criteriaAnd.push({
           idnumer: {

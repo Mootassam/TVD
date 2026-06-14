@@ -3296,6 +3296,7 @@ const en = {
       grab: 'Grab',
       withdraw: 'Withdraw',
       invitationcode: 'My code',
+      accountType: 'Account Type',
       withdrawPassword: 'withdraw Password',
       emails: 'Email(s)',
       fullName: 'Name',
@@ -3366,6 +3367,10 @@ const en = {
       invited: 'Invited',
       'empty-permissions': 'Waiting for Permissions',
       inactive: 'Inactive',
+    },
+    accountType: {
+      real: 'Real',
+      demo: 'Demo',
     },
     invite: 'Invite',
     validations: {

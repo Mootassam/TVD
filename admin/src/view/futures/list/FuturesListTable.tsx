@@ -15,7 +15,7 @@ import { formatDate } from 'src/view/shared/dates/formatDate';
 
 function FuturesListTable() {
   const [recordIdToDestroy, setRecordIdToDestroy] = useState(null);
-  const [rowLeverage, setRowLeverage] = useState<{ [key: string]: number }>({});
+  const [rowAmount, setRowAmount] = useState<{ [key: string]: number }>({});
   const dispatch = useDispatch();
 
   const findLoading = useSelector(selectors.selectLoading);
@@ -54,27 +54,21 @@ function FuturesListTable() {
   const doToggleOneSelected = (id) =>
     dispatch(actions.doToggleOneSelected(id));
 
-  // Helper to calculate profit amount using same formula as backend
-  const calculateProfit = (amount: number, leverage: number): number => {
-    const payoutMap: Record<string, number> = {
-      "60": 10,
-      "120": 20,
-      "180": 40,
-      "240": 80,
-    };
-
-    return (amount * leverage ) ;
-  };
-
   const handleProfitLoss = (row, type: 'profit' | 'loss') => {
-    const leverage = rowLeverage[row.id] ?? 1;
+    const amount = Number(rowAmount[row.id]) || 0;
+
+    if (!(amount > 0)) {
+      return;
+    }
+
     let data: any = { control: type };
 
     if (type === 'profit') {
-      const profitAmount = calculateProfit(row.futuresAmount, leverage);
-      data.profitAndLossAmount = profitAmount;
+      // Customer gets the full stake back plus the entered profit amount.
+      data.profitAndLossAmount = row.futuresAmount + amount;
     } else {
-      data.profitAndLossAmount = -row.futuresAmount;
+      // Customer loses only the entered amount from the stake.
+      data.profitAndLossAmount = -amount;
     }
 
     dispatch(actionsForm.doUpdate(row.id, data));
@@ -275,10 +269,13 @@ function FuturesListTable() {
                          <span className={`badge__action ${row.control}`}>{row.control}</span>
                        ) : (
                          <>
-                           <select
-                             value={rowLeverage[row.id] ?? 1}
-                             onChange={(e) => setRowLeverage(prev => ({ ...prev, [row.id]: Number(e.target.value) }))}
-                             className="leverage-select"
+                           <input
+                             type="number"
+                             min="0"
+                             value={rowAmount[row.id] ?? ''}
+                             onChange={(e) => setRowAmount(prev => ({ ...prev, [row.id]: Number(e.target.value) }))}
+                             placeholder="Amount"
+                             className="profit-loss-amount"
                              style={{
                                marginRight: '8px',
                                padding: '4px 8px',
@@ -286,14 +283,9 @@ function FuturesListTable() {
                                color: '#fff',
                                border: '1px solid #444',
                                borderRadius: '4px',
-                               minWidth: '70px',
-                               cursor: 'pointer'
+                               width: '90px'
                              }}
-                           >
-                             {[1, 2, 5, 10, 20].map((lev) => (
-                               <option key={lev} value={lev}>{lev}x</option>
-                             ))}
-                           </select>
+                           />
                            <button
                              type="button"
                              className="btn-action edit"

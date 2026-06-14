@@ -3,7 +3,9 @@
     "allow": [
       "Bash(Get-ChildItem -Path \"d:\\\\TVD\\\\graborders\" -Recurse -Depth 2)",
       "Bash(Select-Object FullName, PSIsContainer)",
-      "Bash(Format-Table -AutoSize)"
+      "Bash(Format-Table -AutoSize)",
+      "Bash(awk -F: '$1>3338 && $1<3500')",
+      "Bash(grep -n 'profitAndLossAmount\\\\|finalized\\\\|control\\\\|futuresAmount\\\\|$inc\\\\|amount' d:/TVD/server/src/database/repositories/futuresRepository.ts)"
     ]
   }
 }

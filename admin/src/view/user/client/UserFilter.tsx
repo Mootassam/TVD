@@ -37,6 +37,9 @@ const schema = yup.object().shape({
     i18n('Etat Civil'),
   ),
   status: yupFilterSchemas.enumerator(i18n('Status')),
+  accountType: yupFilterSchemas.enumerator(
+    i18n('user.fields.accountType'),
+  ),
   lien_facebook: yupFilterSchemas.string(
     i18n('Lien Facebook'),
   ),
@@ -48,6 +51,7 @@ const emptyValues = {
   email: null,
   role: null,
   status: null,
+  accountType: null,
 };
 
 const previewRenders = {
@@ -73,6 +77,12 @@ const previewRenders = {
   status: {
     label: i18n('user.fields.status'),
     render: filterRenders.enumerator('user.status'),
+  },
+
+  accountType: {
+    label: i18n('user.fields.accountType'),
+    render: (value) =>
+      value ? i18n(`user.accountType.${value}`) : null,
   },
 };
 
@@ -182,6 +192,20 @@ function UserFilter(props) {
                       (value) => ({
                         value,
                         label: i18n(`roles.${value}.label`),
+                      }),
+                    )}
+                  />
+                </div>
+                <div className="col-lg-6 col-12">
+                  <SelectFormItem
+                    name={'accountType'}
+                    label={i18n('user.fields.accountType')}
+                    options={userEnumerators.accountType.map(
+                      (value) => ({
+                        value,
+                        label: i18n(
+                          `user.accountType.${value}`,
+                        ),
                       }),
                     )}
                   />
