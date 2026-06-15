@@ -203,8 +203,8 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
 
       // Not finalized -> ask the server to finalize it. The SERVER decides the
       // win/loss outcome deterministically (demo ≈ 3 wins / 2 losses per 5 trades;
-      // real account: first 2 losses, then 3 wins), so we simply trigger the
-      // finalization and then display whatever result the server stored.
+      // real account: Loss, Loss, Profit, Loss, Loss per 5 trades), so we simply
+      // trigger the finalization and then display whatever result the server stored.
       const now = new Date();
       const updatePayload = {
         autoFinalize: true,
@@ -443,11 +443,14 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                   <span>Payout</span>
                 </div>
                 <div className="options-container">
-                  {[{ duration: "180", payout: "10" },
-                  { duration: "240", payout: "20" },
-                  { duration: "300", payout: "40" },
-                  { duration: "360", payout: "80" },
-                  { duration: "420", payout: "160" }].map(
+                  {(isDemoAccount
+                    ? [{ duration: "60", payout: "10" },
+                       { duration: "120", payout: "20" }]
+                    : [{ duration: "180", payout: "10" },
+                       { duration: "240", payout: "20" },
+                       { duration: "300", payout: "40" },
+                       { duration: "360", payout: "80" },
+                       { duration: "420", payout: "160" }]).map(
                     (option) => (
                       <button
                         key={option.duration}

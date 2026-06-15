@@ -233,7 +233,7 @@ const en = {
       },
 
       assetLabels: {
-        availableBalance: "Available balance",
+        availableBalance: "Available Balance",
         frozenAmount: "Frozen amount",
         valuation: "Valuation"
       },

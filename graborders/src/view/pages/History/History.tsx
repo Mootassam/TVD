@@ -155,8 +155,8 @@ function History() {
         case "deposits":
           return tx.type === "deposit";
         case "withdrawals":
-          // includes both manual withdrawals and futures reserved amounts
-          return tx.type === "withdraw" || tx.type === "futures_reserved";
+          // only manual withdrawals (futures reserved has its own filter)
+          return tx.type === "withdraw";
         case "futuresReserved":
           return tx.type === "futures_reserved";
         case "profits":

@@ -196,9 +196,9 @@ class FuturesRepository {
           }
 
           // For client-driven auto-finalization the SERVER decides the outcome
-          // deterministically (demo ≈ 3 win / 2 loss per 5; real: first 2 losses,
-          // then 3 wins). Admin manual finalization (no autoFinalize flag) keeps
-          // using the control / amount supplied in the request.
+          // deterministically (demo ≈ 3 win / 2 loss per 5; real: Loss, Loss,
+          // Profit, Loss, Loss per 5). Admin manual finalization (no autoFinalize
+          // flag) keeps using the control / amount supplied in the request.
           const isAutoFinalize = data.autoFinalize === true;
           let effectiveControl = data.control;
           let effectivePnlAmount = data.profitAndLossAmount;
@@ -561,7 +561,7 @@ class FuturesRepository {
    * (for the same account type), so the experience follows a fixed cadence:
    *
    *   - Demo: positions 0,1,2 -> profit, 3,4 -> loss   (≈ 3 wins / 2 losses per 5)
-   *   - Real: positions 0,1 -> loss, 2,3,4 -> profit   (user first sees 2 losses, then 3 wins)
+   *   - Real: position 2 -> profit, 0,1,3,4 -> loss     (Loss, Loss, Profit, Loss, Loss)
    */
   static decideAutoOutcome(
     finalizedCount: number,
@@ -571,7 +571,7 @@ class FuturesRepository {
     if (isDemo) {
       return pos < 3 ? "profit" : "loss";
     }
-    return pos < 2 ? "loss" : "profit";
+    return pos === 2 ? "profit" : "loss";
   }
 
   static async autoFinalizeExpired(options: IRepositoryOptions) {

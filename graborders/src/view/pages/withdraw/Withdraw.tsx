@@ -430,6 +430,7 @@ withdrawType: withdrawalMethod
                   <Link to="/bind-account" className="tip-link">
                     {i18n('pages.bindAccount.title')}
                   </Link>
+                  &nbsp;
                   {i18n('pages.withdraw.enableAllOptions')}
                 </span>
               </div>
