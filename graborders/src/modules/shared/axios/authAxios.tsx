@@ -12,10 +12,10 @@ const authAxios = Axios.create({
   // baseURL: "http://159.198.70.147:8085/api",
 
   // Dev Link
-    //  baseURL : "http://localhost:8085/api", 
+     baseURL : "http://localhost:8085/api", 
 
   // Prod Link
-  baseURL: "https://icmarketsindia.com/api", 
+  // baseURL: "https://icmarketsindia.com/api", 
 
   paramsSerializer: function (params) {
     return Qs.stringify(params, {

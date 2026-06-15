@@ -1352,6 +1352,7 @@ const ne = {
         all: "सबै",
         deposits: "जम्माहरू",
         withdrawals: "निकासीहरू",
+        futuresReserved: "फ्यूचर्स आरक्षित",
         profits: "नाफाहरू",
         losses: "नोक्सानहरू",
         conversions: "रूपान्तरणहरू",

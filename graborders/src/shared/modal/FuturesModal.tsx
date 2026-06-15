@@ -201,57 +201,26 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         return;
       }
 
-      // Not finalized -> auto finalize based on account type
-      const wasLong = trade.futuresStatus === "long";
+      // Not finalized -> ask the server to finalize it. The SERVER decides the
+      // win/loss outcome deterministically (demo ≈ 3 wins / 2 losses per 5 trades;
+      // real account: first 2 losses, then 3 wins), so we simply trigger the
+      // finalization and then display whatever result the server stored.
       const now = new Date();
-
-      let isWin: boolean;
-      if (isDemoAccount) {
-        // Demo: 85% profit, 15% loss
-        isWin = Math.random() < 0.85;
-      } else {
-        // Real: 30% profit, 70% loss
-        isWin = Math.random() < 0.30;
-      }
-
-      // Generate close price with small variance
-      const basePrice = trade.openPositionPrice;
-      const randomPercentage = 0.002 + Math.random() * (0.005 - 0.002);
-      const change = basePrice * (randomPercentage / 100);
-      let closePrice: number;
-      if (isWin) {
-        closePrice = wasLong ? basePrice + change : basePrice - change;
-      } else {
-        closePrice = wasLong ? basePrice - change : basePrice + change;
-      }
-
-      // Net profit/loss magnitude (only the gain or loss, not the stake)
-      let netPnl: number;
-      if (isWin) {
-        // Profit between 10% and 20% of the traded amount
-        const profitPct = 0.10 + Math.random() * (0.20 - 0.10);
-        netPnl = futuresAmount * profitPct;
-      } else {
-        // Loss between 10% and 30% of the traded amount
-        const lossPct = 0.10 + Math.random() * (0.30 - 0.10);
-        netPnl = futuresAmount * lossPct;
-      }
-
-      // Amount sent to backend:
-      //  - profit: stake + profit (server returns the full stake plus profit)
-      //  - loss:   negative net loss (server refunds the surviving stake)
-      const finalPnl = isWin ? (futuresAmount + netPnl) : -netPnl;
-
-      // Update trade via backend
       const updatePayload = {
-        control: isWin ? "profit" : "loss",
-        closePositionPrice: closePrice,
+        autoFinalize: true,
+        control: "loss", // placeholder; the server overrides this for auto-finalize
         closePositionTime: now.toISOString(),
-        profitAndLossAmount: finalPnl,
       };
 
       try {
         await dispatch(futuresFormAction.doUpdate(futureId, updatePayload));
+
+        // Read back the authoritative result decided by the server.
+        const finalizedResult = await dispatch(futuresViewActions.doFind(futureId));
+        const finalized = finalizedResult && finalizedResult.payload ? finalizedResult.payload : finalizedResult;
+
+        const isWin = finalized?.control === "profit";
+        const netPnl = Math.abs(Number(finalized?.profitAndLossAmount ?? 0));
 
         setTradeResult(isWin ? "win" : "loss");
         setPnlDisplay(`${isWin ? '+' : '-'}${netPnl.toFixed(2)} USD`);
@@ -474,12 +443,11 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                   <span>Payout</span>
                 </div>
                 <div className="options-container">
-                  {[{ duration: "60", payout: "10" },
-                  { duration: "120", payout: "20" },
-                  { duration: "240", payout: "40" },
-                  { duration: "300", payout: "80" },
-                  { duration: "360", payout: "160" },
-                  { duration: "420", payout: "320" }].map(
+                  {[{ duration: "180", payout: "10" },
+                  { duration: "240", payout: "20" },
+                  { duration: "300", payout: "40" },
+                  { duration: "360", payout: "80" },
+                  { duration: "420", payout: "160" }].map(
                     (option) => (
                       <button
                         key={option.duration}

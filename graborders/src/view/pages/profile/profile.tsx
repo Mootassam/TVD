@@ -24,12 +24,7 @@ const MENU_ITEMS = [
     name: i18n("pages.profile.menu.password"),
     requiresKyc: true,
   },
-  {
-    icon: "fas fa-file-alt",
-    path: "/transferAll",
-    name: i18n("pages.profile.menu.withdrawalAddress"),
-    requiresKyc: true,
-  },
+
   // --- New notification item ---
   {
     icon: "fas fa-bell",

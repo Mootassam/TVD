@@ -1325,6 +1325,7 @@ pages:{
             all: "Toutes",
             deposits: "Dépôts",
             withdrawals: "Retraits",
+            futuresReserved: "Futures Réservés",
             profits: "Profits",
             losses: "Pertes",
             conversions: "Conversions",

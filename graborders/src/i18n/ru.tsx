@@ -1554,6 +1554,7 @@ common: {
         all: "Все",
         deposits: "Депозиты",
         withdrawals: "Выводы",
+        futuresReserved: "Фьючерсы (резерв)",
         profits: "Прибыли",
         losses: "Убытки",
         conversions: "Конвертации",

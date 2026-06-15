@@ -1330,7 +1330,7 @@ const ptBR = {
     },
     enterprise: {
       label: 'Enterprise',
-      price: '$50',
+      price: '$10',
     },
 
     pricingPeriod: '/mês',

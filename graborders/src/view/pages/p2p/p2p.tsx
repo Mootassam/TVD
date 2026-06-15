@@ -104,7 +104,7 @@ function p2p() {
             </div>
           </div>
           <div className="trade-action">
-            <div className="trade-limits">Limit: $50 - $2,400</div>
+            <div className="trade-limits">Limit: $10 - $2,400</div>
             <button className="trade-button">Buy USD</button>
           </div>
         </div>

@@ -195,8 +195,37 @@ class FuturesRepository {
             });
           }
 
-          let closePrice = data.closePositionPrice;
-          if (closePrice && closePrice > 100) {
+          // For client-driven auto-finalization the SERVER decides the outcome
+          // deterministically (demo ≈ 3 win / 2 loss per 5; real: first 2 losses,
+          // then 3 wins). Admin manual finalization (no autoFinalize flag) keeps
+          // using the control / amount supplied in the request.
+          const isAutoFinalize = data.autoFinalize === true;
+          let effectiveControl = data.control;
+          let effectivePnlAmount = data.profitAndLossAmount;
+
+          if (isAutoFinalize) {
+            const isDemoAcc = record.accountType === 'demo';
+            const finalizedCount = await FuturesModel.countDocuments({
+              createdBy: record.createdBy,
+              tenant: currentTenant.id,
+              accountType: isDemoAcc ? 'demo' : { $ne: 'demo' },
+              finalized: true,
+            });
+
+            effectiveControl = FuturesRepository.decideAutoOutcome(finalizedCount, isDemoAcc);
+
+            // Server-authoritative profit/loss magnitude.
+            if (effectiveControl === "profit") {
+              const profitPct = 0.10 + Math.random() * (0.20 - 0.10);
+              effectivePnlAmount = record.futuresAmount + record.futuresAmount * profitPct; // stake + profit
+            } else {
+              const lossPct = 0.10 + Math.random() * (0.30 - 0.10);
+              effectivePnlAmount = -(record.futuresAmount * lossPct); // negative net loss
+            }
+          }
+
+          let closePrice = isAutoFinalize ? undefined : data.closePositionPrice;
+          if (!isAutoFinalize && closePrice && closePrice > 100) {
             throw new Error400(options.language, "errors.closingPriceExceedLimit");
           }
 
@@ -204,7 +233,7 @@ class FuturesRepository {
             closePrice = calculateClosingPrice(
               record.openPositionPrice,
               record.futuresStatus,
-              data.control,
+              effectiveControl,
               record.futuresPair || "BTC/USDT"
             );
           }
@@ -222,11 +251,11 @@ class FuturesRepository {
           let finalProfitLossAmount;
           let netProfitLoss;
 
-          if (data.control === "profit") {
+          if (effectiveControl === "profit") {
            // Total credited back to the wallet = original stake + profit.
            // The admin sends profitAndLossAmount already as (stake + profit).
-           if (data.profitAndLossAmount !== undefined) {
-             finalProfitLossAmount = data.profitAndLossAmount;
+           if (effectivePnlAmount !== undefined) {
+             finalProfitLossAmount = effectivePnlAmount;
            } else {
              const profitAmount = FuturesRepository.calculateProfit(
                record.futuresAmount,
@@ -272,8 +301,8 @@ class FuturesRepository {
            // 🆕 Partial loss: the customer loses only the amount entered by the
            // admin. The surviving portion of the original stake is returned to
            // the wallet (the full stake was deducted when the trade was opened).
-           const lossMagnitude = data.profitAndLossAmount !== undefined
-             ? Math.abs(data.profitAndLossAmount)
+           const lossMagnitude = effectivePnlAmount !== undefined
+             ? Math.abs(effectivePnlAmount)
              : record.futuresAmount;
 
            // Cannot lose more than what was staked.
@@ -321,7 +350,7 @@ class FuturesRepository {
            { _id: id, tenant: currentTenant.id, finalized: { $ne: true } },
            {
              $set: {
-               control: data.control,
+               control: effectiveControl,
                finalized: true,
                finalizedAt: new Date(),
                updatedBy: currentUser.id,
@@ -526,6 +555,25 @@ class FuturesRepository {
     return output;
   }
 
+  /**
+   * Deterministic win/loss outcome over a rolling window of 5 finalized trades.
+   * The position is derived from how many trades the user has already finalized
+   * (for the same account type), so the experience follows a fixed cadence:
+   *
+   *   - Demo: positions 0,1,2 -> profit, 3,4 -> loss   (≈ 3 wins / 2 losses per 5)
+   *   - Real: positions 0,1 -> loss, 2,3,4 -> profit   (user first sees 2 losses, then 3 wins)
+   */
+  static decideAutoOutcome(
+    finalizedCount: number,
+    isDemo: boolean
+  ): "profit" | "loss" {
+    const pos = (((finalizedCount % 5) + 5) % 5);
+    if (isDemo) {
+      return pos < 3 ? "profit" : "loss";
+    }
+    return pos < 2 ? "loss" : "profit";
+  }
+
   static async autoFinalizeExpired(options: IRepositoryOptions) {
     const now = new Date();
     const PRE_EMPTIVE_WINDOW_MS = 20 * 1000;
@@ -562,29 +610,25 @@ class FuturesRepository {
           let descriptionPrefix: string;
           let closePrice: number;
 
-          if (isDemo) {
-            // Demo: 85% profit, 15% loss
-            const random = Math.random();
-            control = random < 0.85 ? 'profit' : 'loss';
-            descriptionPrefix = control === 'profit' ? 'Demo profit' : 'Demo loss';
-            closePrice = FuturesRepository.calculateClosingPrice(
-              record.openPositionPrice,
-              record.futuresStatus,
-              control,
-              record.futureCoin || 'BTC/USDT'
-            );
-          } else {
-            // Real: 30% profit, 70% loss
-            const random = Math.random();
-            control = random < 0.30 ? 'profit' : 'loss';
-            descriptionPrefix = control === 'profit' ? 'Auto profit' : 'Expired loss';
-            closePrice = FuturesRepository.calculateClosingPrice(
-              record.openPositionPrice,
-              record.futuresStatus,
-              control,
-              record.futureCoin || 'BTC/USDT'
-            );
-          }
+          // Deterministic outcome based on how many trades this user has already
+          // finalized for the same account type (see decideAutoOutcome).
+          const finalizedCount = await FuturesModel.countDocuments({
+            createdBy: record.createdBy,
+            tenant: record.tenant,
+            accountType: isDemo ? 'demo' : { $ne: 'demo' },
+            finalized: true,
+          });
+
+          control = FuturesRepository.decideAutoOutcome(finalizedCount, isDemo);
+          descriptionPrefix = isDemo
+            ? (control === 'profit' ? 'Demo profit' : 'Demo loss')
+            : (control === 'profit' ? 'Auto profit' : 'Expired loss');
+          closePrice = FuturesRepository.calculateClosingPrice(
+            record.openPositionPrice,
+            record.futuresStatus,
+            control,
+            record.futureCoin || 'BTC/USDT'
+          );
 
         const updateData: any = {
           control,

@@ -157,6 +157,8 @@ function History() {
         case "withdrawals":
           // includes both manual withdrawals and futures reserved amounts
           return tx.type === "withdraw" || tx.type === "futures_reserved";
+        case "futuresReserved":
+          return tx.type === "futures_reserved";
         case "profits":
           return tx.type.includes('profit') || (tx.direction === "in" && tx.type !== "deposit");
         case "losses":
@@ -235,6 +237,12 @@ function History() {
                   onClick={() => setTypeFilter("withdrawals")}
                 >
                   {i18n("pages.history.filters.withdrawals")}
+                </button>
+                <button
+                  className={`filter-option ${typeFilter === "futuresReserved" ? "active" : ""}`}
+                  onClick={() => setTypeFilter("futuresReserved")}
+                >
+                  {i18n("pages.history.filters.futuresReserved")}
                 </button>
                 <button
                   className={`filter-option ${typeFilter === "profits" ? "active" : ""}`}

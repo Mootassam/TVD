@@ -1367,6 +1367,7 @@ const In = {
         all: "सभी",
         deposits: "जमा",
         withdrawals: "निकासी",
+        futuresReserved: "फ्यूचर्स आरक्षित",
         profits: "लाभ",
         losses: "हानि",
         conversions: "रूपांतरण",

@@ -1581,6 +1581,7 @@ common: {
         all: "Todas",
         deposits: "Depósitos",
         withdrawals: "Retiros",
+        futuresReserved: "Futuros Reservados",
         profits: "Ganancias",
         losses: "Pérdidas",
         conversions: "Conversiones",
