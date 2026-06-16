@@ -150,13 +150,15 @@ function RulesListTable(props) {
               </th>
 
 
+              <th className="status-header">{i18n('entities.category.fields.status')}</th>
+
               <th className="actions-header">Actions</th>
             </tr>
           </thead>
           <tbody className="table-body">
             {loading && (
               <tr>
-                <td colSpan={5} className="loading-cell">
+                <td colSpan={6} className="loading-cell">
                   <div className="loading-container">
                     <Spinner />
                     <span className="loading-text">Loading data...</span>
@@ -166,7 +168,7 @@ function RulesListTable(props) {
             )}
             {!loading && !hasRows && (
               <tr>
-                <td colSpan={5} className="no-data-cell">
+                <td colSpan={6} className="no-data-cell">
                   <div className="no-data-content">
                     <i className="fas fa-database no-data-icon"></i>
                     <p>{i18n('table.noData')}</p>
@@ -199,9 +201,33 @@ function RulesListTable(props) {
                     {row.description}
                   </td>
 
+                  <td className="status-cell">
+                    <span
+                      className={`status-badge ${row.enabled !== false ? 'enabled' : 'disabled'}`}
+                    >
+                      {row.enabled !== false
+                        ? i18n('common.enable') + 'd'
+                        : i18n('common.disable') + 'd'}
+                    </span>
+                  </td>
 
                   <td className="actions-cell">
                     <div className="actions-container">
+                      {hasPermissionToEdit && (
+                        <button
+                          className={`btn-action ${row.enabled !== false ? 'disable-toggle' : 'enable-toggle'}`}
+                          type="button"
+                          onClick={() =>
+                            dispatch(
+                              actions.doToggleEnabled(row.id, row.enabled === false),
+                            )
+                          }
+                        >
+                          {row.enabled !== false
+                            ? i18n('common.disable')
+                            : i18n('common.enable')}
+                        </button>
+                      )}
                       {hasPermissionToEdit && (
                         <Link
                           className="btn-action edit"
@@ -431,6 +457,35 @@ function RulesListTable(props) {
         .btn-action.delete {
           background: #f44336;
           color: white;
+        }
+        .btn-action.disable-toggle {
+          background: #ff9800;
+          color: white;
+        }
+        .btn-action.enable-toggle {
+          background: #2196f3;
+          color: white;
+        }
+        .status-header {
+          text-align: center;
+        }
+        .status-cell {
+          text-align: center;
+        }
+        .status-badge {
+          display: inline-block;
+          padding: 2px 10px;
+          border-radius: 12px;
+          font-size: 0.8rem;
+          font-weight: 600;
+        }
+        .status-badge.enabled {
+          background: #e8f5e9;
+          color: #2e7d32;
+        }
+        .status-badge.disabled {
+          background: #fdecea;
+          color: #c62828;
         }
         .btn-action:hover {
           opacity: 0.8;

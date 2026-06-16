@@ -209,6 +209,19 @@ class RulesRepository {
         });
       }
 
+      // enabled === true  -> only enabled rules (legacy docs without the field
+      //                      are treated as enabled, hence $ne: false)
+      // enabled === false -> only explicitly disabled rules
+      if (filter.enabled === true || filter.enabled === "true") {
+        criteriaAnd.push({
+          enabled: { $ne: false },
+        });
+      } else if (filter.enabled === false || filter.enabled === "false") {
+        criteriaAnd.push({
+          enabled: false,
+        });
+      }
+
       if (
         filter.isFeature === true ||
         filter.isFeature === "true" ||

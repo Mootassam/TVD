@@ -11,6 +11,8 @@ const en = {
     save: 'Save',
     search: 'Search',
     edit: 'Edit',
+    enable: 'Enable',
+    disable: 'Disable',
     new: 'New',
     export: 'Export to Excel',
     noDataToExport: 'No data to export',
@@ -830,6 +832,12 @@ const en = {
       },
       update: {
         success: 'Number successfully saved',
+      },
+      enable: {
+        success: 'Rule enabled',
+      },
+      disable: {
+        success: 'Rule disabled',
       },
       destroy: {
         success: 'Number successfully deleted',

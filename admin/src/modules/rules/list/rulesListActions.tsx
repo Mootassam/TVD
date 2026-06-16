@@ -4,6 +4,7 @@ import { i18n } from 'src/i18n';
 import exporterFields from 'src/modules/rules/list/rulesListExporterFields';
 import Errors from 'src/modules/shared/error/errors';
 import Exporter from 'src/modules/shared/exporter/exporter';
+import Message from 'src/view/shared/message';
 
 const prefix = 'RULESLIST';
 
@@ -49,6 +50,24 @@ const rulesListActions = {
     });
 
     dispatch(rulesListActions.doFetch());
+  },
+
+  // Inline enable/disable toggle for a single rule. Updates the `enabled`
+  // flag and refreshes the current list so the row reflects the new state.
+  doToggleEnabled: (id, enabled) => async (dispatch) => {
+    try {
+      await RulesService.update(id, { enabled });
+
+      Message.success(
+        enabled
+          ? i18n('entities.category.enable.success')
+          : i18n('entities.category.disable.success'),
+      );
+
+      dispatch(rulesListActions.doFetchCurrentFilter());
+    } catch (error) {
+      Errors.handle(error);
+    }
   },
 
   doExport: () => async (dispatch, getState) => {

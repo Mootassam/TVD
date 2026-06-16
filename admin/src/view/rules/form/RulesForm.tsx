@@ -50,6 +50,10 @@ const schema = yup.object().shape({
     i18n('entities.category.fields.serial'),
     {},
   ),
+  enabled: yupFormSchemas.boolean(
+    i18n('entities.category.fields.status'),
+    {},
+  ),
 });
 
 function RulesForm
@@ -60,6 +64,7 @@ function RulesForm
     return {
       question: record.question,
       description: record.description,
+      enabled: record.id ? record.enabled !== false : true,
     };
   });
 
@@ -106,7 +111,12 @@ function RulesForm
               />
             </div>
 
-
+            <div className="col-lg-7 col-md-8 col-12">
+              <SwitchFormItem
+                name="enabled"
+                label={i18n('entities.category.fields.status')}
+              />
+            </div>
 
           </div>
 

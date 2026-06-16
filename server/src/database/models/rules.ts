@@ -17,6 +17,10 @@ export default (database) => {
       description: {
         type: String,
       },
+      enabled: {
+        type: Boolean,
+        default: true,
+      },
 
       tenant: {
         type: Schema.Types.ObjectId,
