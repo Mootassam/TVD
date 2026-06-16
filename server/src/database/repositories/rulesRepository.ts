@@ -130,10 +130,12 @@ class RulesRepository {
     const currentTenant = MongooseRepository.getCurrentTenant(options);
 
     let record = await MongooseRepository.wrapWithSessionIfExists(
-      Rules(options.database).findOne({
-        _id: id,
-        tenant: currentTenant.id,
-      }),
+      Rules(options.database)
+        .findOne({
+          _id: id,
+          tenant: currentTenant.id,
+        })
+        .populate({ path: "disabledFor", select: "fullName email" }),
       options
     );
 
@@ -222,6 +224,21 @@ class RulesRepository {
         });
       }
 
+      // Hide rules that have been disabled for the current customer. Used by
+      // the client (Support page) so a customer never sees rules blacklisted
+      // for them. `$ne` on the array also matches docs missing the field.
+      if (
+        filter.hideDisabledForCurrentUser === true ||
+        filter.hideDisabledForCurrentUser === "true"
+      ) {
+        const currentUser = MongooseRepository.getCurrentUser(options);
+        if (currentUser && currentUser.id) {
+          criteriaAnd.push({
+            disabledFor: { $ne: currentUser.id },
+          });
+        }
+      }
+
       if (
         filter.isFeature === true ||
         filter.isFeature === "true" ||
@@ -264,7 +281,8 @@ class RulesRepository {
       .find(criteria)
       .skip(skip)
       .limit(limitEscaped)
-      .sort(sort);
+      .sort(sort)
+      .populate({ path: "disabledFor", select: "fullName email" });
 
     const count = await Rules(options.database).countDocuments(criteria);
 
@@ -336,6 +354,20 @@ class RulesRepository {
     const output = record.toObject ? record.toObject() : record;
 
     output.photo = await FileRepository.fillDownloadUrl(output.photo);
+
+    // Normalize the populated customers into { id, fullName, email } so the
+    // admin autocomplete can render labels and read back ids consistently.
+    if (Array.isArray(output.disabledFor)) {
+      output.disabledFor = output.disabledFor.map((user) =>
+        user && (user._id || user.id)
+          ? {
+              id: (user._id || user.id).toString(),
+              fullName: user.fullName,
+              email: user.email,
+            }
+          : { id: String(user) }
+      );
+    }
 
     return output;
   }

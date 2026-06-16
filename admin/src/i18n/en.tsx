@@ -13,6 +13,7 @@ const en = {
     edit: 'Edit',
     enable: 'Enable',
     disable: 'Disable',
+    customers: 'Customers',
     new: 'New',
     export: 'Export to Excel',
     noDataToExport: 'No data to export',
@@ -839,6 +840,9 @@ const en = {
       disable: {
         success: 'Rule disabled',
       },
+      targetCustomers: 'Customer visibility',
+      disabledForHint:
+        'Selected customers will not see this rule. Leave empty to show it to everyone.',
       destroy: {
         success: 'Number successfully deleted',
       },
@@ -856,6 +860,7 @@ const en = {
         slug: 'Number',
         question: 'Question',
         description: 'Description',
+        disabledFor: 'Hidden for customers',
         photo: 'Photo',
         metaKeywords: 'MetaKeywords',
         metaDescriptions: 'MetaDescriptions',

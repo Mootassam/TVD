@@ -1,64 +1,4 @@
-import React, { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { Link } from 'react-router-dom';
-import actions from "src/modules/rules/list/rulesListActions";
-import selector from "src/modules/rules/list/rulesListSelectors";
-import { i18n } from "../../../i18n";
-
-function HelpCenter() {
-  const dispatch = useDispatch();
-
-  const record = useSelector(selector.selectRows);
-  console.log("🚀 ~ HelpCenter ~ record:", record)
-  const loading = useSelector(selector.selectLoading);
-
-  useEffect(() => {
-    // Only show enabled rules to end users; globally disabled rules and rules
-    // blacklisted for this specific customer are hidden.
-    dispatch(actions.doFetch({ enabled: true, hideDisabledForCurrentUser: true }));
-    // eslint-disable-next-line
-  }, [dispatch]);
-
-  const faqItems = [
-    i18n("pages.helpCenter.faq.aboutAccounts"),
-    i18n("pages.helpCenter.faq.transactionVolume"),
-    i18n("pages.helpCenter.faq.transferFunds"),
-    i18n("pages.helpCenter.faq.whatAreFutures"),
-    i18n("pages.helpCenter.faq.convertedAmountChanges"),
-    i18n("pages.helpCenter.faq.realNameAuthentication"),
-    i18n("pages.helpCenter.faq.frozenAssets"),
-    i18n("pages.helpCenter.faq.futuresTradingRules")
-  ];
-
-  return (
-    <div className="helpcenter-container">
-      {/* Header Section - Matching Profile Page */}
-      <div className="header">
-        <div className="nav-bar">
-          <Link to="/profile" className="back-arrow">
-            <i className="fas fa-arrow-left" />
-          </Link>
-          <div className="page-title">{i18n("pages.helpCenter.title")}</div>
-        </div>
-      </div>
-
-      {/* Content Card - Matching Profile Page */}
-      <div className="content-card">
-        <div className="helpcenter-content">
-          {record.map((item) => (
-            <Link to={`/support/details/${item.id}`} className="remove_blue" key={item.id}>
-              <div className="faq-item">
-                <div className="faq-icon">
-                  <i className="fas fa-arrow-left" />
-                </div>
-                <div className="faq-text">{item.question}</div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      <style>{`
+import{u as s,aj as n,i as l,ak as c,j as a,k as e,L as i}from"./index-e2ca94e1.js";import{u as d}from"./useDispatch-41d11c26.js";function x(){const t=d(),o=s(n.selectRows);return console.log("🚀 ~ HelpCenter ~ record:",o),s(n.selectLoading),l.useEffect(()=>{t(c.doFetch({enabled:!0,hideDisabledForCurrentUser:!0}))},[t]),a("pages.helpCenter.faq.aboutAccounts"),a("pages.helpCenter.faq.transactionVolume"),a("pages.helpCenter.faq.transferFunds"),a("pages.helpCenter.faq.whatAreFutures"),a("pages.helpCenter.faq.convertedAmountChanges"),a("pages.helpCenter.faq.realNameAuthentication"),a("pages.helpCenter.faq.frozenAssets"),a("pages.helpCenter.faq.futuresTradingRules"),e.jsxs("div",{className:"helpcenter-container",children:[e.jsx("div",{className:"header",children:e.jsxs("div",{className:"nav-bar",children:[e.jsx(i,{to:"/profile",className:"back-arrow",children:e.jsx("i",{className:"fas fa-arrow-left"})}),e.jsx("div",{className:"page-title",children:a("pages.helpCenter.title")})]})}),e.jsx("div",{className:"content-card",children:e.jsx("div",{className:"helpcenter-content",children:o.map(r=>e.jsx(i,{to:`/support/details/${r.id}`,className:"remove_blue",children:e.jsxs("div",{className:"faq-item",children:[e.jsx("div",{className:"faq-icon",children:e.jsx("i",{className:"fas fa-arrow-left"})}),e.jsx("div",{className:"faq-text",children:r.question})]})},r.id))})}),e.jsx("style",{children:`
         /* HelpCenter Container – matches login/profile containers */
         .helpcenter-container {
           max-width: 400px;
@@ -159,9 +99,4 @@ function HelpCenter() {
           display: block;
           width: 100%;
         }
-      `}</style>
-    </div>
-  );
-}
-
-export default HelpCenter;
+      `})]})}export{x as default};

@@ -21,6 +21,14 @@ export default (database) => {
         type: Boolean,
         default: true,
       },
+      // Customers (users) for whom this rule is hidden. The rule stays global
+      // for everyone else; only these users won't see it on the Support page.
+      disabledFor: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "user",
+        },
+      ],
 
       tenant: {
         type: Schema.Types.ObjectId,

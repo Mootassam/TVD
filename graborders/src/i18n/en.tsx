@@ -121,7 +121,7 @@ const en = {
 
     online: {
       title: "Customer Service",
-      description: "If you have any questions or encounter issues, please email us or chat with our online customer support team.",
+      description: "If you have any questions or encounter issues, chat with our online customer support team.",
       contactWhatsApp: "Contact on WhatsApp",
       contactTelegram: "Contact on Telegram"
     },

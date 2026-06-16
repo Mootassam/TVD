@@ -11,9 +11,11 @@ import ConfirmModal from 'src/view/shared/modals/ConfirmModal';
 import Spinner from 'src/view/shared/Spinner';
 import Pagination from 'src/view/shared/table/Pagination';
 import actionsForm from 'src/modules/rules/form/rulesFormActions';
+import RulesCustomersModal from 'src/view/rules/list/RulesCustomersModal';
 
 function RulesListTable(props) {
   const [recordIdToDestroy, setRecordIdToDestroy] = useState(null);
+  const [recordToTarget, setRecordToTarget] = useState<any>(null);
   const [imagePreview, setImagePreview] = useState({
     isOpen: false,
     imageUrl: '',
@@ -229,6 +231,18 @@ function RulesListTable(props) {
                         </button>
                       )}
                       {hasPermissionToEdit && (
+                        <button
+                          className="btn-action customers"
+                          type="button"
+                          onClick={() => setRecordToTarget(row)}
+                        >
+                          {i18n('common.customers')}
+                          {Array.isArray(row.disabledFor) && row.disabledFor.length
+                            ? ` (${row.disabledFor.length})`
+                            : ''}
+                        </button>
+                      )}
+                      {hasPermissionToEdit && (
                         <Link
                           className="btn-action edit"
                           to={`/rules/${row.id}/edit`}
@@ -263,6 +277,17 @@ function RulesListTable(props) {
 
       {/* Image Preview Modal */}
       {imagePreview.isOpen && <ImagePreviewModal />}
+
+      {/* Customer visibility modal */}
+      {recordToTarget && (
+        <RulesCustomersModal
+          record={recordToTarget}
+          onClose={() => setRecordToTarget(null)}
+          onSave={(id, disabledFor) =>
+            dispatch(actions.doUpdateDisabledFor(id, disabledFor))
+          }
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
       {recordIdToDestroy && (
@@ -464,6 +489,10 @@ function RulesListTable(props) {
         }
         .btn-action.enable-toggle {
           background: #2196f3;
+          color: white;
+        }
+        .btn-action.customers {
+          background: #673ab7;
           color: white;
         }
         .status-header {

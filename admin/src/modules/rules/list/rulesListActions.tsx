@@ -70,6 +70,20 @@ const rulesListActions = {
     }
   },
 
+  // Update the list of customers a rule is hidden from. `disabledFor` is an
+  // array of user ids. Refreshes the current list afterwards.
+  doUpdateDisabledFor: (id, disabledFor) => async (dispatch) => {
+    try {
+      await RulesService.update(id, { disabledFor });
+
+      Message.success(i18n('entities.category.update.success'));
+
+      dispatch(rulesListActions.doFetchCurrentFilter());
+    } catch (error) {
+      Errors.handle(error);
+    }
+  },
+
   doExport: () => async (dispatch, getState) => {
     try {
       if (!exporterFields || !exporterFields.length) {
