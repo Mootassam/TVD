@@ -14,8 +14,9 @@ export default (database) => {
       futuresAmount: { type: Number, required: true },
 
       contractDuration: {
-        type: String, // '60s', '5m', '1h' etc.
-        required: true
+        type: String, // '60s', '5m', '1h' etc. Empty = open-ended (no auto-close).
+        required: false,
+        default: "",
       },
 
       futuresStatus: {

@@ -8,11 +8,10 @@ export function startRatesCron() {
   const redis = RedisService.getClient();
 
   cron.schedule("* * * * *", async () => {
-
-    console.log("I am here bro");
-    
     try {
-      // 1) Fetch crypto → USD prices
+      // 1) Fetch crypto → USD prices. CryptoCompare now requires an API key for
+      // this endpoint; set CRYPTOCOMPARE_API_KEY in the environment.
+      const apiKey = process.env.CRYPTOCOMPARE_API_KEY;
       const cryptoRes = await axios.get(
         "https://min-api.cryptocompare.com/data/pricemulti",
         {
@@ -20,6 +19,7 @@ export function startRatesCron() {
             fsyms: COINS.join(","),
             tsyms: "USD",
           },
+          headers: apiKey ? { authorization: `Apikey ${apiKey}` } : undefined,
         }
       );
 
@@ -43,8 +43,14 @@ export function startRatesCron() {
       redis.set("FIAT_RATES", JSON.stringify(fiatRates));
 
       console.log("✔ Rates updated");
-    } catch (err) {
-      console.error("Cron error:", err);
+    } catch (err: any) {
+      // Log concisely so a recurring failure (e.g. missing API key) does not
+      // flood the logs with the full axios error object every minute.
+      const status = err?.response?.status;
+      console.error(
+        `Rates cron error${status ? ` (HTTP ${status})` : ""}:`,
+        err?.message || err
+      );
     }
   });
 }
