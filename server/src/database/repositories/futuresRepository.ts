@@ -76,11 +76,15 @@ class FuturesRepository {
         ? new Date(data.openPositionTime)
         : new Date();
 
-      const durationMs = await this.parseDurationToMs(
-        data.contractDuration || "60s"
-      );
+      const durationMs = await this.parseDurationToMs(data.contractDuration);
 
-      const expiryTime = new Date(openPositionTime.getTime() + durationMs);
+      // No (or invalid) duration => OPEN-ENDED trade: no expiry, so the
+      // auto-finalize loop never closes it. It only closes when the client
+      // clicks "Close Trade".
+      const expiryTime =
+        durationMs > 0
+          ? new Date(openPositionTime.getTime() + durationMs)
+          : null;
 
       const payload = {
         ...data,

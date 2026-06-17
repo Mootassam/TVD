@@ -16,7 +16,9 @@
       "Bash(echo \"=== EXIT: $? \\(no lines above = clean\\) ===\")",
       "Bash(echo \"=== EXIT $? \\(no lines = clean\\) ===\")",
       "Bash(echo \"=== server futuresRepo EXIT $? ===\")",
-      "Bash(echo \"=== client modal EXIT $? \\(no lines = clean\\) ===\")"
+      "Bash(echo \"=== client modal EXIT $? \\(no lines = clean\\) ===\")",
+      "Bash(echo \"=== server EXIT $? ===\")",
+      "Bash(echo \"=== client EXIT $? \\(no lines = clean\\) ===\")"
     ]
   }
 }

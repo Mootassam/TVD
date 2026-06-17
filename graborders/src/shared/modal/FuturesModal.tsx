@@ -37,7 +37,9 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   currentUserId,
 }) => {
   const DEFAULT_LEVERAGE = 1;
-  const [selectedDuration, setSelectedDuration] = useState<string>("120");
+  // Empty = no duration chosen -> the trade runs open-ended (counts up, never
+  // auto-closes, only the client can close it).
+  const [selectedDuration, setSelectedDuration] = useState<string>("");
   const [selectvalue, setSelectedValue] = useState<string>("20"); // Default payout percentage
   const [futuresAmount, setFuturesAmount] = useState<number>(200);
   const [tradeStatus, setTradeStatus] = useState<
@@ -52,6 +54,9 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   const [tradeDetails, setTradeDetails] = useState<any>(null);
   // True once the timer reaches 0 but the server has not yet pushed the result.
   const [isSettling, setIsSettling] = useState<boolean>(false);
+  // Open-ended trade (no duration chosen): counts up and never auto-closes.
+  const [isOpenEnded, setIsOpenEnded] = useState<boolean>(false);
+  const [elapsed, setElapsed] = useState<number>(0);
 
   // Holds the current trade's socket + the futureId it is bound to, plus a
   // polling fallback used if the socket result is missed.
@@ -143,10 +148,11 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     }, 2000);
   };
 
-  // Local countdown for smooth display. The authoritative remaining time and the
-  // result both come from the server (socket); this only ticks between updates.
+  // Local countdown for smooth display (duration trades only). The authoritative
+  // remaining time and the result both come from the server (socket); this only
+  // ticks between updates.
   useEffect(() => {
-    if (tradeStatus !== "in-progress") return;
+    if (tradeStatus !== "in-progress" || isOpenEnded) return;
 
     if (timeLeft <= 0) {
       // Timer reached zero: do NOT finalize on the client. Wait for the server
@@ -163,7 +169,17 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     }, 1000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tradeStatus, timeLeft]);
+  }, [tradeStatus, timeLeft, isOpenEnded]);
+
+  // Open-ended trade: count UP continuously from 1s. It never auto-closes — the
+  // client closes it manually via "Close Trade".
+  useEffect(() => {
+    if (tradeStatus !== "in-progress" || !isOpenEnded) return;
+    const interval = setInterval(() => {
+      setElapsed((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [tradeStatus, isOpenEnded]);
 
   // Real-time connection: keep the countdown in sync with the server and receive
   // the final result the moment the duration ends.
@@ -250,15 +266,19 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         closePositionTime: null
       }]);
 
-      // Seed the countdown from the SERVER's expiry time (authoritative). The
-      // socket then keeps it in sync every second. Fall back to the chosen
-      // duration only if the server didn't return an expiry.
-      let secs = parseInt(selectedDuration, 10) || 0;
-      if (created.expiryTime) {
+      // No expiry returned by the server => the client didn't pick a duration,
+      // so the trade is OPEN-ENDED: count up from 1s and never auto-close.
+      if (!created.expiryTime) {
+        setIsOpenEnded(true);
+        setElapsed(1);
+        setTimeLeft(0);
+      } else {
+        // Duration trade: seed the countdown from the SERVER's expiry time
+        // (authoritative). The socket then keeps it in sync every second.
+        setIsOpenEnded(false);
         const remainingMs = new Date(created.expiryTime).getTime() - Date.now();
-        secs = Math.max(0, Math.ceil(remainingMs / 1000));
+        setTimeLeft(Math.max(0, Math.ceil(remainingMs / 1000)));
       }
-      setTimeLeft(secs);
 
       setTradeStatus("in-progress");
     } catch (err) {
@@ -348,17 +368,21 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     setOpeningOrders([]);
     setTradeResult(null);
     setTimeLeft(0);
+    setElapsed(0);
+    setIsOpenEnded(false);
     setFutureId(null);
     setPnlDisplay("");
     setTradeDetails(null);
     setIsSettling(false);
     setFuturesAmount(200);
     setSelectedValue("20");
-    setSelectedDuration("120");
+    setSelectedDuration("");
   };
 
   const calculateProgress = (): number => {
     if (tradeStatus !== "in-progress") return 0;
+    // Open-ended trades have no target; show a full ring to signal "running".
+    if (isOpenEnded) return 100;
     const total = parseInt(selectedDuration, 10) || 1;
     return ((total - timeLeft) / total) * 100;
   };
@@ -407,9 +431,15 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                 }}
               >
                 <div className="progress-inner">
-                  <div className="progress-time">{formatTime(timeLeft)}</div>
+                  <div className="progress-time">
+                    {formatTime(isOpenEnded ? elapsed : timeLeft)}
+                  </div>
                   <div className="progress-label">
-                    {isSettling ? "Settling…" : "Remaining"}
+                    {isOpenEnded
+                      ? "Elapsed"
+                      : isSettling
+                        ? "Settling…"
+                        : "Remaining"}
                   </div>
                 </div>
               </div>

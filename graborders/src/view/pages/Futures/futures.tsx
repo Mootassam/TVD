@@ -1228,41 +1228,55 @@ const OrderDetailRow = ({ label, value, className = "" }: any) => (
   </div>
 );
 
-// Live "time left until the trade closes" row. Uses the server expiry time when
-// available, otherwise derives it from openPositionTime + contractDuration.
+// Live timer row for an open trade.
+//  - Duration trades (have an expiry): counts DOWN the remaining time.
+//  - Open-ended trades (no expiry / no duration): counts UP the elapsed time and
+//    never shows "Closing…" since they only close when the client chooses to.
 const RemainingTimeRow = ({ order }: any) => {
-  const getExpiryMs = () => {
-    if (order.expiryTime) {
-      return new Date(order.expiryTime).getTime();
+  const durationSecs = parseInt(order.contractDuration, 10) || 0;
+  const isOpenEnded = !order.expiryTime && durationSecs <= 0;
+
+  const openMs = () =>
+    new Date(order.openPositionTime || order.openTime).getTime();
+
+  const compute = () => {
+    if (isOpenEnded) {
+      // Elapsed time since the trade was opened (count up).
+      return Math.max(1, Math.floor((Date.now() - openMs()) / 1000));
     }
-    const openMs = new Date(order.openPositionTime || order.openTime).getTime();
-    const durationSecs = parseInt(order.contractDuration, 10) || 0;
-    return openMs + durationSecs * 1000;
+    const expiryMs = order.expiryTime
+      ? new Date(order.expiryTime).getTime()
+      : openMs() + durationSecs * 1000;
+    return Math.max(0, Math.ceil((expiryMs - Date.now()) / 1000));
   };
 
-  const computeRemaining = () =>
-    Math.max(0, Math.ceil((getExpiryMs() - Date.now()) / 1000));
-
-  const [remaining, setRemaining] = useState<number>(computeRemaining);
+  const [value, setValue] = useState<number>(compute);
 
   useEffect(() => {
-    const id = setInterval(() => setRemaining(computeRemaining()), 1000);
+    const id = setInterval(() => setValue(compute()), 1000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order.id, order.expiryTime]);
 
-  const minutes = Math.floor(remaining / 60);
-  const seconds = remaining % 60;
-  const display =
-    remaining > 0
-      ? `${minutes > 0 ? `${minutes}m ` : ""}${seconds}s`
+  const minutes = Math.floor(value / 60);
+  const seconds = value % 60;
+  const timeStr = `${minutes > 0 ? `${minutes}m ` : ""}${seconds}s`;
+
+  const display = isOpenEnded
+    ? timeStr
+    : value > 0
+      ? timeStr
       : i18n('pages.futures.orderDetails.closing');
 
   return (
     <OrderDetailRow
-      label={i18n('pages.futures.orderDetails.remainingTime')}
+      label={
+        isOpenEnded
+          ? i18n('pages.futures.orderDetails.elapsedTime')
+          : i18n('pages.futures.orderDetails.remainingTime')
+      }
       value={display}
-      className={remaining > 0 ? "profit" : ""}
+      className={isOpenEnded || value > 0 ? "profit" : ""}
     />
   );
 };
