@@ -12,12 +12,12 @@ import I18nSelect from "src/view/layout/I18nSelect";
 
 // Constants for menu items
 const MENU_ITEMS = [
-  {
-    icon: "fas fa-language",
-    name: i18n("pages.settings.language"),
-    type: "modal",
-    modal: "language",
-  },
+  // {
+  //   icon: "fas fa-language",
+  //   name: i18n("pages.settings.language"),
+  //   type: "modal",
+  //   modal: "language",
+  // },
   {
     icon: "fas fa-shield-alt",
     path: "/typepassword",

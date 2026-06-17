@@ -10,6 +10,7 @@ import FutureList from "./FutureList";
 import { i18n } from '../../../i18n';
 import TradingViewChart from "../Market/TradingViewChart";
 import authSelectors from "src/modules/auth/authSelectors";
+import Message from "src/view/shared/message";
 
 // ----------------------------------------------------------------------
 // Types & Helpers
@@ -527,11 +528,16 @@ function Futures() {
   }, []);
 
   const handleOpenModal = useCallback((direction: "up" | "down") => {
-    console.log("Opening modal with direction:", direction, "isDemoAccount:", isDemoAccount);
+    // A client can only run one trade at a time. If there is an active (open)
+    // order, block opening a new one. The server enforces this as well.
+    if ((pendingCount || 0) > 0) {
+      Message.error(i18n('pages.futures.activeTradeInProgress'));
+      return;
+    }
     dispatch(assetsListAction.doFetch());
     setTradeDirection(direction);
     setIsModalOpen(true);
-  }, [dispatch]);
+  }, [dispatch, pendingCount]);
 
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
@@ -665,6 +671,7 @@ function Futures() {
         availableBalance={USDBalance}
         setOpeningOrders={setOpeningOrders}
         isDemoAccount={isDemoAccount}
+        currentUserId={currentUser?.id}
       />
 
       <CoinSelectorSidebar

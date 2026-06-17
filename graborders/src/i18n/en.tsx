@@ -268,6 +268,7 @@ const en = {
 
     futures: {
       title: "Futures",
+      activeTradeInProgress: "You already have an active trade. Please wait until it finishes before opening a new one.",
       actions: {
         buyUp: "BUY UP",
         buyDown: "BUY DOWN"
@@ -479,20 +480,20 @@ const en = {
       },
       menu: {
         withdrawalAddress: "Account change records",
-        password: "Security center",
+        password: "Security Center",
         notifications: "Notifications",
         myInvitation: "My Invitation",
         language: "Language",
         helpcenter: "Help Center",
         privacyPortal: "Privacy Portal",
-        aboutUs: "Platform introduction",
+        aboutUs: "Platform Introduction",
         msbApproval: "MSB Approval",
-        customerSupport: "Online service",
+        customerSupport: "Online Service",
         BindAccount: 'Bind Account',
         downloadApp: "Download",
         logout: "Sign Out",
         preferences: "Preferences",
-        clearCache: "Clear cache",
+        clearCache: "Clear Cache",
 
       },
       cache: {

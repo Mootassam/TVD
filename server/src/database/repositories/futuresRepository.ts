@@ -19,6 +19,19 @@ class FuturesRepository {
       throw new Error400(options.language, "errors.amountConditions");
     }
 
+    // ✅ A client may only have one active (not yet finalized) trade at a time.
+    // This prevents opening a new position while a previous one is still
+    // running.
+    const activeTrade = await Futures(options.database).findOne({
+      createdBy: currentUser.id,
+      tenant: currentTenant.id,
+      finalized: false,
+    });
+
+    if (activeTrade) {
+      throw new Error400(options.language, "errors.activeTradeExists");
+    }
+
     const walletModel = Wallet(options.database);
     const transactionModel = Transaction(options.database);
 
@@ -126,8 +139,6 @@ class FuturesRepository {
     const currentUser = MongooseRepository.getCurrentUser(options);
 
     const FuturesModel = Futures(options.database);
-    const walletModel = Wallet(options.database);
-    const transactionModel = Transaction(options.database);
 
     let record = await FuturesModel.findById(id);
 
@@ -139,224 +150,50 @@ class FuturesRepository {
       throw new Error400(options.language, "futures.alreadyFinalized");
     }
 
-    const isControlUpdate = data.control === "loss" || data.control === "profit";
-
-    const calculateProfit = (
-      amount: number,
-      leverage: number | string,
-
-    ): number => {
-      const amountNum = Number(amount) || 0;
-      const leverageNum = parseFloat(leverage?.toString() || "0");
-      console.log("🚀 ~ FuturesRepository ~ calculateProfit ~ leverageNum:", leverageNum)
-
-
-
-      return (amountNum * leverageNum ) / 100;
-    };
-
-    const calculateClosingPrice = (
-      openPrice: number,
-      direction: "long" | "short",
-      control: "profit" | "loss",
-      assetType: string
-    ): number => {
-      const basePrice = openPrice;
-      const randomPercentage = 0.002 + Math.random() * (0.005 - 0.002);
-      const change = basePrice * (randomPercentage / 100);
-
-      if (control === "profit") {
-        if (direction === "long") {
-          return basePrice + change;
-        } else {
-          return basePrice - change;
-        }
-      } else {
-        if (direction === "long") {
-          return basePrice - change;
-        } else {
-          return basePrice + change;
-        }
-      }
-    };
+    // A control update is an ADMIN manual decision: it carries a control
+    // ("profit"/"loss") AND an explicit amount. We require the amount so the
+    // full edit form (which always sends `control` but not
+    // `profitAndLossAmount`) does not accidentally set a pending decision.
+    const isControlUpdate =
+      (data.control === "loss" || data.control === "profit") &&
+      data.profitAndLossAmount !== undefined &&
+      data.profitAndLossAmount !== null;
 
     try {
        if (isControlUpdate) {
-         const selectedWallet = await walletModel.findOne({
-           user: record.createdBy,
-           symbol: "USDT",
-           tenant: currentTenant.id,
-           accountType: 'exchange'
-         });
+         // ✅ Admin sets the outcome AHEAD of expiry. We DO NOT finalize the
+         // trade or move any money now — the decision is stored as "pending"
+         // and applied only when the contract duration ends (see
+         // autoFinalizeExpired). This preserves the natural flow: the client
+         // keeps counting down and only sees the result when the timer hits 0.
+         const control: "profit" | "loss" = data.control;
+         let pendingAmount: number;
 
-          if (!selectedWallet) {
-            throw new Error400(options.language, "errors.usdtWalletNotFoundForUser", {
-              userId: record.createdBy
-            });
-          }
-
-          // For client-driven auto-finalization the SERVER decides the outcome
-          // deterministically (demo ≈ 3 win / 2 loss per 5; real: Loss, Loss,
-          // Profit, Loss, Loss per 5). Admin manual finalization (no autoFinalize
-          // flag) keeps using the control / amount supplied in the request.
-          const isAutoFinalize = data.autoFinalize === true;
-          let effectiveControl = data.control;
-          let effectivePnlAmount = data.profitAndLossAmount;
-
-          if (isAutoFinalize) {
-            const isDemoAcc = record.accountType === 'demo';
-            const finalizedCount = await FuturesModel.countDocuments({
-              createdBy: record.createdBy,
-              tenant: currentTenant.id,
-              accountType: isDemoAcc ? 'demo' : { $ne: 'demo' },
-              finalized: true,
-            });
-
-            effectiveControl = FuturesRepository.decideAutoOutcome(finalizedCount, isDemoAcc);
-
-            // Server-authoritative profit/loss magnitude.
-            if (effectiveControl === "profit") {
-              const profitPct = 0.10 + Math.random() * (0.20 - 0.10);
-              effectivePnlAmount = record.futuresAmount + record.futuresAmount * profitPct; // stake + profit
-            } else {
-              const lossPct = 0.10 + Math.random() * (0.30 - 0.10);
-              effectivePnlAmount = -(record.futuresAmount * lossPct); // negative net loss
-            }
-          }
-
-          let closePrice = isAutoFinalize ? undefined : data.closePositionPrice;
-          if (!isAutoFinalize && closePrice && closePrice > 100) {
-            throw new Error400(options.language, "errors.closingPriceExceedLimit");
-          }
-
-          if (!closePrice) {
-            closePrice = calculateClosingPrice(
-              record.openPositionPrice,
-              record.futuresStatus,
-              effectiveControl,
-              record.futuresPair || "BTC/USDT"
-            );
-          }
-
-          const closeTime = data.closePositionTime || new Date();
-
-          // The amount typed by the admin (profit to add, or loss to deduct).
-          // For profit it is the extra gain; for loss it is how much of the
-          // original stake the customer loses.
-          //
-          // finalProfitLossAmount -> what we credit back to the wallet (assets).
-          // netProfitLoss         -> what we store on the trade for the customer's
-          //                          history: only the profit (+) or the loss (-),
-          //                          NOT the returned stake.
-          let finalProfitLossAmount;
-          let netProfitLoss;
-
-          if (effectiveControl === "profit") {
-           // Total credited back to the wallet = original stake + profit.
-           // The admin sends profitAndLossAmount already as (stake + profit).
-           if (effectivePnlAmount !== undefined) {
-             finalProfitLossAmount = effectivePnlAmount;
-           } else {
-             const profitAmount = FuturesRepository.calculateProfit(
-               record.futuresAmount,
-               record.leverage,
-             );
-             finalProfitLossAmount = record.futuresAmount + profitAmount;
-           }
-
-           if (!(finalProfitLossAmount >= record.futuresAmount)) {
+         if (control === "profit") {
+           // Inline admin action sends profitAndLossAmount = stake + net profit.
+           const netProfit =
+             Number(data.profitAndLossAmount) - record.futuresAmount;
+           if (!(netProfit > 0)) {
              throw new Error400(options.language, "errors.profitAmountInvalid");
            }
-
-           await walletModel.findOneAndUpdate(
-             { _id: selectedWallet._id, tenant: currentTenant.id, accountType: 'exchange' },
-             {
-               $inc: { amount: finalProfitLossAmount },
-               $set: { updatedBy: currentUser.id, updatedAt: new Date() },
-             },
-             { new: true }
-           );
-
-           // Store only the profit gained (excluding the returned stake).
-           netProfitLoss = finalProfitLossAmount - record.futuresAmount;
-
-           await transactionModel.create({
-             type: "futures_profit",
-             referenceId: record._id,
-             wallet: selectedWallet._id,
-             asset: "USDT",
-             amount: netProfitLoss,
-             tradedAmount: record.futuresAmount,
-             status: "completed",
-             direction: "in",
-             user: record.createdBy,
-             tenant: currentTenant.id,
-             createdBy: currentUser.id,
-             updatedBy: currentUser.id,
-             dateTransaction: new Date(),
-             description: `Futures profit: ${netProfitLoss} USDT profit + ${record.futuresAmount} USDT returned`
-           });
-
+           pendingAmount = netProfit;
          } else {
-           // 🆕 Partial loss: the customer loses only the amount entered by the
-           // admin. The surviving portion of the original stake is returned to
-           // the wallet (the full stake was deducted when the trade was opened).
-           const lossMagnitude = effectivePnlAmount !== undefined
-             ? Math.abs(effectivePnlAmount)
-             : record.futuresAmount;
-
-           // Cannot lose more than what was staked.
-           const cappedLoss = Math.min(lossMagnitude, record.futuresAmount);
-           const returnAmount = record.futuresAmount - cappedLoss;
-
-           if (!(cappedLoss > 0)) {
+           const lossAmount = Math.abs(Number(data.profitAndLossAmount));
+           if (!(lossAmount > 0)) {
              throw new Error400(options.language, "errors.lossAmountInvalid");
            }
-
-           // Refund the part of the stake that was not lost.
-           if (returnAmount > 0) {
-             await walletModel.findOneAndUpdate(
-               { _id: selectedWallet._id, tenant: currentTenant.id, accountType: 'exchange' },
-               {
-                 $inc: { amount: returnAmount },
-                 $set: { updatedBy: currentUser.id, updatedAt: new Date() },
-               },
-               { new: true }
-             );
-           }
-
-           await transactionModel.create({
-             type: "futures_loss",
-             referenceId: record._id,
-             wallet: selectedWallet._id,
-             asset: "USDT",
-             amount: cappedLoss,
-             tradedAmount: record.futuresAmount,
-             status: "completed",
-             direction: "out",
-             user: record.createdBy,
-             tenant: currentTenant.id,
-             createdBy: currentUser.id,
-             updatedBy: currentUser.id,
-             dateTransaction: new Date(),
-             description: `Futures loss: ${cappedLoss} USDT lost, ${returnAmount} USDT returned`
-           });
-
-           // Store only the amount lost (negative).
-           netProfitLoss = -cappedLoss;
+           // Cannot lose more than the staked amount.
+           pendingAmount = Math.min(lossAmount, record.futuresAmount);
          }
 
          await FuturesModel.updateOne(
            { _id: id, tenant: currentTenant.id, finalized: { $ne: true } },
            {
              $set: {
-               control: effectiveControl,
-               finalized: true,
-               finalizedAt: new Date(),
+               manualOverride: true,
+               pendingControl: control,
+               pendingAmount,
                updatedBy: currentUser.id,
-               profitAndLossAmount: netProfitLoss,
-               closePositionPrice: closePrice,
-               closePositionTime: closeTime,
              },
            }
          );
@@ -576,147 +413,176 @@ class FuturesRepository {
 
   static async autoFinalizeExpired(options: IRepositoryOptions) {
     const now = new Date();
-    const PRE_EMPTIVE_WINDOW_MS = 20 * 1000;
-    const preEmptiveCutoff = new Date(now.getTime() + PRE_EMPTIVE_WINDOW_MS);
 
     const FuturesModel = Futures(options.database);
     const WalletModel = Wallet(options.database);
     const TransactionModel = Transaction(options.database);
 
+    // Only finalize trades whose contract duration has actually ended. The
+    // result (and the wallet movement) is applied exactly at expiry, never
+    // before — this is the single source of truth for closing a trade.
     const candidates = await FuturesModel.find({
       finalized: false,
-      expiryTime: { $lte: preEmptiveCutoff }
+      expiryTime: { $lte: now }
     })
     .limit(1000)
     .lean();
 
     if (candidates.length === 0) {
-      return { processed: 0 };
+      return { processed: 0, results: [] as any[] };
     }
 
     let processedCount = 0;
+    const results: any[] = [];
 
     for (const record of candidates) {
        try {
           const isDemo = record.accountType === 'demo';
-          const isPreemptive = record.expiryTime > now;
-
-          // Skip if not yet expired
-          if (isPreemptive) {
-            continue;
-          }
 
           let control: 'profit' | 'loss';
           let descriptionPrefix: string;
-          let closePrice: number;
 
-          // Deterministic outcome based on how many trades this user has already
-          // finalized for the same account type (see decideAutoOutcome).
-          const finalizedCount = await FuturesModel.countDocuments({
-            createdBy: record.createdBy,
-            tenant: record.tenant,
-            accountType: isDemo ? 'demo' : { $ne: 'demo' },
-            finalized: true,
-          });
+          // netAmount    -> the profit or loss magnitude (positive number).
+          // walletCredit -> amount returned to the wallet (stake was deducted on open).
+          let netAmount: number;
+          let walletCredit: number;
+          let signedPnl: number;
 
-          control = FuturesRepository.decideAutoOutcome(finalizedCount, isDemo);
-          descriptionPrefix = isDemo
-            ? (control === 'profit' ? 'Demo profit' : 'Demo loss')
-            : (control === 'profit' ? 'Auto profit' : 'Expired loss');
-          closePrice = FuturesRepository.calculateClosingPrice(
+          if (record.manualOverride && record.pendingControl) {
+            // ✅ Apply the decision the admin set earlier. Real accounts ignore
+            // the deterministic sequence when an admin has overridden it.
+            control = record.pendingControl;
+            const amount = Number(record.pendingAmount) || 0;
+
+            if (control === 'profit') {
+              netAmount = amount;
+              walletCredit = record.futuresAmount + netAmount; // stake + profit
+              signedPnl = netAmount;
+            } else {
+              const cappedLoss = Math.min(Math.abs(amount), record.futuresAmount);
+              netAmount = cappedLoss;
+              walletCredit = record.futuresAmount - cappedLoss; // refund the rest
+              signedPnl = -cappedLoss;
+            }
+
+            descriptionPrefix = control === 'profit' ? 'Manual profit' : 'Manual loss';
+          } else {
+            // Deterministic outcome based on how many trades this user has
+            // already finalized for the same account type (see decideAutoOutcome).
+            const finalizedCount = await FuturesModel.countDocuments({
+              createdBy: record.createdBy,
+              tenant: record.tenant,
+              accountType: isDemo ? 'demo' : { $ne: 'demo' },
+              finalized: true,
+            });
+
+            control = FuturesRepository.decideAutoOutcome(finalizedCount, isDemo);
+
+            if (control === 'profit') {
+              const profitPct = 0.10 + Math.random() * (0.20 - 0.10);
+              netAmount = record.futuresAmount * profitPct;
+              walletCredit = record.futuresAmount + netAmount; // stake + profit
+              signedPnl = netAmount;
+            } else {
+              const lossPct = 0.10 + Math.random() * (0.30 - 0.10);
+              netAmount = record.futuresAmount * lossPct;
+              walletCredit = record.futuresAmount - netAmount; // refund the rest
+              signedPnl = -netAmount;
+            }
+
+            descriptionPrefix = isDemo
+              ? (control === 'profit' ? 'Demo profit' : 'Demo loss')
+              : (control === 'profit' ? 'Auto profit' : 'Expired loss');
+          }
+
+          const closePrice = FuturesRepository.calculateClosingPrice(
             record.openPositionPrice,
             record.futuresStatus,
             control,
             record.futureCoin || 'BTC/USDT'
           );
 
-        const updateData: any = {
-          control,
-          finalized: true,
-          finalizedAt: now,
-          closePositionPrice: closePrice,
-          closePositionTime: now,
-          updatedBy: null
-        };
+          const updateData: any = {
+            control,
+            finalized: true,
+            finalizedAt: now,
+            closePositionPrice: closePrice,
+            closePositionTime: now,
+            profitAndLossAmount: signedPnl,
+          };
 
-        // netAmount   -> the profit or loss magnitude (positive number).
-        // walletCredit -> amount returned to the wallet (stake was deducted on open).
-        let netAmount: number;
-        let walletCredit: number;
+          // Atomic guard: only the call that flips finalized false -> true
+          // performs the wallet movement, so a trade can never be paid twice.
+          const updateResult = await FuturesModel.updateOne(
+            { _id: record._id, finalized: false },
+            { $set: updateData }
+          );
 
-        if (control === 'profit') {
-          // Profit between 10% and 20% of the staked amount.
-          const profitPct = 0.10 + Math.random() * (0.20 - 0.10);
-          netAmount = record.futuresAmount * profitPct;
-          walletCredit = record.futuresAmount + netAmount; // stake + profit
-          updateData.profitAndLossAmount = netAmount;
-        } else {
-          // Loss between 10% and 30% of the staked amount.
-          const lossPct = 0.10 + Math.random() * (0.30 - 0.10);
-          netAmount = record.futuresAmount * lossPct;
-          walletCredit = record.futuresAmount - netAmount; // refund the rest
-          updateData.profitAndLossAmount = -netAmount;
-        }
-
-        const updateResult = await FuturesModel.updateOne(
-          { _id: record._id, finalized: false },
-          { $set: updateData }
-        );
-
-        if (updateResult.modifiedCount === 0) {
-          continue;
-        }
-
-        const wallet = await WalletModel.findOne({
-          user: record.createdBy,
-          symbol: "USDT",
-          accountType: 'exchange',
-          tenant: record.tenant
-        });
-
-        if (wallet) {
-          // Return the stake + profit (profit) or the surviving stake (loss).
-          if (walletCredit > 0) {
-            await WalletModel.updateOne(
-              { _id: wallet._id },
-              { $inc: { amount: walletCredit } }
-            );
+          if (updateResult.modifiedCount === 0) {
+            continue;
           }
 
-          await TransactionModel.create({
-            type: control === 'profit' ? 'futures_profit' : 'futures_loss',
-            referenceId: record._id,
-            wallet: wallet._id,
-            asset: 'USDT',
-            amount: netAmount,
-            tradedAmount: record.futuresAmount,
-            status: 'completed',
-            direction: control === 'profit' ? 'in' : 'out',
+          const wallet = await WalletModel.findOne({
             user: record.createdBy,
-            tenant: record.tenant,
-            dateTransaction: now,
-            description: `Futures ${control}: ${netAmount} USDT (${descriptionPrefix})`
+            symbol: "USDT",
+            accountType: 'exchange',
+            tenant: record.tenant
           });
-        }
 
-        await sendNotification({
-          userId: record.createdBy,
-          message: `Your futures trade has been closed with ${control === 'profit' ? 'a profit' : 'a loss'} of ${netAmount} USDT`,
-          type: "futures",
-          options: {
-            ...options,
-            currentUser: { id: record.createdBy },
-            currentTenant: { id: record.tenant }
+          if (wallet) {
+            // Return the stake + profit (profit) or the surviving stake (loss).
+            if (walletCredit > 0) {
+              await WalletModel.updateOne(
+                { _id: wallet._id },
+                { $inc: { amount: walletCredit } }
+              );
+            }
+
+            await TransactionModel.create({
+              type: control === 'profit' ? 'futures_profit' : 'futures_loss',
+              referenceId: record._id,
+              wallet: wallet._id,
+              asset: 'USDT',
+              amount: netAmount,
+              tradedAmount: record.futuresAmount,
+              status: 'completed',
+              direction: control === 'profit' ? 'in' : 'out',
+              user: record.createdBy,
+              tenant: record.tenant,
+              dateTransaction: now,
+              description: `Futures ${control}: ${netAmount} USDT (${descriptionPrefix})`
+            });
           }
-        });
 
-        processedCount++;
+          await sendNotification({
+            userId: record.createdBy,
+            message: `Your futures trade has been closed with ${control === 'profit' ? 'a profit' : 'a loss'} of ${netAmount} USDT`,
+            type: "futures",
+            options: {
+              ...options,
+              currentUser: { id: record.createdBy },
+              currentTenant: { id: record.tenant }
+            }
+          });
+
+          results.push({
+            id: String(record._id),
+            userId: String(record.createdBy),
+            control,
+            netAmount,
+            profitAndLossAmount: signedPnl,
+            closePositionPrice: closePrice,
+            closePositionTime: now,
+            futuresAmount: record.futuresAmount,
+          });
+
+          processedCount++;
       } catch (err) {
         console.error(`Error processing future ${record._id}:`, err);
       }
     }
 
-    return { processed: processedCount };
+    return { processed: processedCount, results };
   }
 
   static calculateClosingPrice(

@@ -14,7 +14,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { createServer } from "http";
 import { setSocketIO } from "../services/notificationServices";
 import { startRatesCron } from "../database/utils/rates.cron";
-import { startFuturesAutoFinalizeCron } from "../database/utils/futuresAutoFinalize.cron";
+import { startFuturesRealtime } from "../database/utils/futuresRealtime";
 
 
 
@@ -31,7 +31,10 @@ const io = new SocketIOServer(server, {
 setSocketIO(io);
 
 startRatesCron();
-startFuturesAutoFinalizeCron(); 
+// Real-time futures engine: server-authoritative countdown + finalization.
+// (Replaces the old 10s auto-finalize cron, which finalized without pushing
+// the result back to the client.)
+startFuturesRealtime();
 
 // Enables CORS
 app.use(cors({ origin: true }));

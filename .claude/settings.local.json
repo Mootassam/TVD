@@ -5,7 +5,16 @@
       "Bash(Select-Object FullName, PSIsContainer)",
       "Bash(Format-Table -AutoSize)",
       "Bash(awk -F: '$1>3338 && $1<3500')",
-      "Bash(grep -n 'profitAndLossAmount\\\\|finalized\\\\|control\\\\|futuresAmount\\\\|$inc\\\\|amount' d:/TVD/server/src/database/repositories/futuresRepository.ts)"
+      "Bash(grep -n 'profitAndLossAmount\\\\|finalized\\\\|control\\\\|futuresAmount\\\\|$inc\\\\|amount' d:/TVD/server/src/database/repositories/futuresRepository.ts)",
+      "Bash(cd /d/TVD; echo \"=== api/index.ts \\(socket parts\\) ===\"; grep -n \"socket\\\\|io\\\\.\\\\|Server\\(\\\\|emit\\\\|websocket\\\\|WebSocket\\\\|http.createServer\\\\|listen\" server/src/api/index.ts | head -50)",
+      "Read(//d/d/TVD/**)",
+      "Bash(cd /d/TVD/server; grep -nE \"noUnusedLocals|noUnusedParameters|strict|noImplicitAny\" tsconfig.json; echo \"=== build script ===\"; grep -nE '\"build\"|\"start\"|\"dev\"|ts-node|tsc' package.json | head)",
+      "Read(//d/TVD/server/**)",
+      "Bash(npx tsc *)",
+      "Bash(cd /d/TVD/server; echo \"=== server total tsc errors ===\"; npx tsc --noEmit 2>&1 | grep -cE \"error TS\"; echo \"=== graborders typecheck \\(modal+futures page\\) ===\"; cd /d/TVD/graborders; npx tsc --noEmit 2>&1 | grep -iE \"FuturesModal|Futures/futures\" | grep \"error TS\" | head -30; echo \"=== done ===\")",
+      "Read(//d/TVD/graborders/**)",
+      "Bash(echo \"=== EXIT: $? \\(no lines above = clean\\) ===\")",
+      "Bash(echo \"=== EXIT $? \\(no lines = clean\\) ===\")"
     ]
   }
 }

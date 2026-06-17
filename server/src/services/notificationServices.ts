@@ -32,8 +32,13 @@ export const setSocketIO = (socketIOInstance: SocketIOServer) => {
         if (!userId) return;
         if (isAdmin) {
           io.admins![userId] = socket.id;
+          socket.join(`admin:${userId}`);
         } else {
           io.users![userId] = socket.id;
+          // Join a per-user room so that ALL of a user's connections (e.g. the
+          // notifications socket AND the trading socket) receive user-targeted
+          // events, not just the most recently registered one.
+          socket.join(`user:${userId}`);
         }
       }
     );
@@ -48,6 +53,16 @@ export const setSocketIO = (socketIOInstance: SocketIOServer) => {
       }
     });
   });
+};
+
+// Expose the socket server (and its user registry) to other services, e.g.
+// the futures real-time loop that pushes the remaining time and the result.
+export const getSocketIO = (): ExtendedSocketIOServer | undefined => io;
+
+// Emit an event to every connection a user has open (no-op if not connected).
+export const emitToUser = (userId: string, event: string, payload: any) => {
+  if (!io || !userId) return;
+  io.to(`user:${String(userId)}`).emit(event, payload);
 };
 
 interface NotificationData {

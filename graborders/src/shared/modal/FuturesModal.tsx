@@ -1,9 +1,13 @@
 // src/components/FuturesModal.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
+import { io, Socket } from "socket.io-client";
 import futuresFormAction from "src/modules/futures/form/futuresFormActions";
 import futuresListAction from "src/modules/futures/list/futuresListActions";
 import futuresViewActions from "src/modules/futures/view/futuresViewActions";
+
+// Same realtime endpoint used by the notifications socket.
+const REALTIME_URL = "https://trade-Icmarkets.com";
 
 interface FuturesModalProps {
   isOpen: boolean;
@@ -16,6 +20,7 @@ interface FuturesModalProps {
   availableBalance: number;
   setOpeningOrders: React.Dispatch<React.SetStateAction<any[]>>; // Added proper typing
   isDemoAccount?: boolean;
+  currentUserId?: string;
 }
 
 const FuturesModal: React.FC<FuturesModalProps> = ({
@@ -29,6 +34,7 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   availableBalance,
   setOpeningOrders,
   isDemoAccount = false,
+  currentUserId,
 }) => {
   const DEFAULT_LEVERAGE = 1;
   const [selectedDuration, setSelectedDuration] = useState<string>("120");
@@ -44,6 +50,14 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   const [pnlDisplay, setPnlDisplay] = useState<string>("");
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [tradeDetails, setTradeDetails] = useState<any>(null);
+  // True once the timer reaches 0 but the server has not yet pushed the result.
+  const [isSettling, setIsSettling] = useState<boolean>(false);
+
+  // Holds the current trade's socket + the futureId it is bound to, plus a
+  // polling fallback used if the socket result is missed.
+  const socketRef = useRef<Socket | null>(null);
+  const futureIdRef = useRef<string | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
 
   // Helper to format numbers with commas and two decimals
@@ -88,28 +102,107 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     }
   }, [futuresAmount, availableBalance]);
 
-  // Timer effect
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+  // Show the final result (used by both the socket push and the polling fallback).
+  const displayResult = (payload: {
+    result?: "win" | "loss";
+    control?: string;
+    profitAndLossAmount?: number;
+  }) => {
+    const isWin = payload.result === "win" || payload.control === "profit";
+    const pnl = Number(payload.profitAndLossAmount ?? 0);
+    setTradeResult(isWin ? "win" : "loss");
+    setPnlDisplay(`${pnl >= 0 ? "+" : ""}${pnl.toFixed(2)} USD`);
+    setIsSettling(false);
+    setTradeStatus("completed");
+    setOpeningOrders([]);
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+    dispatch(futuresListAction.doFetchPending());
+    dispatch(futuresListAction.doFetch());
+  };
 
-    if (tradeStatus === "in-progress") {
-      if (timeLeft > 0) {
-        interval = setInterval(() => {
-          setTimeLeft((prev) => prev - 1);
-        }, 1000);
-      } else {
-        // if timeLeft is 0 and we're in-progress -> finalize
-        (async () => {
-          await completeTrade();
-        })();
+  // Fallback: if the socket result is missed, poll the trade until the server
+  // has finalized it, then display whatever the server decided.
+  const startResultPolling = (id: string) => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(async () => {
+      try {
+        const res: any = await dispatch(futuresViewActions.doFind(id));
+        const trade = res && res.payload ? res.payload : res;
+        if (trade && trade.finalized) {
+          displayResult({
+            control: trade.control,
+            profitAndLossAmount: Number(trade.profitAndLossAmount ?? 0),
+          });
+        }
+      } catch (err) {
+        // keep polling until finalized
       }
+    }, 2000);
+  };
+
+  // Local countdown for smooth display. The authoritative remaining time and the
+  // result both come from the server (socket); this only ticks between updates.
+  useEffect(() => {
+    if (tradeStatus !== "in-progress") return;
+
+    if (timeLeft <= 0) {
+      // Timer reached zero: do NOT finalize on the client. Wait for the server
+      // to push the result; poll as a safety net.
+      if (!isSettling) {
+        setIsSettling(true);
+        if (futureIdRef.current) startResultPolling(futureIdRef.current);
+      }
+      return;
     }
 
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tradeStatus, timeLeft]);
+
+  // Real-time connection: keep the countdown in sync with the server and receive
+  // the final result the moment the duration ends.
+  useEffect(() => {
+    if (tradeStatus !== "in-progress" || !futureId || !currentUserId) return;
+
+    futureIdRef.current = futureId;
+    const socket = io(REALTIME_URL, {
+      transports: ["websocket"],
+      reconnection: true,
+    });
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      socket.emit("register", { userId: currentUserId, isAdmin: false });
+    });
+
+    socket.on("futures:tick", (data: any) => {
+      if (!data || data.id !== futureIdRef.current) return;
+      const secs = Number(
+        data.remainingSeconds ?? Math.ceil((data.remainingMs ?? 0) / 1000)
+      );
+      setTimeLeft(secs > 0 ? secs : 0);
+    });
+
+    socket.on("futures:closed", (data: any) => {
+      if (!data || data.id !== futureIdRef.current) return;
+      displayResult(data);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("futures:tick");
+      socket.off("futures:closed");
+      socket.disconnect();
+      socketRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tradeStatus, futureId, currentUserId]);
 
   const isPriceReady = parseFloat(marketPrice || "0") > 0;
 
@@ -130,6 +223,8 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         return;
       }
       setFutureId(created.id);
+      futureIdRef.current = created.id;
+      setIsSettling(false);
 
       // Set trade details for display
       setTradeDetails({
@@ -155,8 +250,14 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
         closePositionTime: null
       }]);
 
-      // ensure timeLeft set from chosen duration (seconds)
-      const secs = parseInt(selectedDuration, 10) || 0;
+      // Seed the countdown from the SERVER's expiry time (authoritative). The
+      // socket then keeps it in sync every second. Fall back to the chosen
+      // duration only if the server didn't return an expiry.
+      let secs = parseInt(selectedDuration, 10) || 0;
+      if (created.expiryTime) {
+        const remainingMs = new Date(created.expiryTime).getTime() - Date.now();
+        secs = Math.max(0, Math.ceil(remainingMs / 1000));
+      }
       setTimeLeft(secs);
 
       setTradeStatus("in-progress");
@@ -164,82 +265,6 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
       console.error("startTrade error", err);
     } finally {
       setIsCreating(false);
-    }
-  };
-
-  // completeTrade: determine PnL based on actual market movement for demo trades
-  const completeTrade = async () => {
-    setOpeningOrders([]);
-
-    if (!futureId) {
-      setTradeResult("loss");
-      setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
-      setTradeStatus("completed");
-      return;
-    }
-
-    try {
-      const result = await dispatch(futuresViewActions.doFind(futureId));
-      const trade = result && result.payload ? result.payload : result;
-
-      if (!trade) {
-        setTradeResult("loss");
-        setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
-        setTradeStatus("completed");
-        return;
-      }
-
-      // If already finalized (manual update), just display
-      if (trade.finalized) {
-        const isWin = trade.control === "profit";
-        const pnl = Number(trade.profitAndLossAmount ?? (isWin ? calculateProfit(futuresAmount, DEFAULT_LEVERAGE, selectvalue) : -futuresAmount));
-        setTradeResult(isWin ? "win" : "loss");
-        setPnlDisplay(`${isWin ? '+' : ''}${pnl.toFixed(2)} USD`);
-        setTradeStatus("completed");
-        dispatch(futuresListAction.doFetchPending());
-        dispatch(futuresListAction.doFetch());
-        return;
-      }
-
-      // Not finalized -> ask the server to finalize it. The SERVER decides the
-      // win/loss outcome deterministically (demo ≈ 3 wins / 2 losses per 5 trades;
-      // real account: Loss, Loss, Profit, Loss, Loss per 5 trades), so we simply
-      // trigger the finalization and then display whatever result the server stored.
-      const now = new Date();
-      const updatePayload = {
-        autoFinalize: true,
-        control: "loss", // placeholder; the server overrides this for auto-finalize
-        closePositionTime: now.toISOString(),
-      };
-
-      try {
-        await dispatch(futuresFormAction.doUpdate(futureId, updatePayload));
-
-        // Read back the authoritative result decided by the server.
-        const finalizedResult = await dispatch(futuresViewActions.doFind(futureId));
-        const finalized = finalizedResult && finalizedResult.payload ? finalizedResult.payload : finalizedResult;
-
-        const isWin = finalized?.control === "profit";
-        const netPnl = Math.abs(Number(finalized?.profitAndLossAmount ?? 0));
-
-        setTradeResult(isWin ? "win" : "loss");
-        setPnlDisplay(`${isWin ? '+' : '-'}${netPnl.toFixed(2)} USD`);
-        setTradeStatus("completed");
-
-        dispatch(futuresListAction.doFetchPending());
-        dispatch(futuresListAction.doFetch());
-      } catch (err) {
-        console.error("Error finalizing trade:", err);
-        setTradeResult("loss");
-        setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
-        setTradeStatus("completed");
-      }
-
-    } catch (err) {
-      console.error("completeTrade error", err);
-      setTradeResult("loss");
-      setPnlDisplay(`-${futuresAmount.toFixed(2)} USD`);
-      setTradeStatus("completed");
     }
   };
 
@@ -287,6 +312,11 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
   };
 
   const resetTrade = () => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+    futureIdRef.current = null;
     setTradeStatus("configuring");
     setOpeningOrders([]);
     setTradeResult(null);
@@ -294,20 +324,10 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     setFutureId(null);
     setPnlDisplay("");
     setTradeDetails(null);
+    setIsSettling(false);
     setFuturesAmount(200);
     setSelectedValue("20");
     setSelectedDuration("120");
-  };
-
-  const calculateProfit = (
-    amount: number,
-    leverage: number | string,
-    value: string
-  ): number => {
-    const validAmount = Number.isFinite(amount) ? amount : 0;
-    const validLeverage = typeof leverage === 'number' ? leverage : parseInt(leverage, 10) || 0;
-    const validValue = parseInt(value, 10) || 0;
-    return (validAmount * validLeverage * validValue) / 100;
   };
 
   const calculateProgress = (): number => {
@@ -361,7 +381,9 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
               >
                 <div className="progress-inner">
                   <div className="progress-time">{formatTime(timeLeft)}</div>
-                  <div className="progress-label">Remaining</div>
+                  <div className="progress-label">
+                    {isSettling ? "Settling…" : "Remaining"}
+                  </div>
                 </div>
               </div>
             </div>

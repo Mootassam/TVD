@@ -139,6 +139,7 @@ const en = {
     closingPriceExceedLimit: "Closing price cannot exceed $100",
     profitAmountInvalid: "Profit amount is zero or invalid.",
     amountConditions: 'Futures amount must be at least 200 USDT',
+    activeTradeExists: "You already have an active trade. Please wait until it finishes before opening a new one.",
     lossAmountInvalid: "Loss amount is zero or invalid.",
     passwordNotMatching: "Password not matching",
     insufficientBalanceUpgrade: "Insufficient balance. Please upgrade.",

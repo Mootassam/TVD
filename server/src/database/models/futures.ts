@@ -43,6 +43,26 @@ export default (database) => {
         default: "loss",
       },
 
+      // ✅ Admin pre-set decision. When an admin manually sets profit/loss for an
+      // ACTIVE trade, we do NOT finalize it immediately. Instead we store the
+      // decision here and apply it only when the contract duration expires, so
+      // the client keeps seeing the countdown and only learns the result at the
+      // end. If manualOverride is false at expiry, the outcome is decided
+      // deterministically (see decideAutoOutcome).
+      manualOverride: {
+        type: Boolean,
+        default: false,
+      },
+      pendingControl: {
+        type: String,
+        enum: ["loss", "profit"],
+      },
+      // For profit: the net profit to credit (on top of the returned stake).
+      // For loss:   the amount of the stake to deduct.
+      pendingAmount: {
+        type: Number,
+      },
+
       // ✅ Lock mechanism
       finalized: {
         type: Boolean,
