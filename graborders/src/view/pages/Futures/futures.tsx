@@ -1170,6 +1170,11 @@ const OrderDetailModal = ({
             <OrderDetailRow label={i18n('pages.futures.orderDetails.contractDuration')} value={`${selectedOrder.contractDuration} ${i18n('pages.futures.orderDetails.seconds')}`} />
           )}
 
+          {/* Live countdown until the trade closes (only while it is still open) */}
+          {!selectedOrder.finalized && !selectedOrder.closePositionTime && (
+            <RemainingTimeRow order={selectedOrder} />
+          )}
+
           <OrderDetailRow
             label={i18n('pages.futures.orderDetails.futuresStatus')}
             value={selectedOrder.closePositionTime ? i18n('pages.futures.orderDetails.completed') : i18n('pages.futures.orderDetails.open')}
@@ -1222,5 +1227,44 @@ const OrderDetailRow = ({ label, value, className = "" }: any) => (
     <span className={`detail-value ${className}`}>{value}</span>
   </div>
 );
+
+// Live "time left until the trade closes" row. Uses the server expiry time when
+// available, otherwise derives it from openPositionTime + contractDuration.
+const RemainingTimeRow = ({ order }: any) => {
+  const getExpiryMs = () => {
+    if (order.expiryTime) {
+      return new Date(order.expiryTime).getTime();
+    }
+    const openMs = new Date(order.openPositionTime || order.openTime).getTime();
+    const durationSecs = parseInt(order.contractDuration, 10) || 0;
+    return openMs + durationSecs * 1000;
+  };
+
+  const computeRemaining = () =>
+    Math.max(0, Math.ceil((getExpiryMs() - Date.now()) / 1000));
+
+  const [remaining, setRemaining] = useState<number>(computeRemaining);
+
+  useEffect(() => {
+    const id = setInterval(() => setRemaining(computeRemaining()), 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order.id, order.expiryTime]);
+
+  const minutes = Math.floor(remaining / 60);
+  const seconds = remaining % 60;
+  const display =
+    remaining > 0
+      ? `${minutes > 0 ? `${minutes}m ` : ""}${seconds}s`
+      : i18n('pages.futures.orderDetails.closing');
+
+  return (
+    <OrderDetailRow
+      label={i18n('pages.futures.orderDetails.remainingTime')}
+      value={display}
+      className={remaining > 0 ? "profit" : ""}
+    />
+  );
+};
 
 export default Futures;

@@ -285,6 +285,8 @@ const en = {
         futuresAmount: "Futures Amount:",
         contractDuration: "Contract Duration:",
         seconds: "Seconds",
+        remainingTime: "Remaining Time:",
+        closing: "Closing…",
         futuresStatus: "Futures Status:",
         openPositionPrice: "Open Position Price:",
         openPositionTime: "Open Position Time:",

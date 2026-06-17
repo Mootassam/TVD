@@ -14,7 +14,9 @@
       "Bash(cd /d/TVD/server; echo \"=== server total tsc errors ===\"; npx tsc --noEmit 2>&1 | grep -cE \"error TS\"; echo \"=== graborders typecheck \\(modal+futures page\\) ===\"; cd /d/TVD/graborders; npx tsc --noEmit 2>&1 | grep -iE \"FuturesModal|Futures/futures\" | grep \"error TS\" | head -30; echo \"=== done ===\")",
       "Read(//d/TVD/graborders/**)",
       "Bash(echo \"=== EXIT: $? \\(no lines above = clean\\) ===\")",
-      "Bash(echo \"=== EXIT $? \\(no lines = clean\\) ===\")"
+      "Bash(echo \"=== EXIT $? \\(no lines = clean\\) ===\")",
+      "Bash(echo \"=== server futuresRepo EXIT $? ===\")",
+      "Bash(echo \"=== client modal EXIT $? \\(no lines = clean\\) ===\")"
     ]
   }
 }

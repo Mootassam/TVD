@@ -268,6 +268,33 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
     }
   };
 
+  // Close the active trade early. The server finalizes it immediately using the
+  // same outcome engine as expiry (admin's pending decision if set, otherwise
+  // the deterministic outcome) — the early close does not change the result.
+  const closeTrade = async () => {
+    if (!futureId) {
+      onClose();
+      return;
+    }
+    setIsSettling(true);
+    try {
+      await dispatch(futuresFormAction.doUpdate(futureId, { closeNow: true }));
+      // The server pushes the result over the socket too; this is the fallback.
+      const res: any = await dispatch(futuresViewActions.doFind(futureId));
+      const trade = res && res.payload ? res.payload : res;
+      if (trade && trade.finalized) {
+        displayResult({
+          control: trade.control,
+          profitAndLossAmount: Number(trade.profitAndLossAmount ?? 0),
+        });
+      } else {
+        setIsSettling(false);
+      }
+    } catch (err) {
+      setIsSettling(false);
+    }
+  };
+
   // create trade record and return created record
   const create = async () => {
     const currentPrice = parseFloat(marketPrice || "0") || 0;
@@ -430,8 +457,12 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
 
             <div className="trade-actions">
               {tradeStatus === "in-progress" && (
-                <button className="trade-action-btn keep-buying" onClick={onClose}>
-                  Keep Buying
+                <button
+                  className="trade-action-btn secondary"
+                  onClick={closeTrade}
+                  disabled={isSettling}
+                >
+                  {isSettling ? "Closing…" : "Close Trade"}
                 </button>
               )}
               {tradeStatus === "completed" && (
