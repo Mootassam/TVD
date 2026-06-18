@@ -133,6 +133,13 @@ function Profile() {
     alert(i18n("pages.profile.cache.cleared"));
   }, []);
 
+  const isDemo = currentUser?.accountType === 'demo';
+
+  // Demo accounts can't use these menu functions; clicking shows this prompt.
+  const handleDemoRestricted = useCallback(() => {
+    alert("OPEN YOUR REAL TRADE ACCOUNT AND START YOUR TRADING");
+  }, []);
+
   const toggleSimulatedTrading = useCallback(() => {
     setSimulatedTradingEnabled(!simulatedTradingEnabled);
     console.log(
@@ -162,17 +169,21 @@ function Profile() {
         disabled: item?.requiresKyc && !isKycVerified,
       }));
 
-      // For demo accounts, disable KYC-required items (keep visible but not clickable)
-      if (currentUser?.accountType === 'demo') {
-        items = items.map(item => ({
-          ...item,
-          disabled: item.requiresKyc ? true : item.disabled,
-        }));
+      // For demo accounts, hide the Bind Account entry (real accounts only)
+      // and disable every remaining function. Clicking a disabled item prompts
+      // the user to open a real account (handled in renderMenuItem).
+      if (isDemo) {
+        items = items
+          .filter(item => item.path !== "/bind-account")
+          .map(item => ({
+            ...item,
+            disabled: true,
+          }));
       }
 
       return items;
     },
-    [isKycVerified, currentUser?.accountType]
+    [isKycVerified, isDemo]
   );
 
   const handleVerifyNow = useCallback(() => {
@@ -258,7 +269,11 @@ function Profile() {
       // Action items (clear cache)
       if (item.type === "action") {
         return (
-          <li className="menu-item" key={index} onClick={handleClearCache}>
+          <li
+            className={`menu-item ${item.disabled ? "disabled" : ""}`}
+            key={index}
+            onClick={item.disabled ? handleDemoRestricted : handleClearCache}
+          >
             <div className="icon-container icon-gray">
               <i className={item.icon} />
             </div>
@@ -273,7 +288,11 @@ function Profile() {
           <li
             className={`menu-item ${item.disabled ? "disabled" : ""}`}
             key={index}
-            onClick={item.modal === "language" ? openLanguageModal : undefined}
+            onClick={
+              item.disabled
+                ? (isDemo ? handleDemoRestricted : undefined)
+                : (item.modal === "language" ? openLanguageModal : undefined)
+            }
           >
             <div
               className={`icon-container ${item.icon.includes("language") ? "icon-green" : "icon-gray"
@@ -324,7 +343,11 @@ function Profile() {
       );
 
       return item.disabled ? (
-        <div key={item.name} className="menu-link-wrapper">
+        <div
+          key={item.name}
+          className="menu-link-wrapper"
+          onClick={isDemo ? handleDemoRestricted : undefined}
+        >
           {menuItemContent}
         </div>
       ) : (
@@ -338,6 +361,8 @@ function Profile() {
       toggleSimulatedTrading,
       handleClearCache,
       openLanguageModal,
+      isDemo,
+      handleDemoRestricted,
     ]
   );
 

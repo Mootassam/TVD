@@ -288,6 +288,7 @@ const en = {
         remainingTime: "Remaining Time:",
         elapsedTime: "Elapsed Time:",
         closing: "Closing…",
+        closeTrade: "Close Trade",
         futuresStatus: "Futures Status:",
         openPositionPrice: "Open Position Price:",
         openPositionTime: "Open Position Time:",

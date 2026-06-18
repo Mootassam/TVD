@@ -486,7 +486,9 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
             )}
 
             <div className="trade-actions">
-              {tradeStatus === "in-progress" && (
+              {/* Close Trade is only for open-ended trades (no duration chosen).
+                  Duration trades close on their own when the timer ends. */}
+              {tradeStatus === "in-progress" && isOpenEnded && (
                 <button
                   className="trade-action-btn secondary"
                   onClick={closeTrade}

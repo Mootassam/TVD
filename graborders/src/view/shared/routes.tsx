@@ -66,6 +66,7 @@ const privateRoutes = [
     loader: () => import("src/view/pages/Trade/trade"),
     permissionRequired: permissions.categoryRead,
     exact: true,
+    requiresKyc: true,
   },
   {
     path: "/futures",
@@ -103,6 +104,7 @@ const screenRoutes = [
     path: "/bind-account",
     loader: () => import("src/view/pages/bindAccount/BindAccount"),
     permissionRequired: permissions.categoryRead,
+    requiresKyc: true,
   },
 
   {

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import CoinSelectorSidebar from "src/view/shared/modals/CoinSelectorSidebar";
 import FuturesModal from "src/shared/modal/FuturesModal";
 import futuresListAction from "src/modules/futures/list/futuresListActions";
+import futuresFormAction from "src/modules/futures/form/futuresFormActions";
 import futuresListSelectors from "src/modules/futures/list/futuresListSelectors";
 import assetsListAction from "src/modules/assets/list/assetsListActions";
 import selector from "src/modules/assets/list/assetsListSelectors";
@@ -328,13 +329,17 @@ function Futures() {
 
     ws.onmessage = (event) => {
       const raw = event.data;
-      if (raw.startsWith("~h~")) {
-        ws.send(raw);
-        return;
-      }
 
       const messages = parseMessages(raw);
       messages.forEach((msg) => {
+        // Heartbeats arrive framed as "~m~4~m~~h~1"; after unframing the
+        // message itself is "~h~1". Echo it back (re-framed) to keep the
+        // connection alive — otherwise the server drops the socket and the
+        // price feed never stabilizes.
+        if (msg.startsWith("~h~")) {
+          ws.send(encode(msg));
+          return;
+        }
         try {
           const json = JSON.parse(msg);
           if (json.m === "qsd") {
@@ -554,6 +559,19 @@ function Futures() {
     setSelectedOrder(null);
   }, []);
 
+  // Close an open-ended trade (one opened without choosing a duration) from the
+  // order details. The server finalizes it immediately using the same engine as
+  // expiry (admin's pending decision if set, otherwise the deterministic
+  // outcome). Then refresh the lists and close the modal.
+  const handleCloseTrade = useCallback(async (order: any) => {
+    if (!order?.id) return;
+    await dispatch(futuresFormAction.doUpdate(order.id, { closeNow: true }));
+    dispatch(futuresListAction.doFetch());
+    dispatch(futuresListAction.doFetchPending());
+    setIsOrderModalOpen(false);
+    setSelectedOrder(null);
+  }, [dispatch]);
+
   const FetchTab = useCallback((tab: string) => {
     if (tab === "openOrders") {
       setActiveTab("openOrders");
@@ -655,6 +673,7 @@ function Futures() {
         <OrderDetailModal
           selectedOrder={selectedOrder}
           onClose={handleCloseOrderModal}
+          onCloseTrade={handleCloseTrade}
           formatDateTimeDetailed={formatDateTimeDetailed}
           safeToFixed={safeToFixed}
         />
@@ -1121,13 +1140,22 @@ function Futures() {
   );
 }
 
-// Order Detail Modal (unchanged)
+// Order Detail Modal
 const OrderDetailModal = ({
   selectedOrder,
   onClose,
+  onCloseTrade,
   formatDateTimeDetailed,
   safeToFixed
-}: any) => (
+}: any) => {
+  // An open-ended trade has no duration/expiry. Only those can be closed from
+  // here (duration trades close on their own when the timer ends).
+  const durationSecs = parseInt(selectedOrder.contractDuration, 10) || 0;
+  const isOpenEnded = !selectedOrder.expiryTime && durationSecs <= 0;
+  const isOpen = !selectedOrder.finalized && !selectedOrder.closePositionTime;
+  const canClose = isOpenEnded && isOpen;
+
+  return (
   <div className="modal-overlays" onClick={onClose}>
     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
       <div className="modal-header">
@@ -1213,13 +1241,23 @@ const OrderDetailModal = ({
         </div>
       </div>
       <div className="modal-footer">
+        {canClose && (
+          <button
+            className="modal-button"
+            style={{ backgroundColor: "#FF6838", color: "#fff" }}
+            onClick={() => onCloseTrade && onCloseTrade(selectedOrder)}
+          >
+            {i18n('pages.futures.orderDetails.closeTrade')}
+          </button>
+        )}
         <button className="modal-button" onClick={onClose}>
           {i18n('pages.futures.orderDetails.done')}
         </button>
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const OrderDetailRow = ({ label, value, className = "" }: any) => (
   <div className="detail-row">
