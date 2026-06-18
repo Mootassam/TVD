@@ -13,9 +13,10 @@ function HelpCenter() {
   const loading = useSelector(selector.selectLoading);
 
   useEffect(() => {
-    // Only show enabled rules to end users; globally disabled rules and rules
-    // blacklisted for this specific customer are hidden.
-    dispatch(actions.doFetch({ enabled: true, hideDisabledForCurrentUser: true }));
+    // Show the rules this customer is allowed to see: globally enabled rules
+    // that aren't blacklisted for them, plus any rule explicitly whitelisted
+    // for them (even if globally disabled).
+    dispatch(actions.doFetch({ visibleForCurrentUser: true }));
     // eslint-disable-next-line
   }, [dispatch]);
 

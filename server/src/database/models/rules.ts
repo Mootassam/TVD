@@ -30,6 +30,16 @@ export default (database) => {
         },
       ],
 
+      // Customers (users) for whom this rule is explicitly enabled (whitelist).
+      // These users see the rule even when it is globally disabled. Useful to
+      // expose a rule to a few selected customers only.
+      enabledFor: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "user",
+        },
+      ],
+
       tenant: {
         type: Schema.Types.ObjectId,
         ref: "tenant",

@@ -75,6 +75,15 @@ const authActions = {
             currentUser,
           },
         });
+
+        // New real accounts must be approved by an admin before they can use
+        // the platform. Send them to the "waiting for approval" page. Demo
+        // accounts are auto-approved and go straight in.
+        if (currentUser?.accountType !== "demo" && currentUser?.approved === false) {
+          getHistory().push("/auth/pending-approval");
+        } else {
+          getHistory().push("/");
+        }
       } catch (error) {
         await service.signout();
 

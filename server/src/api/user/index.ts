@@ -15,6 +15,11 @@ export default (app) => {
   app.put(`/tenant/:tenantId/userkyc`, require("./userKyc").default);
 
   app.put(
+    `/tenant/:tenantId/user/:id/approve`,
+    require("./userApprove").default
+  );
+
+  app.put(
     `/tenant/:tenantId/UpdateWithdrawPassword`,
     require("./UpdateWithdrawPassword").default
   );

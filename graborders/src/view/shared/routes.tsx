@@ -378,6 +378,10 @@ const publicRoutes = [
 ];
 const simpleRoutes = [
   {
+    path: "/auth/pending-approval",
+    loader: () => import("src/view/pages/Auth/PendingApproval"),
+  },
+  {
     path: "/403",
     loader: () => import("src/view/shared/errors/Error403Page"),
   },

@@ -28,6 +28,16 @@ export default class UserService {
     return response.data;
   }
 
+  // Approve a client with a single click so they can access the platform.
+  static async approveClient(id) {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/user/${id}/approve`,
+    );
+
+    return response.data;
+  }
+
   static async doOneClickLogin(userId) {
     const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.post(

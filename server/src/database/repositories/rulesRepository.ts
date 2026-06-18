@@ -135,7 +135,8 @@ class RulesRepository {
           _id: id,
           tenant: currentTenant.id,
         })
-        .populate({ path: "disabledFor", select: "fullName email" }),
+        .populate({ path: "disabledFor", select: "fullName email" })
+        .populate({ path: "enabledFor", select: "fullName email" }),
       options
     );
 
@@ -239,6 +240,35 @@ class RulesRepository {
         }
       }
 
+      // Single visibility flag used by the client (Support page) that combines
+      // the global flag, the per-customer blacklist and whitelist. A rule is
+      // visible to the current customer when:
+      //   (it is globally enabled AND not blacklisted for them)  OR
+      //   (it is explicitly whitelisted for them).
+      // The whitelist therefore surfaces a rule even if it is globally disabled.
+      if (
+        filter.visibleForCurrentUser === true ||
+        filter.visibleForCurrentUser === "true"
+      ) {
+        const currentUser = MongooseRepository.getCurrentUser(options);
+        const userId = currentUser && currentUser.id;
+        if (userId) {
+          criteriaAnd.push({
+            $or: [
+              {
+                $and: [
+                  { enabled: { $ne: false } },
+                  { disabledFor: { $ne: userId } },
+                ],
+              },
+              { enabledFor: userId },
+            ],
+          });
+        } else {
+          criteriaAnd.push({ enabled: { $ne: false } });
+        }
+      }
+
       if (
         filter.isFeature === true ||
         filter.isFeature === "true" ||
@@ -282,7 +312,8 @@ class RulesRepository {
       .skip(skip)
       .limit(limitEscaped)
       .sort(sort)
-      .populate({ path: "disabledFor", select: "fullName email" });
+      .populate({ path: "disabledFor", select: "fullName email" })
+      .populate({ path: "enabledFor", select: "fullName email" });
 
     const count = await Rules(options.database).countDocuments(criteria);
 
@@ -357,8 +388,8 @@ class RulesRepository {
 
     // Normalize the populated customers into { id, fullName, email } so the
     // admin autocomplete can render labels and read back ids consistently.
-    if (Array.isArray(output.disabledFor)) {
-      output.disabledFor = output.disabledFor.map((user) =>
+    const normalizeCustomers = (list) =>
+      list.map((user) =>
         user && (user._id || user.id)
           ? {
               id: (user._id || user.id).toString(),
@@ -367,6 +398,13 @@ class RulesRepository {
             }
           : { id: String(user) }
       );
+
+    if (Array.isArray(output.disabledFor)) {
+      output.disabledFor = normalizeCustomers(output.disabledFor);
+    }
+
+    if (Array.isArray(output.enabledFor)) {
+      output.enabledFor = normalizeCustomers(output.enabledFor);
     }
 
     return output;

@@ -4,8 +4,9 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { i18n } from 'src/i18n';
 import UserAutocompleteFormItem from 'src/view/user/autocomplete/UserAutocompleteFormItem';
 
-// Inline modal for managing the customers a rule is hidden from.
-// `record.disabledFor` is expected to be an array of { id, fullName, email }.
+// Inline modal for managing per-customer visibility of a rule.
+// `record.disabledFor` (blacklist) and `record.enabledFor` (whitelist) are each
+// expected to be an array of { id, fullName, email }.
 function RulesCustomersModal(props) {
   const modalRef = useRef<any>();
 
@@ -13,6 +14,7 @@ function RulesCustomersModal(props) {
     mode: 'all',
     defaultValues: {
       disabledFor: props.record?.disabledFor || [],
+      enabledFor: props.record?.enabledFor || [],
     },
   });
 
@@ -29,8 +31,9 @@ function RulesCustomersModal(props) {
   };
 
   const onSubmit = (values) => {
-    const ids = (values.disabledFor || []).map((user) => user.id);
-    props.onSave(props.record.id, ids);
+    const disabledFor = (values.disabledFor || []).map((user) => user.id);
+    const enabledFor = (values.enabledFor || []).map((user) => user.id);
+    props.onSave(props.record.id, { disabledFor, enabledFor });
     close();
   };
 
@@ -54,6 +57,18 @@ function RulesCustomersModal(props) {
           <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <div className="modal-body">
+                <UserAutocompleteFormItem
+                  name="enabledFor"
+                  label={i18n('entities.category.fields.enabledFor')}
+                  mode="multiple"
+                  showCreate={false}
+                />
+                <small className="form-text text-muted">
+                  {i18n('entities.category.enabledForHint')}
+                </small>
+
+                <hr />
+
                 <UserAutocompleteFormItem
                   name="disabledFor"
                   label={i18n('entities.category.fields.disabledFor')}

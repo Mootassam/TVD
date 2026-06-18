@@ -11,6 +11,27 @@ export default class VipServices {
     this.options = options;
   }
 
+  // Approve a client so they can access the platform (admin "Allow access").
+  async approveClient(id, approved = true) {
+    const session = await MongooseRepository.createSession(
+      this.options.database
+    );
+
+    try {
+      const record = await UserRepository.setApproved(id, approved, {
+        ...this.options,
+        session,
+      });
+
+      await MongooseRepository.commitTransaction(session);
+
+      return record;
+    } catch (error) {
+      await MongooseRepository.abortTransaction(session);
+      throw error;
+    }
+  }
+
   async create(data) {
     const session = await MongooseRepository.createSession(
       this.options.database

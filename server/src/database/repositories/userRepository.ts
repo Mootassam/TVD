@@ -626,6 +626,9 @@ export default class UserRepository {
            refcode: await this.createUniqueRefCode(options),
            accountType: data.accountType || "real",
            emailVerified: isDemo, // Auto-verify demo accounts
+           // Demo accounts can use the platform immediately; real self-signups
+           // must be approved by an admin before they can access it.
+           approved: isDemo,
          },
        ],
        options
@@ -638,6 +641,34 @@ export default class UserRepository {
        bypassPermissionValidation: true,
      });
    }
+
+  // Approve (or revoke approval of) a client so they can access the platform.
+  // Used by the admin "Allow access" action.
+  static async setApproved(id, approved, options: IRepositoryOptions) {
+    await User(options.database).updateOne(
+      { _id: id },
+      { $set: { approved: Boolean(approved) } },
+      options
+    );
+
+    if (approved) {
+      try {
+        await sendNotification({
+          userId: id,
+          message: "",
+          type: "accountActivated",
+          options,
+        });
+      } catch (err) {
+        // Notification is best-effort; never block approval because of it.
+      }
+    }
+
+    return this.findById(id, {
+      ...options,
+      bypassPermissionValidation: true,
+    });
+  }
 
   static async updatePassword(
     id,

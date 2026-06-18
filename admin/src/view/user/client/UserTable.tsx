@@ -209,6 +209,22 @@ function UserTable() {
                     <td className="actions-cell">
                       <div className="actions-container">
 
+                        {row.approved === false && (
+                          <button
+                            className="btn-action approve"
+                            style={{
+                              backgroundColor: '#28a745',
+                              color: 'white',
+                              marginRight: '5px',
+                            }}
+                            onClick={() =>
+                              dispatch(actions.doApproveClient(row.id))
+                            }
+                          >
+                            <i className="fas fa-check"></i>
+                            <span>{i18n('common.allowAccess')}</span>
+                          </button>
+                        )}
 
                         <Link
                           className="btn btn-link"

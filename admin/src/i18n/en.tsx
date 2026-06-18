@@ -1,6 +1,7 @@
 const en = {
   common: {
     freeze: 'freeze',
+    allowAccess: 'Allow access',
     onclicklogin: 'One-Click Login',
     freezeConfirmation: "Freeze Funds",
     unfreezeConfirmation: "Unfreeze Funds",
@@ -843,6 +844,8 @@ const en = {
       targetCustomers: 'Customer visibility',
       disabledForHint:
         'Selected customers will not see this rule. Leave empty to show it to everyone.',
+      enabledForHint:
+        'Selected customers will see this rule even when it is globally disabled. Leave empty for none.',
       destroy: {
         success: 'Number successfully deleted',
       },
@@ -861,6 +864,7 @@ const en = {
         question: 'Question',
         description: 'Description',
         disabledFor: 'Hidden for customers',
+        enabledFor: 'Enabled for customers',
         photo: 'Photo',
         metaKeywords: 'MetaKeywords',
         metaDescriptions: 'MetaDescriptions',
@@ -3401,6 +3405,7 @@ const en = {
     doDestroyPermanentlySuccess: 'User permanently deleted',
     doDestroyPermanentlyAllSelectedSuccess:
       'Users permanently deleted',
+    doApproveSuccess: 'Client approved — they can now access the platform',
     edit: {
       title: 'Edit User',
     },

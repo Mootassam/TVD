@@ -354,6 +354,20 @@ const userListActions = {
     }
   },
 
+  // Approve a client with a single click so they can access the platform,
+  // then refresh the client list so the row reflects the new state.
+  doApproveClient: (id) => async (dispatch, getState) => {
+    try {
+      await UserService.approveClient(id);
+
+      Message.success(i18n('user.doApproveSuccess'));
+
+      dispatch(userListActions.doFetchCurrentFilterClient());
+    } catch (error) {
+      Errors.handle(error);
+    }
+  },
+
   doDestroyPermanentlyAllSelected:
     () => async (dispatch, getState) => {
       try {

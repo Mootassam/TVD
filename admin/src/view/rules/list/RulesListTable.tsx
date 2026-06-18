@@ -235,11 +235,20 @@ function RulesListTable(props) {
                           className="btn-action customers"
                           type="button"
                           onClick={() => setRecordToTarget(row)}
+                          title={`${i18n('entities.category.fields.enabledFor')}: ${
+                            (Array.isArray(row.enabledFor) && row.enabledFor.length) || 0
+                          } | ${i18n('entities.category.fields.disabledFor')}: ${
+                            (Array.isArray(row.disabledFor) && row.disabledFor.length) || 0
+                          }`}
                         >
                           {i18n('common.customers')}
-                          {Array.isArray(row.disabledFor) && row.disabledFor.length
-                            ? ` (${row.disabledFor.length})`
-                            : ''}
+                          {(() => {
+                            const on =
+                              (Array.isArray(row.enabledFor) && row.enabledFor.length) || 0;
+                            const off =
+                              (Array.isArray(row.disabledFor) && row.disabledFor.length) || 0;
+                            return on || off ? ` (+${on}/-${off})` : '';
+                          })()}
                         </button>
                       )}
                       {hasPermissionToEdit && (
@@ -283,8 +292,8 @@ function RulesListTable(props) {
         <RulesCustomersModal
           record={recordToTarget}
           onClose={() => setRecordToTarget(null)}
-          onSave={(id, disabledFor) =>
-            dispatch(actions.doUpdateDisabledFor(id, disabledFor))
+          onSave={(id, customers) =>
+            dispatch(actions.doUpdateCustomers(id, customers))
           }
         />
       )}

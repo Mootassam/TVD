@@ -70,11 +70,17 @@ const rulesListActions = {
     }
   },
 
-  // Update the list of customers a rule is hidden from. `disabledFor` is an
-  // array of user ids. Refreshes the current list afterwards.
-  doUpdateDisabledFor: (id, disabledFor) => async (dispatch) => {
+  // Update the per-customer visibility of a rule. `customers` is an object
+  // { disabledFor, enabledFor } where each value is an array of user ids:
+  //  - disabledFor: blacklist (these customers won't see the rule)
+  //  - enabledFor:  whitelist (these customers see it even if globally disabled)
+  // Refreshes the current list afterwards.
+  doUpdateCustomers: (id, customers) => async (dispatch) => {
     try {
-      await RulesService.update(id, { disabledFor });
+      await RulesService.update(id, {
+        disabledFor: customers.disabledFor || [],
+        enabledFor: customers.enabledFor || [],
+      });
 
       Message.success(i18n('entities.category.update.success'));
 

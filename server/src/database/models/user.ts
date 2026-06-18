@@ -74,6 +74,11 @@ export default (database) => {
       email: { type: String, maxlength: 255, index: { unique: true } },
       password: { type: String, maxlength: 255, select: false },
       kyc: { type: Boolean, default: false },
+      // Whether an admin has approved this account to access the platform.
+      // Defaults to true so existing and admin-created users keep access; new
+      // mobile self-signups (real accounts) are created with `false` and stay
+      // locked out until an admin approves them. Demo accounts are auto-approved.
+      approved: { type: Boolean, default: true },
       emailVerified: { type: Boolean, default: false },
       emailVerificationToken: { type: String, maxlength: 255, select: false },
       emailVerificationTokenExpiresAt: { type: Date },

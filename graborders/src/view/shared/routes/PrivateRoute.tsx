@@ -27,6 +27,17 @@ function PrivateRoute({ component: Component, currentTenant, currentUser, permis
           );
         }
 
+        // Real accounts awaiting admin approval can't access the platform yet.
+        // Demo accounts and already-approved users pass through. Existing users
+        // (no `approved` field) are treated as approved.
+        if (
+          currentUser &&
+          currentUser.accountType !== 'demo' &&
+          currentUser.approved === false
+        ) {
+          return <Redirect to="/auth/pending-approval" />;
+        }
+
         if (!permissionChecker.match(permissionRequired)) {
           return <Redirect to="/403" />;
         }

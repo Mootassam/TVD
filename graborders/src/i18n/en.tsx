@@ -635,7 +635,7 @@ const en = {
     },
     signup: {
       title: "SIGN UP",
-      creatingAccount: "CREATING...",
+      creatingAccount: "Your account is being processed to create...",
       createAccount: "CREATE ACCOUNT",
       refresh: "Refresh",
       captchaMismatch: "Captcha does not match",

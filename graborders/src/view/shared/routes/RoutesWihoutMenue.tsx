@@ -13,6 +13,15 @@ function RoutesWihoutMenue({
     <Route
       {...reset}
       render={(props) => {
+        // Real accounts awaiting admin approval can't access the platform yet.
+        if (
+          currentUser &&
+          currentUser.accountType !== 'demo' &&
+          currentUser.approved === false
+        ) {
+          return <Redirect to="/auth/pending-approval" />;
+        }
+
         return (
           <>
           <ScrollToTop />

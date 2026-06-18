@@ -18,7 +18,14 @@
       "Bash(echo \"=== server futuresRepo EXIT $? ===\")",
       "Bash(echo \"=== client modal EXIT $? \\(no lines = clean\\) ===\")",
       "Bash(echo \"=== server EXIT $? ===\")",
-      "Bash(echo \"=== client EXIT $? \\(no lines = clean\\) ===\")"
+      "Bash(echo \"=== client EXIT $? \\(no lines = clean\\) ===\")",
+      "Bash(cd /d/TVD/admin && find . -path ./node_modules -prune -o -type d -iname '*client*' -print 2>/dev/null; echo \"=== view client files ===\"; find ./src/view -iname '*client*' 2>/dev/null | head; echo \"=== routes with client ===\"; grep -rn \"clients\" ./src/view/routes.tsx 2>/dev/null | head)",
+      "Read(//d/TVD/admin/**)",
+      "Bash(awk '/static _mapUserForTenantMobile/,/^  }/' src/database/repositories/userRepository.ts)",
+      "Bash(awk '/UpadteUserKYC/,/^ }/' src/services/vipServices.ts)",
+      "Bash(awk '/static async UpdateKyc/,/^ }/' src/database/repositories/userRepository.ts)",
+      "Bash(awk '/static _mapUserForTenantForRows/,/^  }/' src/database/repositories/userRepository.ts)",
+      "Bash(awk '/static _mapUserForTenant\\\\\\(/,/^  }/' src/database/repositories/userRepository.ts)"
     ]
   }
 }
