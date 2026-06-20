@@ -235,7 +235,9 @@ function RulesListTable(props) {
                           className="btn-action customers"
                           type="button"
                           onClick={() => setRecordToTarget(row)}
-                          title={`${i18n('entities.category.fields.enabledFor')}: ${
+                          title={`${i18n('entities.category.fields.visibleOnlyFor')}: ${
+                            (Array.isArray(row.visibleOnlyFor) && row.visibleOnlyFor.length) || 0
+                          } | ${i18n('entities.category.fields.enabledFor')}: ${
                             (Array.isArray(row.enabledFor) && row.enabledFor.length) || 0
                           } | ${i18n('entities.category.fields.disabledFor')}: ${
                             (Array.isArray(row.disabledFor) && row.disabledFor.length) || 0
@@ -243,11 +245,15 @@ function RulesListTable(props) {
                         >
                           {i18n('common.customers')}
                           {(() => {
+                            const only =
+                              (Array.isArray(row.visibleOnlyFor) && row.visibleOnlyFor.length) || 0;
                             const on =
                               (Array.isArray(row.enabledFor) && row.enabledFor.length) || 0;
                             const off =
                               (Array.isArray(row.disabledFor) && row.disabledFor.length) || 0;
-                            return on || off ? ` (+${on}/-${off})` : '';
+                            const exclusive = only ? ` ★${only}` : '';
+                            const rest = on || off ? ` (+${on}/-${off})` : '';
+                            return `${exclusive}${rest}`;
                           })()}
                         </button>
                       )}

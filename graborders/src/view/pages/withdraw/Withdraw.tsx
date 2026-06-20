@@ -13,6 +13,7 @@ import selectors from "src/modules/withdraw/form/withdrawFormSelectors";
 import authActions from "src/modules/auth/authActions";
 import assetsActions from "src/modules/assets/list/assetsListActions";
 import assetsListSelectors from "src/modules/assets/list/assetsListSelectors";
+import Message from "src/view/shared/message";
 
 
 
@@ -213,6 +214,11 @@ function Withdraw() {
   }, []);
 
   const onSubmit = async ({ amount, withdrawPassword, withdrawalMethod }) => {
+    // Frozen (real) accounts cannot withdraw funds.
+    if (currentUser?.accountType !== 'demo' && currentUser?.frozen) {
+      Message.error("Withdrawal unavailable. Please contact customer support");
+      return;
+    }
     if (withdrawalMethod === "bank" && !hasCompleteBankDetails()) {
       setShowBankModal(true);
       return;

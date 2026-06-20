@@ -40,6 +40,17 @@ export default (database) => {
         },
       ],
 
+      // Exclusive audience. When this list is NON-EMPTY, the rule is shown ONLY
+      // to these users and is hidden from everyone else (overrides the global
+      // enabled flag and the enabled/disabled lists). When empty, it has no
+      // effect and normal visibility rules apply.
+      visibleOnlyFor: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "user",
+        },
+      ],
+
       tenant: {
         type: Schema.Types.ObjectId,
         ref: "tenant",

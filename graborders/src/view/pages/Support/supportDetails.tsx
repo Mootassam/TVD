@@ -13,7 +13,9 @@ function HelpCenterDetail() {
   const record = records.find(r => r.id === id);
 
   useEffect(() => {
-    dispatch(actions.doFetch());
+    // Only load rules this customer is allowed to see, so exclusive/hidden
+    // rules don't leak on the detail page.
+    dispatch(actions.doFetch({ visibleForCurrentUser: true }));
   }, [dispatch]);
 
   return (

@@ -38,6 +38,17 @@ export default class UserService {
     return response.data;
   }
 
+  // Freeze / unfreeze a client. Frozen clients can't trade or withdraw.
+  static async freezeClient(id, frozen) {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/user/${id}/freeze`,
+      { frozen },
+    );
+
+    return response.data;
+  }
+
   static async doOneClickLogin(userId) {
     const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.post(

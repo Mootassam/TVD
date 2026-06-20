@@ -15,6 +15,7 @@ import { i18n } from "../../../i18n";
 import CoinSelectorSidebar from "src/view/shared/modals/CoinSelectorSidebar";
 import futuresFormAction from "src/modules/futures/form/futuresFormActions";
 import futuresViewActions from "src/modules/futures/view/futuresViewActions";
+import authSelectors from "src/modules/auth/authSelectors";
 
 // Utility: safe parseFloat that returns NaN if invalid
 const safeParse = (v) => {
@@ -151,6 +152,8 @@ function Trade() {
   const futureLoading = useSelector(futuresListSelectors.selectLoading);
   const transactionLoading = useSelector(transactionListSelectors.selectLoading);
   const assetsLoading = useSelector(assetsListSelectors.selectLoading);
+
+  const currentUser = useSelector(authSelectors.selectCurrentUser);
 
   // Local UI state
   const [selectedCoin, setSelectedCoin] = useState("EUR/USD");  // Changed to forex
@@ -548,6 +551,12 @@ function Trade() {
     setErrorMessage("");
     if (placing) return;
 
+    // Frozen (real) accounts cannot place trades.
+    if (currentUser?.accountType !== 'demo' && currentUser?.frozen) {
+      setErrorMessage("Trading is temporarily unavailable");
+      return;
+    }
+
     if (type === "trade") {
       const USDAmount = safeParse(amountInUSD);
       if (!Number.isFinite(USDAmount) || USDAmount <= 0) {
@@ -639,7 +648,7 @@ function Trade() {
     placing, quantity, orderType, marketPrice, price, selectedCoin,
     activeTab, dispatch, generateOrderNumber, currentBalance, baseSymbol,
     formatNumber, type, amountInUSD, activeOrdersTab, createTrade,
-    compareWithTolerance
+    compareWithTolerance, currentUser
   ]);
 
   const updateStatus = useCallback(async (id, data) => {

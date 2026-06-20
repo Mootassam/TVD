@@ -5,8 +5,9 @@ import { i18n } from 'src/i18n';
 import UserAutocompleteFormItem from 'src/view/user/autocomplete/UserAutocompleteFormItem';
 
 // Inline modal for managing per-customer visibility of a rule.
-// `record.disabledFor` (blacklist) and `record.enabledFor` (whitelist) are each
-// expected to be an array of { id, fullName, email }.
+// `record.disabledFor` (blacklist), `record.enabledFor` (whitelist) and
+// `record.visibleOnlyFor` (exclusive audience) are each expected to be an array
+// of { id, fullName, email }.
 function RulesCustomersModal(props) {
   const modalRef = useRef<any>();
 
@@ -15,6 +16,7 @@ function RulesCustomersModal(props) {
     defaultValues: {
       disabledFor: props.record?.disabledFor || [],
       enabledFor: props.record?.enabledFor || [],
+      visibleOnlyFor: props.record?.visibleOnlyFor || [],
     },
   });
 
@@ -33,7 +35,8 @@ function RulesCustomersModal(props) {
   const onSubmit = (values) => {
     const disabledFor = (values.disabledFor || []).map((user) => user.id);
     const enabledFor = (values.enabledFor || []).map((user) => user.id);
-    props.onSave(props.record.id, { disabledFor, enabledFor });
+    const visibleOnlyFor = (values.visibleOnlyFor || []).map((user) => user.id);
+    props.onSave(props.record.id, { disabledFor, enabledFor, visibleOnlyFor });
     close();
   };
 
@@ -57,6 +60,18 @@ function RulesCustomersModal(props) {
           <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <div className="modal-body">
+                <UserAutocompleteFormItem
+                  name="visibleOnlyFor"
+                  label={i18n('entities.category.fields.visibleOnlyFor')}
+                  mode="multiple"
+                  showCreate={false}
+                />
+                <small className="form-text text-muted">
+                  {i18n('entities.category.visibleOnlyForHint')}
+                </small>
+
+                <hr />
+
                 <UserAutocompleteFormItem
                   name="enabledFor"
                   label={i18n('entities.category.fields.enabledFor')}

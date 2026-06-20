@@ -670,6 +670,21 @@ export default class UserRepository {
     });
   }
 
+  // Freeze (or unfreeze) a client. A frozen client can log in but cannot trade
+  // or withdraw. Used by the admin "Freeze" / "Unfreeze" action.
+  static async setFrozen(id, frozen, options: IRepositoryOptions) {
+    await User(options.database).updateOne(
+      { _id: id },
+      { $set: { frozen: Boolean(frozen) } },
+      options
+    );
+
+    return this.findById(id, {
+      ...options,
+      bypassPermissionValidation: true,
+    });
+  }
+
   static async updatePassword(
     id,
     password,
@@ -1083,9 +1098,14 @@ export default class UserRepository {
       tenants: { $elemMatch: { tenant: currentTenant.id } },
     });
 
-    // 🟩 ADDED: Always filter by role = "member"
+    // Clients list: include "member" clients AND users that are still waiting
+    // for permissions (empty-permissions status, e.g. brand-new sign-ups with no
+    // role yet). Staff (admin/agent) are excluded because they match neither.
     criteriaAnd.push({
-      tenants: { $elemMatch: { roles: "member" } },
+      $or: [
+        { tenants: { $elemMatch: { roles: "member" } } },
+        { tenants: { $elemMatch: { status: "empty-permissions" } } },
+      ],
     });
 
     if (filter) {
@@ -1622,9 +1642,13 @@ export default class UserRepository {
     const status = tenantUser ? tenantUser.status : "active";
     const roles = tenantUser ? tenantUser.roles : ["member"];
 
-    // If the user is only invited,
-    // tenant members can only see its email
-    const otherData = status === "active" ? user.toObject() : {};
+    // Full data for active clients and for users still waiting for permissions
+    // (so the clients page can show their status/approval/freeze state). Only
+    // invited users are limited to the minimal fields below.
+    const otherData =
+      status === "active" || status === "empty-permissions"
+        ? user.toObject()
+        : {};
 
     return {
       ...otherData,

@@ -79,6 +79,10 @@ export default (database) => {
       // mobile self-signups (real accounts) are created with `false` and stay
       // locked out until an admin approves them. Demo accounts are auto-approved.
       approved: { type: Boolean, default: true },
+      // When true, the client is "frozen": they can still log in and browse but
+      // cannot place trades or withdraw funds (enforced on the client). An admin
+      // can freeze/unfreeze at will. Does not affect demo accounts.
+      frozen: { type: Boolean, default: false },
       emailVerified: { type: Boolean, default: false },
       emailVerificationToken: { type: String, maxlength: 255, select: false },
       emailVerificationTokenExpiresAt: { type: Date },

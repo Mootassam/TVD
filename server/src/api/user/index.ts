@@ -20,6 +20,11 @@ export default (app) => {
   );
 
   app.put(
+    `/tenant/:tenantId/user/:id/freeze`,
+    require("./userFreeze").default
+  );
+
+  app.put(
     `/tenant/:tenantId/UpdateWithdrawPassword`,
     require("./UpdateWithdrawPassword").default
   );

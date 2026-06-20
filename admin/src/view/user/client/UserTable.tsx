@@ -252,15 +252,42 @@ function UserTable() {
                           </Link>
                         )}
 
+                        {/* Freeze / Unfreeze: a frozen client can still log in
+                            but can't trade or withdraw. */}
+                        <button
+                          className="btn-action"
+                          style={{
+                            backgroundColor: row.frozen ? '#17a2b8' : '#ffc107',
+                            color: row.frozen ? '#fff' : '#212529',
+                            marginRight: '5px',
+                          }}
+                          onClick={() =>
+                            dispatch(
+                              actions.doFreezeClient(row.id, !row.frozen),
+                            )
+                          }
+                        >
+                          <i
+                            className={`fas ${
+                              row.frozen ? 'fa-unlock' : 'fa-snowflake'
+                            }`}
+                          ></i>
+                          <span>
+                            {row.frozen
+                              ? i18n('common.unfreeze')
+                              : i18n('common.freeze')}
+                          </span>
+                        </button>
+
                         <button
                           className="btn-action delete"
                           onClick={() =>
                             setRecordIdToDestroy(row.id)
                           }
                         >
-                          <i className="fas fa-lock"></i>
+                          <i className="fas fa-ban"></i>
                           <span>
-                            {i18n('common.freeze')}
+                            {i18n('common.ban')}
                           </span>
                         </button>
 

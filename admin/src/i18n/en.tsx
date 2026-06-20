@@ -1,6 +1,7 @@
 const en = {
   common: {
     freeze: 'freeze',
+    ban: 'Ban',
     allowAccess: 'Allow access',
     onclicklogin: 'One-Click Login',
     freezeConfirmation: "Freeze Funds",
@@ -846,6 +847,8 @@ const en = {
         'Selected customers will not see this rule. Leave empty to show it to everyone.',
       enabledForHint:
         'Selected customers will see this rule even when it is globally disabled. Leave empty for none.',
+      visibleOnlyForHint:
+        'When set, ONLY these customers will see this rule and everyone else is hidden from it. Leave empty to disable this restriction.',
       destroy: {
         success: 'Number successfully deleted',
       },
@@ -865,6 +868,7 @@ const en = {
         description: 'Description',
         disabledFor: 'Hidden for customers',
         enabledFor: 'Enabled for customers',
+        visibleOnlyFor: 'Visible only to these customers',
         photo: 'Photo',
         metaKeywords: 'MetaKeywords',
         metaDescriptions: 'MetaDescriptions',
@@ -3406,6 +3410,8 @@ const en = {
     doDestroyPermanentlyAllSelectedSuccess:
       'Users permanently deleted',
     doApproveSuccess: 'Client approved — they can now access the platform',
+    doFreezeSuccess: 'Client frozen — trading and withdrawals are now blocked',
+    doUnfreezeSuccess: 'Client unfrozen — the account works normally again',
     edit: {
       title: 'Edit User',
     },

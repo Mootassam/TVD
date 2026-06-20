@@ -368,6 +368,24 @@ const userListActions = {
     }
   },
 
+  // Freeze / unfreeze a client (frozen clients can't trade or withdraw),
+  // then refresh the client list so the row reflects the new state.
+  doFreezeClient: (id, frozen) => async (dispatch, getState) => {
+    try {
+      await UserService.freezeClient(id, frozen);
+
+      Message.success(
+        frozen
+          ? i18n('user.doFreezeSuccess')
+          : i18n('user.doUnfreezeSuccess'),
+      );
+
+      dispatch(userListActions.doFetchCurrentFilterClient());
+    } catch (error) {
+      Errors.handle(error);
+    }
+  },
+
   doDestroyPermanentlyAllSelected:
     () => async (dispatch, getState) => {
       try {

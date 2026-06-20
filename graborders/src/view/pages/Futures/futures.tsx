@@ -533,6 +533,11 @@ function Futures() {
   }, []);
 
   const handleOpenModal = useCallback((direction: "up" | "down") => {
+    // Frozen (real) accounts cannot place trades.
+    if (currentUser?.accountType !== 'demo' && currentUser?.frozen) {
+      Message.error("Trading is temporarily unavailable");
+      return;
+    }
     // A client can only run one trade at a time. If there is an active (open)
     // order, block opening a new one. The server enforces this as well.
     if ((pendingCount || 0) > 0) {
@@ -542,7 +547,7 @@ function Futures() {
     dispatch(assetsListAction.doFetch());
     setTradeDirection(direction);
     setIsModalOpen(true);
-  }, [dispatch, pendingCount]);
+  }, [dispatch, pendingCount, currentUser]);
 
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);

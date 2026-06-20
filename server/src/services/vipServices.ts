@@ -32,6 +32,27 @@ export default class VipServices {
     }
   }
 
+  // Freeze / unfreeze a client (admin). Frozen clients can't trade or withdraw.
+  async freezeClient(id, frozen) {
+    const session = await MongooseRepository.createSession(
+      this.options.database
+    );
+
+    try {
+      const record = await UserRepository.setFrozen(id, frozen, {
+        ...this.options,
+        session,
+      });
+
+      await MongooseRepository.commitTransaction(session);
+
+      return record;
+    } catch (error) {
+      await MongooseRepository.abortTransaction(session);
+      throw error;
+    }
+  }
+
   async create(data) {
     const session = await MongooseRepository.createSession(
       this.options.database

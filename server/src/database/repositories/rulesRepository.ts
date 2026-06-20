@@ -136,7 +136,8 @@ class RulesRepository {
           tenant: currentTenant.id,
         })
         .populate({ path: "disabledFor", select: "fullName email" })
-        .populate({ path: "enabledFor", select: "fullName email" }),
+        .populate({ path: "enabledFor", select: "fullName email" })
+        .populate({ path: "visibleOnlyFor", select: "fullName email" }),
       options
     );
 
@@ -241,11 +242,13 @@ class RulesRepository {
       }
 
       // Single visibility flag used by the client (Support page) that combines
-      // the global flag, the per-customer blacklist and whitelist. A rule is
-      // visible to the current customer when:
-      //   (it is globally enabled AND not blacklisted for them)  OR
-      //   (it is explicitly whitelisted for them).
-      // The whitelist therefore surfaces a rule even if it is globally disabled.
+      // the exclusive audience, the global flag, and the per-customer blacklist
+      // and whitelist. A rule is visible to the current customer when:
+      //   (it is exclusive to them: they are in visibleOnlyFor)            OR
+      //   (it has no exclusive audience AND
+      //      ((globally enabled AND not blacklisted) OR whitelisted))
+      // An exclusive (non-empty visibleOnlyFor) rule is shown ONLY to the listed
+      // users and hidden from everyone else, overriding the other flags.
       if (
         filter.visibleForCurrentUser === true ||
         filter.visibleForCurrentUser === "true"
@@ -253,15 +256,34 @@ class RulesRepository {
         const currentUser = MongooseRepository.getCurrentUser(options);
         const userId = currentUser && currentUser.id;
         if (userId) {
+          const hasNoExclusiveAudience = {
+            $or: [
+              { visibleOnlyFor: { $exists: false } },
+              { visibleOnlyFor: { $size: 0 } },
+            ],
+          };
           criteriaAnd.push({
             $or: [
+              // Exclusive: rule restricted to specific users, current user is one.
+              { visibleOnlyFor: userId },
+              // Otherwise fall back to the normal visibility rules, but only for
+              // rules that are not restricted to an exclusive audience.
               {
                 $and: [
-                  { enabled: { $ne: false } },
-                  { disabledFor: { $ne: userId } },
+                  hasNoExclusiveAudience,
+                  {
+                    $or: [
+                      {
+                        $and: [
+                          { enabled: { $ne: false } },
+                          { disabledFor: { $ne: userId } },
+                        ],
+                      },
+                      { enabledFor: userId },
+                    ],
+                  },
                 ],
               },
-              { enabledFor: userId },
             ],
           });
         } else {
@@ -313,7 +335,8 @@ class RulesRepository {
       .limit(limitEscaped)
       .sort(sort)
       .populate({ path: "disabledFor", select: "fullName email" })
-      .populate({ path: "enabledFor", select: "fullName email" });
+      .populate({ path: "enabledFor", select: "fullName email" })
+      .populate({ path: "visibleOnlyFor", select: "fullName email" });
 
     const count = await Rules(options.database).countDocuments(criteria);
 
@@ -405,6 +428,10 @@ class RulesRepository {
 
     if (Array.isArray(output.enabledFor)) {
       output.enabledFor = normalizeCustomers(output.enabledFor);
+    }
+
+    if (Array.isArray(output.visibleOnlyFor)) {
+      output.visibleOnlyFor = normalizeCustomers(output.visibleOnlyFor);
     }
 
     return output;
