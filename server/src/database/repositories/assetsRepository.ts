@@ -802,11 +802,11 @@ class WalletRepository {
     const cryptoUSD = JSON.parse(await redis.get("CRYPTO_USD") || "{}");
     const fiatRates = JSON.parse(await redis.get("FIAT_RATES") || "{}");
 
-    if (!fiatRates[fiat]) {
-      throw new Error("Unsupported fiat");
-    }
+    // Degrade gracefully: if the rates cron hasn't populated Redis yet (or the
+    // requested fiat is unavailable), fall back to USD (rate 1) instead of
+    // throwing, which used to surface as a 500 on the profile/wallet pages.
+    const rate = Number(fiatRates[fiat]) > 0 ? Number(fiatRates[fiat]) : 1;
 
-    const rate = fiatRates[fiat];
     const result: Record<string, number> = {};
 
     for (const symbol in cryptoUSD) {
