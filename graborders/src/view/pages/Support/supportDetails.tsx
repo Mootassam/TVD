@@ -116,6 +116,9 @@ function HelpCenterDetail() {
           font-size: 16px;
           color: #dddddd;
           line-height: 1.6;
+          /* Preserve the line breaks the admin typed in the description so
+             numbered/multi-line text renders exactly as entered. */
+          white-space: pre-line;
         }
 
         /* Optional: style for when question not found (you can add a message) */

@@ -84,10 +84,7 @@ function Playstore() {
         <div className="download-content">
           <div className="download-title">Download the installation package</div>
           <div className="download-buttons">
-            <button className="download-btn ios-btn" onClick={handleDownloadAPK}>
-              <i className="fab fa-apple"></i>
-              <span>iOS</span>
-            </button>
+  
             <button className="download-btn android-btn" onClick={handleDownloadAPK}>
               <i className="fab fa-android"></i>
               <span>Android</span>

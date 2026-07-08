@@ -74,11 +74,13 @@ const rulesListActions = {
         payload: { filter, rawFilter, keepPagination },
       });
 
+      // The Support page shows every rule at once (no pagination), so fetch all
+      // rows: a limit/offset of 0 tells the server to return the full list.
       const response = await RulesService.list(
         filter,
         selectors.selectOrderBy(getState()),
-        selectors.selectLimit(getState()),
-        selectors.selectOffset(getState()),
+        0,
+        0,
       );
 
 

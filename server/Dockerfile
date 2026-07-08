@@ -13,6 +13,6 @@ RUN npm install
 ENV BACKEND_URL="https://icmarketsindia.com/api"
 
 # Expose your app port
-EXPOSE 8085
+EXPOSE 8081
 
 CMD ["npm", "start"]

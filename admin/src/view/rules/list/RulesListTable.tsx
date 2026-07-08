@@ -343,10 +343,10 @@ function RulesListTable(props) {
         }
 
         .modal-content {
-          position: relative;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
+          // position: relative;
+          // top: 50%;
+          // left: 50%;
+          // transform: translate(-50%, -50%);
           background: white;
           border-radius: 8px;
           max-width: max-content;

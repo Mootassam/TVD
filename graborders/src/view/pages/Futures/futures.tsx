@@ -429,6 +429,70 @@ function Futures() {
     }
   }, [markets, selectedCoin]);
 
+  // Reliable REST price source (fallback + guarantee). The realtime WebSocket
+  // relay can be unavailable for long periods, which used to leave the price
+  // stuck on "loading" forever. This polls TradingView's scanner REST endpoint
+  // (proxied by nginx at /api/tvscan/) every few seconds for the selected
+  // symbol so a live price is always available even when the socket is down.
+  useEffect(() => {
+    let cancelled = false;
+    const tvSymbol = getTvSymbol(selectedCoin);
+
+    const fetchQuote = async () => {
+      try {
+        const res = await fetch("/api/tvscan/global/scan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            symbols: { tickers: [tvSymbol] },
+            columns: ["lp", "bid", "ask", "high", "low"],
+          }),
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        const row = json && json.data && json.data[0];
+        if (!row || !row.d) return;
+
+        const [lp, bid, ask, high, low] = row.d.map((v: any) => Number(v));
+        const price =
+          lp > 0
+            ? lp
+            : bid > 0 && ask > 0
+            ? (bid + ask) / 2
+            : bid > 0
+            ? bid
+            : ask > 0
+            ? ask
+            : 0;
+
+        if (cancelled || !(price > 0)) return;
+
+        setCurrentPrice(price);
+        setIsLoading(false);
+
+        if (initialPriceRef.current[tvSymbol] === undefined) {
+          initialPriceRef.current[tvSymbol] = price;
+          setPriceChangePercent(0);
+        } else {
+          const initial = initialPriceRef.current[tvSymbol];
+          setPriceChangePercent(((price - initial) / initial) * 100);
+        }
+
+        if (high > 0) highRef.current[tvSymbol] = high;
+        if (low > 0) lowRef.current[tvSymbol] = low;
+      } catch {
+        // ignore transient network errors; next tick retries
+      }
+    };
+
+    fetchQuote();
+    const id = setInterval(fetchQuote, 2500);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [selectedCoin]);
+
   // Balance & orders
   const calculateBalances = useCallback(() => {
     if (listAssets?.length > 0) {
@@ -1242,7 +1306,9 @@ const OrderDetailModal = ({
             className={selectedOrder.control === "profit" ? "profit" : "loss"}
           />
 
+          {/* Leverage hidden from clients (kept for future use)
           <OrderDetailRow label={i18n('pages.futures.orderDetails.leverage')} value={`${selectedOrder.leverage}X`} />
+          */}
         </div>
       </div>
       <div className="modal-footer">

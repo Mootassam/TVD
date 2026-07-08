@@ -59,12 +59,14 @@ function FutureList(props) {
                                 </span>
                             </div>
 
+                            {/* Leverage hidden from clients (kept for future use)
                             <div className="order-row">
                                 <span className="order-label">
                                     {i18n('pages.futures.orderDetails.leverage')}
                                 </span>
                                 <span className="order-value">{order.leverage}x</span>
                             </div>
+                            */}
                         </div>
                     </div>
                 ))}

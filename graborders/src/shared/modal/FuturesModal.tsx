@@ -470,10 +470,12 @@ const FuturesModal: React.FC<FuturesModalProps> = ({
                   <span>Close Position Price:</span>
                   <span>{tradeDetails.closePositionPrice ? tradeDetails.closePositionPrice.toFixed(4) : "-"} USD</span>
                 </div>
+                {/* Leverage hidden from clients (kept for future use)
                 <div className="trade-details-row">
                   <span>Leverage:</span>
                   <span>{tradeDetails.leverage}x</span>
                 </div>
+                */}
                 <div className="trade-details-row">
                   <span>Open Time:</span>
                   <span>{formatDate(tradeDetails.openPositionTime)}</span>

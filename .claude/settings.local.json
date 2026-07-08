@@ -25,7 +25,15 @@
       "Bash(awk '/UpadteUserKYC/,/^ }/' src/services/vipServices.ts)",
       "Bash(awk '/static async UpdateKyc/,/^ }/' src/database/repositories/userRepository.ts)",
       "Bash(awk '/static _mapUserForTenantForRows/,/^  }/' src/database/repositories/userRepository.ts)",
-      "Bash(awk '/static _mapUserForTenant\\\\\\(/,/^  }/' src/database/repositories/userRepository.ts)"
+      "Bash(awk '/static _mapUserForTenant\\\\\\(/,/^  }/' src/database/repositories/userRepository.ts)",
+      "Bash(cd /d/TVD/graborders && sed -n '/static async list/,/^  }/p' src/modules/rules/rulesService.tsx 2>/dev/null | head -30)",
+      "Bash(curl -s -m 15 -X POST 'https://scanner.tradingview.com/global/scan' -H 'Content-Type: application/json' -H 'User-Agent: Mozilla/5.0' --data '{\"symbols\":{\"tickers\":[\"FX:EURUSD\",\"BINANCE:BTCUSDT\"]},\"columns\":[\"lp\",\"bid\",\"ask\",\"ch\",\"chp\",\"high\",\"low\"]}')",
+      "Bash(echo \"=== EXIT: $? ===\")",
+      "Bash(curl -s -m 15 -X POST 'https://scanner.tradingview.com/global/scan' -H 'Content-Type: application/json' -H 'User-Agent: Mozilla/5.0' --data '{\"symbols\":{\"tickers\":[\"FX:EURUSD\"]},\"columns\":[\"lp\",\"bid\",\"ask\",\"high\",\"low\"]}')",
+      "Bash(echo \"EXIT: $?\")"
+    ],
+    "additionalDirectories": [
+      "d:\\d\\TVD\\graborders\\src\\modules\\rules"
     ]
   }
 }

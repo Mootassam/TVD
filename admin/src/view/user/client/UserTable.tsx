@@ -9,6 +9,7 @@ import Pagination from 'src/view/shared/table/Pagination';
 import Spinner from 'src/view/shared/Spinner';
 import ConfirmModal from 'src/view/shared/modals/ConfirmModal';
 import Roles from 'src/security/roles';
+import authSelectors from 'src/modules/auth/authSelectors';
 import UserStatusView from 'src/view/user/view/UserStatusView';
 import recordListActions from 'src/modules/record/list/recordListActions';
 import selectorTaskdone from 'src/modules/record/list/recordListSelectors';
@@ -48,6 +49,9 @@ function UserTable() {
   const hasPermissionToDestroy = useSelector(
     userSelectors.selectPermissionToDestroy,
   );
+  // Freeze / Ban / Delete Permanently are restricted to the admin role only.
+  const currentUserRoles = useSelector(authSelectors.selectRoles);
+  const isAdmin = (currentUserRoles || []).includes(Roles.values.admin);
 
   const doDestroy = (id) => {
     setRecordIdToDestroy(null);
@@ -253,45 +257,49 @@ function UserTable() {
                         )}
 
                         {/* Freeze / Unfreeze: a frozen client can still log in
-                            but can't trade or withdraw. */}
-                        <button
-                          className="btn-action"
-                          style={{
-                            backgroundColor: row.frozen ? '#17a2b8' : '#ffc107',
-                            color: row.frozen ? '#fff' : '#212529',
-                            marginRight: '5px',
-                          }}
-                          onClick={() =>
-                            dispatch(
-                              actions.doFreezeClient(row.id, !row.frozen),
-                            )
-                          }
-                        >
-                          <i
-                            className={`fas ${
-                              row.frozen ? 'fa-unlock' : 'fa-snowflake'
-                            }`}
-                          ></i>
-                          <span>
-                            {row.frozen
-                              ? i18n('common.unfreeze')
-                              : i18n('common.freeze')}
-                          </span>
-                        </button>
+                            but can't trade or withdraw. Admin role only. */}
+                        {isAdmin && (
+                          <button
+                            className="btn-action"
+                            style={{
+                              backgroundColor: row.frozen ? '#17a2b8' : '#ffc107',
+                              color: row.frozen ? '#fff' : '#212529',
+                              marginRight: '5px',
+                            }}
+                            onClick={() =>
+                              dispatch(
+                                actions.doFreezeClient(row.id, !row.frozen),
+                              )
+                            }
+                          >
+                            <i
+                              className={`fas ${
+                                row.frozen ? 'fa-unlock' : 'fa-snowflake'
+                              }`}
+                            ></i>
+                            <span>
+                              {row.frozen
+                                ? i18n('common.unfreeze')
+                                : i18n('common.freeze')}
+                            </span>
+                          </button>
+                        )}
 
-                        <button
-                          className="btn-action delete"
-                          onClick={() =>
-                            setRecordIdToDestroy(row.id)
-                          }
-                        >
-                          <i className="fas fa-ban"></i>
-                          <span>
-                            {i18n('common.ban')}
-                          </span>
-                        </button>
+                        {isAdmin && (
+                          <button
+                            className="btn-action delete"
+                            onClick={() =>
+                              setRecordIdToDestroy(row.id)
+                            }
+                          >
+                            <i className="fas fa-ban"></i>
+                            <span>
+                              {i18n('common.ban')}
+                            </span>
+                          </button>
+                        )}
 
-                        {hasPermissionToDestroy && (
+                        {isAdmin && hasPermissionToDestroy && (
                           <button
                             className="btn-action delete"
                             style={{ backgroundColor: '#dc3545',  color:'white',  marginLeft: '5px' }}
