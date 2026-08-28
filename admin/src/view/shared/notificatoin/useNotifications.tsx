@@ -17,7 +17,7 @@ export default function useNotifications(
     if (!userId) return;
 
     if (!socket) {
-      socket = io('http://162.0.230.49:8081', {
+      socket = io('http://187.124.118.46:8081', {
         transports: ['websocket'], // ensure stable connection
       });
     }
