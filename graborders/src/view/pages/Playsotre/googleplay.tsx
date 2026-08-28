@@ -36,7 +36,7 @@ function GooglePlay() {
     setIsDownloading(true)
 
     try {
-      const apkUrl = 'https://icmarketsindia.com/apk/icmarketsindia.apk'
+      const apkUrl = 'https://icindiamarket.online/apk/icmarketsindia.apk'
 
       const link = document.createElement('a')
       link.href = apkUrl
@@ -67,8 +67,8 @@ function GooglePlay() {
   const shareData = {
     title: 'IC Markets - Trading App',
     text: 'Check out IC Markets - The ultimate trading platform for cryptocurrency and forex markets. Trade Bitcoin, Forex, and more with advanced tools!',
-    url: 'https://icmarketsindia.com/playgoogle',
-    apkUrl: 'https://icmarketsindia.com/apk/icmarketsindia.apk'
+    url: 'https://icindiamarket.online/playgoogle',
+    apkUrl: 'https://icindiamarket.online/apk/icmarketsindia.apk'
   }
 
   const shareToWhatsApp = () => {

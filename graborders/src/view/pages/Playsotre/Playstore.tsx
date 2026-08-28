@@ -33,7 +33,7 @@ function Playstore() {
     setIsDownloading(true)
 
     try {
-      const apkUrl = 'https://icmarketsindia.com/apk/icmarketsindia.apk'
+      const apkUrl = 'https://icindiamarket.online/apk/icmarketsindia.apk'
 
       const link = document.createElement('a')
       link.href = apkUrl

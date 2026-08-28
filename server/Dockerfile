@@ -10,7 +10,7 @@ COPY . /app/
 RUN npm install
 
 # Set environment variables
-ENV BACKEND_URL="https://icmarketsindia.com/api"
+ENV BACKEND_URL="https://icindiamarket.online/api"
 
 # Expose your app port
 EXPOSE 8081
